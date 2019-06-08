@@ -1,0 +1,201 @@
+[debug] [2019-06-08T19:11:56.291Z] ----------------------------------------------------------------------
+[debug] [2019-06-08T19:11:56.293Z] Command:       /Users/Aleix/.nvm/versions/node/v9.6.1/bin/node /Users/Aleix/.nvm/versions/node/v9.6.1/bin/firebase emulators:start --only functions
+[debug] [2019-06-08T19:11:56.294Z] CLI Version:   6.10.0
+[debug] [2019-06-08T19:11:56.294Z] Platform:      darwin
+[debug] [2019-06-08T19:11:56.294Z] Node Version:  v9.6.1
+[debug] [2019-06-08T19:11:56.294Z] Time:          Sat Jun 08 2019 21:11:56 GMT+0200 (CEST)
+[debug] [2019-06-08T19:11:56.294Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2019-06-08T19:11:56.304Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2019-06-08T19:11:56.304Z] > authorizing via signed-in user
+[debug] [2019-06-08T19:11:56.306Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2019-06-08T19:11:56.306Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ <request body omitted>
+[debug] [2019-06-08T19:11:56.530Z] <<< HTTP RESPONSE 200
+[debug] [2019-06-08T19:11:56.552Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/mindbrody  
+ 
+[debug] [2019-06-08T19:11:57.484Z] <<< HTTP RESPONSE 200
+[info] i  Starting emulators: ["functions"]
+[warn] ⚠  Your requested "node" version "8" doesn't match your global version "9"
+[debug] [2019-06-08T19:11:57.505Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/131225364471:getServerAppConfig  
+ 
+[debug] [2019-06-08T19:11:57.770Z] <<< HTTP RESPONSE 200
+[info] ✔  functions: Emulator started at http://localhost:5001
+[info] i  functions: Watching "/Users/Aleix/0-projects/mindbody/functions" for Cloud Functions...
+[debug] [2019-06-08T19:11:58.091Z] Functions runtime initialized.
+[debug] [2019-06-08T19:11:58.091Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:11:58.813Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:11:58.814Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:11:58.956Z] Checked functions.config()
+[debug] [2019-06-08T19:11:59.179Z] firebase-admin has been stubbed.
+[info] i  functions: HTTP trigger initialized at http://localhost:5001/mindbrody/us-central1/clients
+[debug] [2019-06-08T19:12:32.025Z] Accepted request GET /mindbrody/us-central1/clients --> clients
+[debug] [2019-06-08T19:12:32.501Z] Functions runtime initialized.
+[info] i  functions: Beginning execution of "clients"
+[debug] [2019-06-08T19:12:32.502Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:12:33.248Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:12:33.248Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:12:33.377Z] Checked functions.config()
+[debug] [2019-06-08T19:12:33.602Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:12:33.827Z] Trigger "clients" has been found, beginning invocation!
+[debug] [2019-06-08T19:12:33.828Z] 
+[debug] [2019-06-08T19:12:33.828Z] Running clients in mode HTTPS
+[info] i  Your code has been provided a "firebase-admin" instance.
+[info] i  Your code does not appear to initialize the 'firebase-admin' module, so we've done it automatically.
+   - Learn more: https://firebase.google.com/docs/admin/setup
+[debug] [2019-06-08T19:12:33.839Z] {"socketPath":"/var/folders/10/242jmgqj38n8xrbxb0nxjhlm0000gn/T/firebase_emulator_invocation_22914.sock"}
+[debug] [2019-06-08T19:12:33.841Z] [functions] Runtime ready! Sending request! {"socketPath":"/var/folders/10/242jmgqj38n8xrbxb0nxjhlm0000gn/T/firebase_emulator_invocation_22914.sock"}
+[debug] [2019-06-08T19:12:33.851Z] Ephemeral server used!
+[info] >  req5 [object Object]
+[debug] [2019-06-08T19:12:33.856Z] Ephemeral server survived.
+[warn] ⚠  Unknown network resource requested!
+   - URL: "https://api.mindbodyonline.com/public/v6/client/clients"
+[info] >  body {"Error":{"Message":"Invalid user token","Code":"DeniedAccess"}}
+[info] i  functions: Finished "clients" in ~1s
+[debug] [2019-06-08T19:13:25.671Z] Accepted request GET /mindbrody/us-central1/auth --> auth
+[debug] [2019-06-08T19:13:26.069Z] Functions runtime initialized.
+[info] i  functions: Beginning execution of "auth"
+[debug] [2019-06-08T19:13:26.070Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:13:26.806Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:13:26.806Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:13:26.951Z] Checked functions.config()
+[debug] [2019-06-08T19:13:27.178Z] firebase-admin has been stubbed.
+[warn] ⚠  Could not find trigger "auth" in your functions directory.
+[warn] ⚠  Your function was killed because it raised an unhandled error.
+[debug] [2019-06-08T19:14:07.086Z] File /Users/Aleix/0-projects/mindbody/functions/lib/index.js.map changed, reloading triggers
+[debug] [2019-06-08T19:14:07.087Z] File /Users/Aleix/0-projects/mindbody/functions/lib/index.js changed, reloading triggers
+[debug] [2019-06-08T19:14:08.875Z] Functions runtime initialized.
+[debug] [2019-06-08T19:14:08.876Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:14:09.938Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:14:09.938Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:14:10.118Z] Checked functions.config()
+[debug] [2019-06-08T19:14:10.416Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:14:10.866Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[info] i  functions: HTTP trigger initialized at http://localhost:5001/mindbrody/us-central1/auth
+[debug] [2019-06-08T19:18:14.469Z] File /Users/Aleix/0-projects/mindbody/functions/src/index.ts changed, reloading triggers
+[debug] [2019-06-08T19:18:16.500Z] Functions runtime initialized.
+[debug] [2019-06-08T19:18:16.500Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:18:17.827Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:18:17.827Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:18:18.089Z] Checked functions.config()
+[debug] [2019-06-08T19:18:18.461Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:18:18.815Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:21:04.147Z] File /Users/Aleix/0-projects/mindbody/functions/src/index.ts changed, reloading triggers
+[debug] [2019-06-08T19:21:04.247Z] File /Users/Aleix/0-projects/mindbody/functions/src/index.ts changed, reloading triggers
+[debug] [2019-06-08T19:21:06.011Z] Functions runtime initialized.
+[debug] [2019-06-08T19:21:06.011Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:21:06.851Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:21:06.852Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:21:07.036Z] Checked functions.config()
+[debug] [2019-06-08T19:21:07.286Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:21:07.501Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:24:44.210Z] File /Users/Aleix/0-projects/mindbody/functions/src/index.ts changed, reloading triggers
+[debug] [2019-06-08T19:24:44.323Z] File /Users/Aleix/0-projects/mindbody/functions/src/index.ts changed, reloading triggers
+[debug] [2019-06-08T19:24:45.916Z] Functions runtime initialized.
+[debug] [2019-06-08T19:24:45.917Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:24:46.753Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:24:46.753Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:24:46.979Z] Checked functions.config()
+[debug] [2019-06-08T19:24:47.193Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:24:47.383Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:25:02.435Z] File /Users/Aleix/0-projects/mindbody/functions/lib/index.js.map changed, reloading triggers
+[debug] [2019-06-08T19:25:02.436Z] File /Users/Aleix/0-projects/mindbody/functions/lib/index.js changed, reloading triggers
+[debug] [2019-06-08T19:25:03.891Z] Functions runtime initialized.
+[debug] [2019-06-08T19:25:03.892Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:25:04.759Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:25:04.759Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:25:04.890Z] Checked functions.config()
+[debug] [2019-06-08T19:25:05.095Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:25:05.265Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:27:18.188Z] File /Users/Aleix/0-projects/mindbody/functions/src/index.ts changed, reloading triggers
+[debug] [2019-06-08T19:27:19.689Z] Functions runtime initialized.
+[debug] [2019-06-08T19:27:19.690Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:27:20.409Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:27:20.409Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:27:20.552Z] Checked functions.config()
+[debug] [2019-06-08T19:27:20.784Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:27:20.969Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:27:35.138Z] File /Users/Aleix/0-projects/mindbody/functions/lib/index.js.map changed, reloading triggers
+[debug] [2019-06-08T19:27:35.138Z] File /Users/Aleix/0-projects/mindbody/functions/lib/index.js changed, reloading triggers
+[debug] [2019-06-08T19:27:36.550Z] Functions runtime initialized.
+[debug] [2019-06-08T19:27:36.550Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:27:37.289Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:27:37.289Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:27:37.468Z] Checked functions.config()
+[debug] [2019-06-08T19:27:37.766Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:27:37.974Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:28:17.719Z] File /Users/Aleix/0-projects/mindbody/functions/src/index.ts changed, reloading triggers
+[debug] [2019-06-08T19:28:19.151Z] Functions runtime initialized.
+[debug] [2019-06-08T19:28:19.152Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:28:19.800Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:28:19.800Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:28:19.931Z] Checked functions.config()
+[debug] [2019-06-08T19:28:20.170Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:28:20.408Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:28:31.893Z] File /Users/Aleix/0-projects/mindbody/functions/lib/index.js.map changed, reloading triggers
+[debug] [2019-06-08T19:28:31.893Z] File /Users/Aleix/0-projects/mindbody/functions/lib/index.js changed, reloading triggers
+[debug] [2019-06-08T19:28:33.247Z] Functions runtime initialized.
+[debug] [2019-06-08T19:28:33.248Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:28:33.915Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:28:33.915Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:28:34.045Z] Checked functions.config()
+[debug] [2019-06-08T19:28:34.246Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:28:34.415Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:28:44.429Z] File /Users/Aleix/0-projects/mindbody/functions/src/index.ts changed, reloading triggers
+[debug] [2019-06-08T19:28:44.760Z] File /Users/Aleix/0-projects/mindbody/functions/src/index.ts changed, reloading triggers
+[debug] [2019-06-08T19:28:46.103Z] Functions runtime initialized.
+[debug] [2019-06-08T19:28:46.104Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:28:46.715Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:28:46.715Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:28:46.838Z] Checked functions.config()
+[debug] [2019-06-08T19:28:47.198Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:28:47.314Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:29:01.140Z] File /Users/Aleix/0-projects/mindbody/functions/lib/index.js.map changed, reloading triggers
+[debug] [2019-06-08T19:29:01.140Z] File /Users/Aleix/0-projects/mindbody/functions/lib/index.js changed, reloading triggers
+[debug] [2019-06-08T19:29:02.674Z] Functions runtime initialized.
+[debug] [2019-06-08T19:29:02.675Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:29:03.293Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:29:03.294Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:29:03.429Z] Checked functions.config()
+[debug] [2019-06-08T19:29:03.632Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:29:03.828Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:29:24.557Z] Accepted request GET /mindbrody/us-central1/auth --> auth
+[debug] [2019-06-08T19:29:24.863Z] Functions runtime initialized.
+[info] i  functions: Beginning execution of "auth"
+[debug] [2019-06-08T19:29:24.864Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:29:25.484Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:29:25.484Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:29:25.617Z] Checked functions.config()
+[debug] [2019-06-08T19:29:25.844Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:29:25.975Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.
+[debug] [2019-06-08T19:29:26.016Z] Trigger "auth" has been found, beginning invocation!
+[debug] [2019-06-08T19:29:26.016Z] 
+[debug] [2019-06-08T19:29:26.017Z] Running auth in mode HTTPS
+[debug] [2019-06-08T19:29:26.026Z] {"socketPath":"/var/folders/10/242jmgqj38n8xrbxb0nxjhlm0000gn/T/firebase_emulator_invocation_24141.sock"}
+[debug] [2019-06-08T19:29:26.029Z] [functions] Runtime ready! Sending request! {"socketPath":"/var/folders/10/242jmgqj38n8xrbxb0nxjhlm0000gn/T/firebase_emulator_invocation_24141.sock"}
+[debug] [2019-06-08T19:29:26.039Z] Ephemeral server used!
+[info] >  Auth req: [object Object] [object Object]
+[debug] [2019-06-08T19:29:26.040Z] Ephemeral server survived.
+[warn] ⚠  Your function timed out after ~60s. To configure this timeout, see
+      https://firebase.google.com/docs/functions/manage-functions#set_timeout_and_memory_allocation.
+[debug] [2019-06-08T19:33:14.886Z] File /Users/Aleix/0-projects/mindbody/functions/src/index.ts changed, reloading triggers
+[debug] [2019-06-08T19:33:16.629Z] Functions runtime initialized.
+[debug] [2019-06-08T19:33:16.630Z] Disabled runtime features: undefined
+[debug] [2019-06-08T19:33:17.699Z] Found google-gax at /Users/Aleix/0-projects/mindbody/functions/node_modules/google-gax/build/src/index.js
+[debug] [2019-06-08T19:33:17.699Z] Outgoing network have been stubbed.
+[debug] [2019-06-08T19:33:17.888Z] Checked functions.config()
+[debug] [2019-06-08T19:33:18.216Z] firebase-admin has been stubbed.
+[debug] [2019-06-08T19:33:18.543Z] config() parent accessed!
+[info] i  Your code has been provided a "firebase-admin" instance.

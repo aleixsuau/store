@@ -3,7 +3,13 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  firebase: {
+    apiKey: 'AIzaSyAfYGgiPE1QsSV3CcIj9yKlgeDquOil6M0',
+    authDomain: 'mindbrody.firebaseapp.com',
+    projectId: 'mindbrody',
+    functions_path: 'http://localhost:5001/mindbrody/us-central1',
+  }
 };
 
 /*

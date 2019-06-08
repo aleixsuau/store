@@ -1,0 +1,40 @@
+<div fxLayout
+     fxLayoutAlign="center center" style="height: 100%;">
+  <div class="login">
+    <div class="login-header" fxLayout="column" fxLayoutAlign="center center">
+    </div>
+
+    <form [formGroup]="loginForm" fxLayout="column" novalidate>
+      <div class="login-content" fxLayout="column" fxLayoutAlign="start stretch">
+          <div class="invalid_error_message" *ngIf="invalidErrorMessage">
+            <p>No MindBody User with this data, please contact your administrator.</p>
+          </div>
+
+          <mat-form-field>
+            <input matInput
+                   formControlName="username"
+                   type="email"
+                   placeholder="Username"
+                   fxFlex="100">
+          </mat-form-field>
+
+          <mat-form-field>
+            <input matInput
+                  formControlName="password"
+                  type="password"
+                  (keyup.enter)="login(loginForm.get('username').value, loginForm.get('password').value)"
+                  placeholder="Password"
+                  fxFlex="100">
+          </mat-form-field>
+
+          <button mat-raised-button
+                  color="primary"
+                  type="button"
+                  (click)="login(loginForm.get('username').value, loginForm.get('password').value)"
+                  [disabled]="loginForm.invalid || invalidErrorMessage">
+            login
+          </button>
+      </div>
+    </form>
+  </div>
+</div>
