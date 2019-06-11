@@ -1,1 +1,9 @@
+<mat-toolbar fxLayout
+             fxLayoutAlign="space-between center">
+  <div fxFlex="0 0 auto">MINDBRO</div>
+
+  <div fxFlex="0 0 auto">
+    {{ (user$ | async)?.FirstName }} {{ (user$ | async)?.LastName }}
+  </div>
+</mat-toolbar>
 <router-outlet></router-outlet>

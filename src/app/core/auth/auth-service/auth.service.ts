@@ -3,8 +3,8 @@ import { environment } from './../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { map, publishReplay, refCount } from 'rxjs/operators';
 import { AngularFireAuth } from '@angular/fire/auth';
 
 /**
@@ -13,7 +13,7 @@ import { AngularFireAuth } from '@angular/fire/auth';
  *   of ':siteId'.
  *
  * - All ':siteId' childs but 'login' have a canActivate and canActivateChild guard
- *   that ckecks if the user is authenticated through this.authService.getUser(). If not, the
+ *   that ckecks if the user is authenticated through this.authService.activeUserSession(). If not, the
  *   user is redirected to the 'login' state.
  *
  *   The user's authetication is checked in every route change inside
@@ -54,6 +54,9 @@ export class AuthService {
     return this._redirectUrl;
   }
 
+  private _user: BehaviorSubject<IUser> = new BehaviorSubject(null);
+  readonly user$: Observable<IUser> = this._user.asObservable().pipe(publishReplay(1), refCount());
+
   constructor(
     private httpClient: HttpClient,
     private angularFireAuth: AngularFireAuth,
@@ -61,7 +64,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  getUser() {
+  activeUserSession() {
     return this.angularFireAuth.auth.currentUser;
   }
 
@@ -72,6 +75,7 @@ export class AuthService {
                     map(response => {
                       if (response.AccessToken) {
                         this._token = response.AccessToken;
+                        this._user.next(response.User);
                         this.angularFireAuth.auth.signInAnonymously();
 
                         return response;
@@ -84,6 +88,7 @@ export class AuthService {
 
   logout() {
     this.angularFireAuth.auth.signOut();
+    this._user.next(null);
     this.router.navigate([`${this.configService.siteId}/login`]);
   }
 }

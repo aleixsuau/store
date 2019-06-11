@@ -1,3 +1,4 @@
+import { SharedModule } from './../shared/shared.module';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -17,6 +18,7 @@ import { LoadingModule } from './loading/loading.module';
     BrowserAnimationsModule,
     AuthModule,
     LoadingModule,
+    SharedModule,
   ],
   providers: [
     ConfigService,

@@ -17,7 +17,7 @@ export class AuthGuard implements CanActivate {
 
     const url: string = state.url;
 
-    if (this.authService.getUser()) {
+    if (this.authService.activeUserSession()) {
       return true;
     } else {
       this.authService.redirectUrl = url;
