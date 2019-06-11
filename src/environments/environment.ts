@@ -8,7 +8,8 @@ export const environment = {
     apiKey: 'AIzaSyAfYGgiPE1QsSV3CcIj9yKlgeDquOil6M0',
     authDomain: 'mindbrody.firebaseapp.com',
     projectId: 'mindbrody',
-    functions_path: 'http://localhost:5001/mindbrody/us-central1',
+    functions_path: 'https://us-central1-mindbrody.cloudfunctions.net/api',
+    // functions_path: 'http://localhost:5001/mindbrody/us-central1',
   }
 };
 

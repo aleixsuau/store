@@ -36,7 +36,6 @@ export class ClientsListComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.clients = this.activatedRoute.snapshot.data.clients.Clients;
-    console.log('ngOnInit', this.clients)
     this.dataSource = new MatTableDataSource(this.clients);
   }
 

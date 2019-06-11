@@ -1,4 +1,4 @@
-import { ConfigService } from './../../services/config/config.service';
+import { ConfigService } from '../../config/service/config.service';
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../auth-service/auth.service';
@@ -16,7 +16,7 @@ export class AuthGuard implements CanActivate {
     this.configService.siteId = siteId;
 
     const url: string = state.url;
-    console.log('siteId', siteId, url);
+
     if (this.authService.getUser()) {
       return true;
     } else {

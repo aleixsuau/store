@@ -1,11 +1,11 @@
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpHeaders } from '@angular/common/http';
 import { Injectable, Injector } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../auth-service/auth.service';
-import { ConfigService } from '../../services/config/config.service';
+import { ConfigService } from '../../config/service/config.service';
 
 @Injectable()
-export class TokenInterceptor implements HttpInterceptor {
+export class AuthInterceptor implements HttpInterceptor {
   private authService: AuthService;
   private configService: ConfigService;
 
@@ -17,13 +17,11 @@ export class TokenInterceptor implements HttpInterceptor {
     this.authService = this.injector.get(AuthService);
     this.configService = this.injector.get(ConfigService);
 
-    console.log('intercept', this.authService.token, this.configService.siteId)
-
     const authReq = request.clone({
       setHeaders: {
-        Authorization: this.authService.token || null,
-        siteId: this.configService.siteId || null,
-      }
+        Authorization: this.authService.token || '',
+        siteId: this.configService.siteId || '',
+      },
     });
 
     return next.handle(authReq);

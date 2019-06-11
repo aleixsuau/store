@@ -1,3 +1,7 @@
+interface IAppConfig {
+  token: string;
+}
+
 interface IClient {}
 
 interface IAuthData {

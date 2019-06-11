@@ -1,4 +1,3 @@
-import { HttpClient } from '@angular/common/http';
 import { fadeAnimation } from '../../../../shared/animations/animations';
 import { Component, OnInit, HostBinding } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -54,14 +53,11 @@ export class LoginComponent implements OnInit {
             .subscribe(
               () => {
                 const redirectUrl = this.authService.redirectUrl || '';
-                console.log('redirectUrl', redirectUrl)
                 this.router.navigate([redirectUrl]);
-              }
-              /* (error) => {
-                console.log('error', error)
+              },
+              (error) => {
                 this.invalidErrorMessage = true;
-              } */
+              }
             );
   }
-
 }
