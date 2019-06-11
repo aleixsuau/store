@@ -6,18 +6,24 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigService } from './config/service/config.service';
 import { BaseComponent } from './components/base/base.component';
 import { RouterModule } from '@angular/router';
+import { LoadingModule } from './loading/loading.module';
 
 @NgModule({
   declarations: [BaseComponent],
   imports: [
     BrowserModule,
     CommonModule,
+    RouterModule,
     BrowserAnimationsModule,
     AuthModule,
-    RouterModule,
+    LoadingModule,
   ],
   providers: [
     ConfigService,
+  ],
+  exports: [
+    AuthModule,
+    LoadingModule,
   ]
 })
 export class CoreModule { }
