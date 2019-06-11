@@ -1,0 +1,54 @@
+eo
+
+<div class="table-container">
+  <mat-table [dataSource]="dataSource"
+             [trackBy]="trackBy"
+             matSort
+             #table
+             @fade>
+    <mat-header-row class="table-header"
+                    *matHeaderRowDef="columns"
+                    color="primary"
+                    @fade>
+    </mat-header-row>
+
+    <mat-row *matRowDef="let item; columns: columns; let index = index"
+             [ngClass]="{'highlight': index%2 == 1}">
+    </mat-row>
+
+    <ng-container matColumnDef="PhotoUrl">
+      <mat-header-cell *matHeaderCellDef mat-sort-header></mat-header-cell>
+      <mat-cell *matCellDef="let item">
+        <div class="profile_image"
+             [ngStyle]="{ 'background-image': 'url(' + (item.PhotoUrl || '/assets/images/user_profile_icon.svg') + ')',
+                       'background-size': 'cover'}">
+        </div>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="FirstName">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>FIRST NAME</mat-header-cell>
+      <mat-cell *matCellDef="let item">{{ item.FirstName }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="LastName">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>LAST NAME</mat-header-cell>
+      <mat-cell *matCellDef="let item">{{ item.LastName }}</mat-cell>
+    </ng-container>
+  </mat-table>
+
+  <div class="table-message"
+        *ngIf="!clients?.length">
+    {{ 'Sorry, no results' }}
+  </div>
+
+  <div class="table-footer"
+       fxLayout="row"
+       fxLayoutAlign="end end">
+    <mat-paginator [length]="clients?.length"
+                    [pageSize]="pageSize"
+                    [pageSizeOptions]="pageSizeOptions"
+                    showFirstLastButtons="true">
+    </mat-paginator>
+  </div>
+</div>
