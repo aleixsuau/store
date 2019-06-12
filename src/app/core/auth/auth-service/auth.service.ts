@@ -37,21 +37,11 @@ import { AngularFireAuth } from '@angular/fire/auth';
 
 @Injectable()
 export class AuthService {
-  // Save the guarded url to redirect to it when the user logs in
-  private _redirectUrl: string;
   private _endPoint = 'auth';
   private _token: string;
 
   get token() {
     return this._token;
-  }
-
-  set redirectUrl(redirectUrl: string) {
-    this._redirectUrl = redirectUrl;
-  }
-
-  get redirectUrl() {
-    return this._redirectUrl;
   }
 
   private _user: BehaviorSubject<IUser> = new BehaviorSubject(null);

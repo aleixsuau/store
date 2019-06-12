@@ -1,7 +1,8 @@
+import { HttpClient } from '@angular/common/http';
 import { fadeAnimation } from '../../../../shared/animations/animations';
 import { Component, OnInit, HostBinding } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { transition, trigger, useAnimation } from '@angular/animations';
 import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 
@@ -32,6 +33,7 @@ export class LoginComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private formBuilder: FormBuilder,
+    private activatedRoute: ActivatedRoute,
   ) { }
 
   ngOnInit() {
@@ -52,12 +54,12 @@ export class LoginComponent implements OnInit {
             .login(username, password)
             .subscribe(
               () => {
-                const redirectUrl = this.authService.redirectUrl || '';
-                this.router.navigate([redirectUrl]);
+                this.router.navigate([`../`], { relativeTo: this.activatedRoute });
               },
               (error) => {
                 this.invalidErrorMessage = true;
               }
             );
   }
+
 }
