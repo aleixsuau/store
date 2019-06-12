@@ -15,8 +15,6 @@ export class AuthGuard implements CanActivate {
     const siteId = route.params['siteId'];
     this.configService.siteId = siteId;
 
-    const url: string = state.url;
-
     if (this.authService.activeUserSession()) {
       return true;
     } else {

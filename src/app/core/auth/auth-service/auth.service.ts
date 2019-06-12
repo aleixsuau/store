@@ -13,25 +13,27 @@ import { AngularFireAuth } from '@angular/fire/auth';
  *   of ':siteId'.
  *
  * - All ':siteId' childs but 'login' have a canActivate and canActivateChild guard
- *   that ckecks if the user is authenticated through this.authService.activeUserSession(). If not, the
- *   user is redirected to the 'login' state.
+ *   that ckecks if the user is authenticated through this.authService.activeUserSession().
+ *   This method uses Firebase Auth to create an anonymous sessions that allows the user
+ *   access the app.
  *
- *   The user's authetication is checked in every route change inside
- *   the ':siteId' state.
+ * - The user's authetication is checked in every route change inside the ':siteId' state.
+ *   If is not authenticated, the user is redirected to the 'login' state.
  *
  *  - The auth.interceptor attaches this siteId and the auth token to the headers of every
- * communication.
+ *    communication with the server.
  *
  * - The auth session process works like this:
  *    - The user log in with Username and Password and SiteId (we get it from the route)
- *    - We Find the apiKey for the siteId on our server (private, only used inside the server)
- *    - We Login in MindBody with the user data and we get a token.
- *        - The token allows the user to read.
+ *    - The data is sent to the Firebase Cloud Function 'auth'.
+ *    - It finds the apiKey for the siteId on our database (private, only used inside the server)
+ *    - It logs in in MindBody with the user data and returns the IAppConfig (token + IUser)
+ *        - The token allows the user to read from the MindBody API (Through our Firebase Cloud Functions)
  *        - The token (and the siteId) will be attached to every communications (auth.interceptor).
- *    - We start a FireBase anonymous session wich will allow to access firebase data.
- *    - If MindBody fires an Unauthorized error (403), we logout the user from the app.
+ *    - The app starts a FireBase anonymous session wich will allow the user to access all the app.
+ *    - If MindBody fires an Unauthorized error (403), the app logs out the user from the app.
  *
- * - All the MindBody data operations are done through our FireBase service so we keep the control
+ * - All the MindBody data operations are done through our FireBase Cloud Functions so we keep the control
  * of the data flow (counters, caché, modifications...).
  **/
 
@@ -58,7 +60,7 @@ export class AuthService {
     return this.angularFireAuth.auth.currentUser;
   }
 
-  login(username: string, password: string): Observable<any> {
+  login(username: string, password: string): Observable<IAuthData> {
     return this.httpClient
                   .post<IAuthData>(`${environment.firebase.functions_path}/${this._endPoint}`, {username, password})
                   .pipe(
