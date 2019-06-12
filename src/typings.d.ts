@@ -1,5 +1,6 @@
 interface IAppConfig {
   token: string;
+  backgroundImage: string;
 }
 
 interface IClient {}

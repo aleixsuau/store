@@ -1,9 +1,16 @@
-<mat-toolbar fxLayout
-             fxLayoutAlign="space-between center">
-  <div fxFlex="0 0 auto">MINDBRO</div>
+<div [ngStyle]="{
+                  'background-image': 'url(' + (appConfig$ | async)?.backgroundImage + ')',
+                  'background-size': 'cover',
+                  'background-position': 'center',
+                  'height': '100vh'
+                }">
+  <mat-toolbar fxLayout
+              fxLayoutAlign="space-between center">
+    <div fxFlex="0 0 auto">MINDBRO</div>
 
-  <div fxFlex="0 0 auto">
-    {{ (user$ | async)?.FirstName }} {{ (user$ | async)?.LastName }}
-  </div>
-</mat-toolbar>
-<router-outlet></router-outlet>
+    <div fxFlex="0 0 auto">
+      {{ (user$ | async)?.FirstName }} {{ (user$ | async)?.LastName }}
+    </div>
+  </mat-toolbar>
+  <router-outlet></router-outlet>
+</div>

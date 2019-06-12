@@ -1,6 +1,8 @@
 import { environment } from './../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { publishReplay, refCount, map } from 'rxjs/operators';
 
 /** CONFIG SERVICE EXPLANATION
  * Before loading any route, the app resolves the app's config (see app-routing.module)
@@ -19,6 +21,9 @@ export class ConfigService {
   endPoint = 'config';
   private _siteId: string;
 
+  private _config = new BehaviorSubject<IAppConfig>(null);
+  readonly config$ = this._config.asObservable().pipe(publishReplay(1), refCount());
+
   set siteId(id: string) {
     this._siteId = id;
   }
@@ -34,6 +39,14 @@ export class ConfigService {
   getConfig(siteId: string) {
     this.siteId = siteId;
 
-    return this.httpClient.get<IAppConfig>(`${environment.firebase.functions_path}/${this.endPoint}/${siteId}`);
+    return this.httpClient
+                .get<IAppConfig>(`${environment.firebase.functions_path}/${this.endPoint}/${siteId}`)
+                .pipe(
+                  map(appConfig => {
+                    this._config.next(appConfig);
+
+                    return appConfig;
+                  })
+                );
   }
 }
