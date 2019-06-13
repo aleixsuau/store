@@ -104,7 +104,9 @@ function _getClients(siteId: string, token: string, res: express.Response) {
           url: `${baseUrl}/client/clients`,
           headers,
         }, (error, response, body) => {
-          if (error) {
+          if (error || body.Error) {
+            console.log('_getAppConfig error', error)
+
             res.status(500).send({message: 'Server error getting clients: ', error});
           } else {
             res.status(200).send(body);
@@ -114,8 +116,13 @@ function _getClients(siteId: string, token: string, res: express.Response) {
     .catch(error => res.status(500).send(error));
 };
 
+function _handleErrors(siteId: string, token: string, body: any,  res: express.Response) {
+  console.log('_handleErrors', siteId, token, body);
+}
+
 // build multiple CRUD interfaces:
 // server.get('/config/:siteId', (req, res) => res.send(_getConfig(req.params.siteId, req, res)));
+server.post('/errors', (req, res) => _handleErrors(req.get('siteId'), req.get('Authorization'), req.body, res));
 server.get('/clients', (req, res) => _getClients(req.get('siteId'), req.get('Authorization'), res));
 server.post('/auth', (req, res) => _login(req.get('siteId'), req.body.username, req.body.password, res, req));
 server.get('/config/:siteId', (req, res) => _getConfig(req.get('siteId'), req, res));
@@ -127,10 +134,6 @@ server.get('/', (req, res) => res.send(Widgets.list())); */
 
 // Expose Express API as a single Cloud Function:
 exports.api = functions.https.onRequest(server);
-
-// TESTS
-export const login = functions.https.onRequest((req, res) => _login(req.body.siteId, req.body.username, req.body.password, res));
-
 
 
 // Initialize admin
