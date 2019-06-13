@@ -1,9 +1,33 @@
-<mat-toolbar fxLayout
-            fxLayoutAlign="space-between center">
-  <div fxFlex="0 0 auto">MINDBRO</div>
-
+<mat-toolbar fxLayoutAlign="space-between center"
+             class="user">
   <div fxFlex="0 0 auto">
-    {{ (user$ | async)?.FirstName }} {{ (user$ | async)?.LastName }}
+    <h3>MINDBRO</h3>
+  </div>
+
+  <div fxFlex="0 0 auto"
+       fxLayoutAlign="space-between center"
+       fxLayoutGap="10px"
+       (click)="showUserMenu = !showUserMenu;"
+       class="user__data">
+    <mat-icon fxFlex="0 0 auto">face</mat-icon>
+
+    <h5 fxFlex="0 0 auto">{{ (user$ | async)?.FirstName }} {{ (user$ | async)?.LastName }}</h5>
+  </div>
+
+  <div *ngIf="true"
+        class="user__menu"
+        fxLayout="column"
+        fxLayoutAlign="center center"
+        (mouseleave)="showUserMenu = false;">
+    <p>{{ (user$ | async)?.Type | uppercase }}</p>
+
+    <button mat-raised-button
+            (click)="logOut();"
+            color="accent">
+      <mat-icon>keyboard_backspace</mat-icon>
+
+      LOG OUT
+    </button>
   </div>
 </mat-toolbar>
 <router-outlet></router-outlet>

@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressBarModule, MatToolbarModule } from '@angular/material';
+import { MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressBarModule, MatToolbarModule, MatCheckboxModule, MatIconModule } from '@angular/material';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 
@@ -17,6 +17,8 @@ import { FlexLayoutModule } from '@angular/flex-layout';
     MatButtonModule,
     MatProgressBarModule,
     MatToolbarModule,
+    MatCheckboxModule,
+    MatIconModule,
     FlexLayoutModule,
   ],
   exports: [
@@ -28,6 +30,8 @@ import { FlexLayoutModule } from '@angular/flex-layout';
     MatButtonModule,
     MatProgressBarModule,
     MatToolbarModule,
+    MatCheckboxModule,
+    MatIconModule,
     FlexLayoutModule,
   ],
 })

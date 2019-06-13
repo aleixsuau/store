@@ -1,7 +1,7 @@
 import { environment } from './../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { publishReplay, refCount, map } from 'rxjs/operators';
 
 /** CONFIG SERVICE EXPLANATION
@@ -37,16 +37,29 @@ export class ConfigService {
   ) {}
 
   getConfig(siteId: string) {
+    const appConfig: IAppConfig = JSON.parse(localStorage.getItem('mbConfig'));
     this.siteId = siteId;
 
-    return this.httpClient
-                .get<IAppConfig>(`${environment.firebase.functions_path}/${this.endPoint}/${siteId}`)
-                .pipe(
-                  map(appConfig => {
-                    this._config.next(appConfig);
+    if (appConfig) {
+      this._config.next(appConfig);
 
-                    return appConfig;
-                  })
-                );
+      return of(true);
+    } else {
+      return this.httpClient
+                  .get<IAppConfig>(`${environment.firebase.functions_path}/${this.endPoint}/${siteId}`)
+                  .pipe(map(config => this.setConfig(config)));
+    }
+  }
+
+  setConfig(config: IAppConfig) {
+    localStorage.setItem('mbConfig', JSON.stringify(config));
+    this._config.next(config);
+
+    return config;
+  }
+
+  removeConfig() {
+    localStorage.removeItem('mbConfig');
+    this._config.next(null);
   }
 }

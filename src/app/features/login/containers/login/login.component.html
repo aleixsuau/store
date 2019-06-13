@@ -28,15 +28,20 @@
             <input matInput
                   formControlName="password"
                   type="password"
-                  (keyup.enter)="login(loginForm.get('username').value, loginForm.get('password').value)"
+                  (keyup.enter)="login(loginForm.get('username').value, loginForm.get('password').value, loginForm.get('keepMeLoggedIn').value)"
                   placeholder="Password"
                   fxFlex="100">
           </mat-form-field>
 
+          <mat-checkbox formControlName="keepMeLoggedIn"
+                        class="keep_me_logged">
+            <small>Keep me logged in</small>
+          </mat-checkbox>
+
           <button mat-raised-button
                   color="primary"
                   type="button"
-                  (click)="login(loginForm.get('username').value, loginForm.get('password').value)"
+                  (click)="login(loginForm.get('username').value, loginForm.get('password').value, loginForm.get('keepMeLoggedIn').value)"
                   [disabled]="loginForm.invalid || invalidErrorMessage">
             login
           </button>

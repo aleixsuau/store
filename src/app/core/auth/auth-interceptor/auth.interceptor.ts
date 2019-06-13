@@ -19,7 +19,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
     const authReq = request.clone({
       setHeaders: {
-        Authorization: this.authService.token || '',
+        Authorization: this.authService.getToken() || '',
         siteId: this.configService.siteId || '',
       },
     });

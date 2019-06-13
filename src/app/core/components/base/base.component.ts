@@ -1,3 +1,5 @@
+import { AuthService } from './../../auth/auth-service/auth.service';
+import { UserService } from './../../user/user.service';
 import { Observable } from 'rxjs';
 import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 import { Component, OnInit } from '@angular/core';
@@ -9,12 +11,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class BaseComponent implements OnInit {
   user$: Observable<IUser>;
+  showUserMenu = false;
 
   constructor(
+    private userService: UserService,
     private authService: AuthService,
   ) { }
 
   ngOnInit() {
-    this.user$ = this.authService.user$;
+    this.user$ = this.userService.user$;
+  }
+
+  logOut() {
+    this.authService.logout();
   }
 }

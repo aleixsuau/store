@@ -47,6 +47,7 @@ export class LoginComponent implements OnInit {
     this.loginForm = this.formBuilder.group({
       username: [ '', [ Validators.required ]],
       password: [ '', [ Validators.required ]],
+      keepMeLoggedIn: false,
     });
 
     this.loginForm
@@ -56,9 +57,9 @@ export class LoginComponent implements OnInit {
           });
   }
 
-  login(username: string, password: string) {
+  login(username: string, password: string, keepMeLoggedIn: boolean) {
     this.authService
-            .login(username, password)
+            .login(username, password, keepMeLoggedIn)
             .subscribe(
               () => {
                 this.router.navigate([`../`], { relativeTo: this.activatedRoute });

@@ -8,7 +8,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AngularFireModule } from '@angular/fire';
 import { FeaturesModule } from './features/features.module';
 import { environment } from 'src/environments/environment';
-import { AngularFireAuthModule } from '@angular/fire/auth';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
 
 
@@ -23,7 +22,6 @@ import { AngularFirestoreModule } from '@angular/fire/firestore';
     AppRoutingModule,
     BrowserAnimationsModule,
     AngularFireModule.initializeApp(environment.firebase),
-    AngularFireAuthModule,
     AngularFirestoreModule,
   ],
   providers: [],
