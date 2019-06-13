@@ -14,7 +14,7 @@
     <h5 fxFlex="0 0 auto">{{ (user$ | async)?.FirstName }} {{ (user$ | async)?.LastName }}</h5>
   </div>
 
-  <div *ngIf="true"
+  <div *ngIf="showUserMenu"
         class="user__menu"
         fxLayout="column"
         fxLayoutAlign="center center"
