@@ -43,7 +43,7 @@ export class ConfigService {
     if (appConfig) {
       this._config.next(appConfig);
 
-      return of(true);
+      return of(appConfig);
     } else {
       return this.httpClient
                   .get<IAppConfig>(`${environment.firebase.functions_path}/${this.endPoint}/${siteId}`)

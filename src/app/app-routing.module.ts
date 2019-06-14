@@ -1,3 +1,4 @@
+import { ErrorsComponent } from './core/errors/errors-component/errors.component';
 import { ConfigResolverService } from './core/config/resolver/config.resolver';
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
@@ -30,6 +31,7 @@ const routes: Routes = [
       },
     ]
   },
+  { path: '**', component: ErrorsComponent, data: { error: 404 } },
 ];
 
 @NgModule({

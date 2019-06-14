@@ -1,21 +1,24 @@
+<div class="background"
+    [ngStyle]="{
+      'background-image': 'url(' + (appConfig$ | async)?.backgroundImage + ')',
+      'background-size': 'cover',
+      'background-position': 'center',
+      'filter': loginMouseEnter ? 'blur(10px)' : null
+    }">
+</div>
+
 <div fxLayout
-     fxLayoutAlign="center center" style="height: 100%;"
-     [ngStyle]="{
-        'background-image': 'url(' + (appConfig$ | async)?.backgroundImage + ')',
-        'background-size': 'cover',
-        'background-position': 'center',
-        'height': '100vh'
-      }">
-  <div class="login">
+     fxLayoutAlign="center center"
+     style="height: 100vh;">
+  <div class="login"
+       (mouseenter)="loginMouseEnter = true;"
+       (mouseleave)="loginMouseEnter = false;">
     <div class="login-header" fxLayout="column" fxLayoutAlign="center center">
+      <h2>MINDBRO</h2>
     </div>
 
     <form [formGroup]="loginForm" fxLayout="column" novalidate>
       <div class="login-content" fxLayout="column" fxLayoutAlign="start stretch">
-          <div class="invalid_error_message" *ngIf="invalidErrorMessage">
-            <p>No MindBody User with this data, please contact your administrator.</p>
-          </div>
-
           <mat-form-field>
             <input matInput
                    formControlName="username"

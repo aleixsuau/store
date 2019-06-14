@@ -1,3 +1,4 @@
+import { NotificationService } from './../../../../core/services/notification/notification.service';
 import { Observable } from 'rxjs';
 import { fadeAnimation } from '../../../../shared/animations/animations';
 import { Component, OnInit, HostBinding } from '@angular/core';
@@ -39,6 +40,7 @@ export class LoginComponent implements OnInit {
     private formBuilder: FormBuilder,
     private activatedRoute: ActivatedRoute,
     private configService: ConfigService,
+    private notificationService: NotificationService,
   ) { }
 
   ngOnInit() {
@@ -49,12 +51,6 @@ export class LoginComponent implements OnInit {
       password: [ '', [ Validators.required ]],
       keepMeLoggedIn: false,
     });
-
-    this.loginForm
-          .valueChanges
-          .subscribe(() => {
-            this.invalidErrorMessage = false;
-          });
   }
 
   login(username: string, password: string, keepMeLoggedIn: boolean) {
@@ -65,7 +61,12 @@ export class LoginComponent implements OnInit {
                 this.router.navigate([`../`], { relativeTo: this.activatedRoute });
               },
               (error) => {
-                this.invalidErrorMessage = true;
+                this.notificationService
+                      .notify(
+                        'No MindBody User with this data, please contact your administrator.',
+                        'CLOSE',
+                        { duration: 1000000, panelClass: 'error' }
+                      );
               }
             );
   }

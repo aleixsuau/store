@@ -1,4 +1,4 @@
-
+import { ConfigService } from 'src/app/core/config/service/config.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorHandler, Injectable, Injector } from '@angular/core';
 import { Router } from '@angular/router';
@@ -15,10 +15,11 @@ export class ErrorsHandler implements ErrorHandler {
 
   handleError(error: Error | HttpErrorResponse | IPromiseError) {
     // If the error is IPromiseError, the error is inside rejection
-    if (error['rejection']) { error = error['rejection']; };
+    if (error['rejection']) { error = error['rejection']; }
 
-    const notificationService = this.injector.get(NotificationService);
-    const errorsService = this.injector.get(ErrorsService);
+    const notificationService = this.injector.get<NotificationService>(NotificationService);
+    const errorsService = this.injector.get<ErrorsService>(ErrorsService);
+    const configService = this.injector.get<ConfigService>(ConfigService);
     const router = this.injector.get(Router);
 
     if (!navigator.onLine) {
@@ -36,12 +37,12 @@ export class ErrorsHandler implements ErrorHandler {
         // Handle Http Error (error.status === 403, 404...)
         if (error.status === 401 || error.status === 403) {
           notificationService.notify('Unauthenticated user, redirecting to login page');
-          router.navigate(['/login']);
+          router.navigate([`${configService.siteId}/login`]);
           return;
         }
 
         if (error.status === 500) {
-          notificationService.notify('');
+          notificationService.notify(`Server Error: ${error.message}`);
           errorsService.log(error).subscribe();
         }
         // And show notification to the user

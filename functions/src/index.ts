@@ -54,34 +54,28 @@ function _login(siteId: string, username: string, password: string, res: express
   console.log('req', req)
   console.log('_login', siteId, username, password);
   _getAppConfig(siteId)
-      .then(appConfig => {
-        console.log('appConfig', appConfig);
-        const headers = {
+    .then(appConfig => {
+      console.log('appConfig', appConfig);
+      const requestConfig = {
+        url: `${baseUrl}/usertoken/issue`,
+        headers: {
           'Api-Key': appConfig.apiKey,
           'SiteId': siteId,
-        };
-        console.log('headers', headers)
+        },
+        json: {
+          'Username': username,
+          'Password': password,
+        },
+      }
+      console.log('requestConfig', requestConfig);
 
       request
         .post(
-          {
-            url: `${baseUrl}/usertoken/issue`,
-            headers,
-            json: {
-              'Username': username,
-              'Password': password,
-            },
-          },
-          (error, response, body) => {
-            console.log('Auth body', body, response, error);
-            if (error) {
-              res.status(401).send({message: 'Unauthorized ', error});
-            } else {
-              res.status(200).send(body);
-            }
-          });
-        })
-        .catch(error => res.status(500).send(error));
+          requestConfig,
+          (error, response, body) => res.status(response.statusCode).send(body)
+        );
+    })
+    .catch(error => res.status(500).send(error));
 }
 
 function _getClients(siteId: string, token: string, res: express.Response) {
@@ -93,25 +87,20 @@ function _getClients(siteId: string, token: string, res: express.Response) {
   _getAppConfig(siteId)
     .then(appConfig => {
       console.log('appConfig', appConfig);
-      const headers = {
-        'Api-Key': appConfig.apiKey,
-        'SiteId': siteId,
-        'Authorization': token,
+      const requestConfig = {
+        url: `${baseUrl}/client/clients`,
+        headers: {
+          'Api-Key': appConfig.apiKey,
+          'SiteId': siteId,
+          'Authorization': token,
+        },
       };
 
       request
-        .get({
-          url: `${baseUrl}/client/clients`,
-          headers,
-        }, (error, response, body) => {
-          if (error || body.Error) {
-            console.log('_getAppConfig error', error)
-
-            res.status(500).send({message: 'Server error getting clients: ', error});
-          } else {
-            res.status(200).send(body);
-          }
-        })
+        .get(
+          requestConfig,
+          (error, response, body) => res.status(response.statusCode).send(body),
+        );
     })
     .catch(error => res.status(500).send(error));
 };

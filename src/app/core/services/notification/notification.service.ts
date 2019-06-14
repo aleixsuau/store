@@ -7,9 +7,9 @@ import { ComponentType } from '@angular/cdk/portal';
 export class NotificationService {
 
   defaultConfig: MatSnackBarConfig = {
-    // You can use .wk-success/.wk-error for success/errors (styles.css)
+    // You can use .success/.error for success/errors (styles.css)
     // or pass other classes to the notification methods
-    panelClass: 'wk-success',
+    panelClass: 'success',
     horizontalPosition: 'right',
     verticalPosition: 'top',
     duration: 6000,

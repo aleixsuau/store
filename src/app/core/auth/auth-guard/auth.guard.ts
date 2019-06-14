@@ -1,3 +1,4 @@
+import { NotificationService } from './../../services/notification/notification.service';
 import { ConfigService } from '../../config/service/config.service';
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
@@ -9,6 +10,7 @@ export class AuthGuard implements CanActivate {
     private authService: AuthService,
     private router: Router,
     private configService: ConfigService,
+    private notificationService: NotificationService,
   ) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
@@ -18,6 +20,8 @@ export class AuthGuard implements CanActivate {
     if (this.authService.getToken()) {
       return true;
     } else {
+      this.notificationService.notify('Unauthenticated user, redirecting to login page', 'CLOSE', { panelClass: 'error' });
+
       this.router.navigate([`${siteId}/login`]);
     }
   }
