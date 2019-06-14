@@ -9,7 +9,6 @@ import { BaseComponent } from './core/components/base/base.component';
 const routes: Routes = [
   {
     path: ':siteId',
-    component: BaseComponent,
     resolve: {
       config: ConfigResolverService,
     },
@@ -20,6 +19,7 @@ const routes: Routes = [
       },
       {
         path: '',
+        component: BaseComponent,
         canActivate: [AuthGuard],
         canActivateChild: [AuthGuard],
         children: [
