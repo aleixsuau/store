@@ -9,7 +9,6 @@ export class LoadingInterceptor implements HttpInterceptor {
   activeCalls = 0;
 
   constructor(
-    private injector: Injector,
     private loadingService: LoadingService,
   ) {}
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {

@@ -78,8 +78,8 @@ function _login(siteId: string, username: string, password: string, res: express
     .catch(error => res.status(500).send(error));
 }
 
-function _getClients(siteId: string, token: string, res: express.Response) {
-  console.log('_getClients', siteId, token);
+function _getClients(siteId: string, token: string, limit: string, offset: string, res: express.Response) {
+  console.log('_getClients', siteId, token, limit, offset, `${baseUrl}/client/clients?${limit || '200'}&offset=${offset}`);
 
   if (!token) { res.status(401).send({message: 'Unauthorized'});}
   if (!siteId ) { res.status(422).send({message: 'SiteId param is missing'});}
@@ -88,7 +88,7 @@ function _getClients(siteId: string, token: string, res: express.Response) {
     .then(appConfig => {
       console.log('appConfig', appConfig);
       const requestConfig = {
-        url: `${baseUrl}/client/clients`,
+        url: `${baseUrl}/client/clients?${limit || 200}&offset=${offset || 0}`,
         headers: {
           'Api-Key': appConfig.apiKey,
           'SiteId': siteId,
@@ -107,14 +107,75 @@ function _getClients(siteId: string, token: string, res: express.Response) {
 
 function _handleErrors(siteId: string, token: string, body: any,  res: express.Response) {
   console.log('_handleErrors', siteId, token, body);
+  res.status(200).send({message: 'Error received'});
 }
 
-// build multiple CRUD interfaces:
+function _updateClient(clientId: string, client: any, siteId: string, token: string, res: express.Response) {
+  console.log('_updateClient', clientId, client, siteId, token);
+  _getAppConfig(siteId)
+    .then(appConfig => {
+      console.log('appConfig', appConfig);
+      const requestConfig = {
+        url: `${baseUrl}/client/updateclient?ClientIds=${clientId}`,
+        headers: {
+          'Api-Key': appConfig.apiKey,
+          'SiteId': siteId,
+          'Authorization': token,
+        },
+        json: {
+          Client: client,
+          // TODO: Set CrossRegionalUpdate from the Site configuration
+          CrossRegionalUpdate: false,
+        },
+      };
+      console.log('requestConfig', requestConfig)
+
+      request
+        .post(
+          requestConfig,
+          (error, response, body) => res.status(response.statusCode).send(body),
+        );
+    })
+    .catch(error => res.status(500).send(error));
+}
+
+function _addClient(client: any, siteId: string, token: string, res: express.Response) {
+  console.log('_addClient', client, siteId, token);
+  _getAppConfig(siteId)
+    .then(appConfig => {
+      console.log('appConfig', appConfig);
+      const requestConfig = {
+        url: `${baseUrl}/client/addclient`,
+        headers: {
+          'Api-Key': appConfig.apiKey,
+          'SiteId': siteId,
+          'Authorization': token,
+        },
+        json: client,
+      };
+      console.log('requestConfig', requestConfig)
+
+      request
+        .post(
+          requestConfig,
+          (error, response, body) => res.status(response.statusCode).send(body),
+        );
+    })
+    .catch(error => res.status(500).send(error));
+}
+
+/** ENDPOINTS **/
 // server.get('/config/:siteId', (req, res) => res.send(_getConfig(req.params.siteId, req, res)));
-server.post('/errors', (req, res) => _handleErrors(req.get('siteId'), req.get('Authorization'), req.body, res));
-server.get('/clients', (req, res) => _getClients(req.get('siteId'), req.get('Authorization'), res));
-server.post('/auth', (req, res) => _login(req.get('siteId'), req.body.username, req.body.password, res, req));
-server.get('/config/:siteId', (req, res) => _getConfig(req.get('siteId'), req, res));
+// CLIENTS
+server.get('/clients', (req, res) => _getClients(req.header('siteId'), req.header('Authorization'), req.query.limit, req.query.offset, res));
+server.post('/clients', (req, res) => _addClient(req.body.Client, req.header('siteId'), req.header('Authorization'), res));
+server.patch('/clients/:clientId', (req, res) => _updateClient(req.params.clientId, req.body.Client, req.header('siteId'), req.header('Authorization'), res));
+// AUTH
+server.post('/auth', (req, res) => _login(req.header('siteId'), req.body.username, req.body.password, res, req));
+// CONFIG
+server.get('/config/:siteId', (req, res) => _getConfig(req.header('siteId'), req, res));
+// ERRORS
+server.post('/errors', (req, res) => _handleErrors(req.header('siteId'), req.header('Authorization'), req.body, res));
 // server.get('/clients', (req, res) => _getClients(req.body.siteId, req.body.token, res));
 /* server.post('/', (req, res) => res.send(Widgets.create()));
 server.put('/:id', (req, res) => res.send(Widgets.update(req.params.id, req.body)));

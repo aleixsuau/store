@@ -32,6 +32,10 @@ export class ConfigService {
     return this._siteId;
   }
 
+  get config() {
+    return this._config.getValue();
+  }
+
   constructor(
     private httpClient: HttpClient,
   ) {}
@@ -42,13 +46,18 @@ export class ConfigService {
 
     if (appConfig) {
       this._config.next(appConfig);
+      this.refreshConfig(siteId).subscribe();
 
       return of(appConfig);
     } else {
-      return this.httpClient
-                  .get<IAppConfig>(`${environment.firebase.functions_path}/${this.endPoint}/${siteId}`)
-                  .pipe(map(config => this.setConfig(config)));
+      return this.refreshConfig(siteId);
     }
+  }
+
+  refreshConfig(siteId: string) {
+    return this.httpClient
+                .get<IAppConfig>(`${environment.firebase.functions_path}/${this.endPoint}/${siteId}`)
+                .pipe(map(config => this.setConfig(config)));
   }
 
   setConfig(config: IAppConfig) {

@@ -9,6 +9,7 @@ import { AngularFireModule } from '@angular/fire';
 import { FeaturesModule } from './features/features.module';
 import { environment } from 'src/environments/environment';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
+import { MatNativeDateModule } from '@angular/material';
 
 
 @NgModule({
@@ -23,6 +24,7 @@ import { AngularFirestoreModule } from '@angular/fire/firestore';
     BrowserAnimationsModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
+    MatNativeDateModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

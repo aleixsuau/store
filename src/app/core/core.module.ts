@@ -10,12 +10,14 @@ import { BaseComponent } from './components/base/base.component';
 import { LoadingModule } from './loading/loading.module';
 import { ErrorsModule } from './errors';
 import { NotificationService } from './services/notification/notification.service';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [BaseComponent],
   imports: [
     BrowserModule,
     CommonModule,
+    HttpClientModule,
     BrowserAnimationsModule,
     AuthModule,
     LoadingModule,

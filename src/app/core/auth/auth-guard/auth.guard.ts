@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
     if (this.authService.getToken()) {
       return true;
     } else {
-      this.notificationService.notify('Unauthenticated user, redirecting to login page', 'CLOSE', { panelClass: 'error' });
+      this.notificationService.notify('Unauthenticated user', 'CLOSE', { panelClass: 'error' });
 
       this.router.navigate([`${siteId}/login`]);
     }

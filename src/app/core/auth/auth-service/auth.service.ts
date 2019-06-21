@@ -70,7 +70,6 @@ export class AuthService {
     const siteId = this.configService.siteId;
     this.deleteToken();
     this.userService.removeUser();
-    this.configService.removeConfig();
     this.router.navigate([`${siteId}/login`]);
   }
 

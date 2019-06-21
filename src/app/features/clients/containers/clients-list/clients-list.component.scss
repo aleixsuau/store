@@ -1,6 +1,21 @@
+
+mat-radio-group {
+  height: 100%;
+}
+
+:host ::ng-deep {
+  mat-row {
+    cursor: pointer;
+  }
+}
+
 .profile_image {
   height: 3rem;
   width: 3rem;
   margin: 0.5rem;
   border-radius: 50%;
+}
+
+.row {
+  height: 5rem;
 }

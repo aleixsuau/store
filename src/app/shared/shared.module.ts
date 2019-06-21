@@ -1,8 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressBarModule, MatToolbarModule, MatCheckboxModule, MatIconModule, MatSnackBarModule } from '@angular/material';
+import { MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressBarModule, MatToolbarModule, MatCheckboxModule, MatIconModule, MatSnackBarModule, MatDialogModule, MatRadioModule, MatDatepickerModule, MatCardModule } from '@angular/material';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { RouterModule } from '@angular/router';
 
@@ -11,7 +10,6 @@ import { RouterModule } from '@angular/router';
   declarations: [],
   imports: [
     CommonModule,
-    HttpClientModule,
     ReactiveFormsModule,
     RouterModule,
     MatFormFieldModule,
@@ -22,11 +20,14 @@ import { RouterModule } from '@angular/router';
     MatCheckboxModule,
     MatIconModule,
     MatSnackBarModule,
+    MatDialogModule,
+    MatRadioModule,
+    MatDatepickerModule,
+    MatCardModule,
     FlexLayoutModule,
   ],
   exports: [
     CommonModule,
-    HttpClientModule,
     ReactiveFormsModule,
     RouterModule,
     MatFormFieldModule,
@@ -37,6 +38,10 @@ import { RouterModule } from '@angular/router';
     MatCheckboxModule,
     MatIconModule,
     MatSnackBarModule,
+    MatDialogModule,
+    MatRadioModule,
+    MatDatepickerModule,
+    MatCardModule,
     FlexLayoutModule,
   ],
 })

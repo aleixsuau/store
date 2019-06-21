@@ -36,7 +36,7 @@ export class ErrorsHandler implements ErrorHandler {
       } else {
         // Handle Http Error (error.status === 403, 404...)
         if (error.status === 401 || error.status === 403) {
-          notificationService.notify('Unauthenticated user, redirecting to login page');
+          notificationService.notify('Unauthenticated user');
           router.navigate([`${configService.siteId}/login`]);
           return;
         }

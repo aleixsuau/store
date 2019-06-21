@@ -28,6 +28,7 @@ export class LoginComponent implements OnInit {
   hidePassword = true;
   invalidErrorMessage: boolean;
   keepMeLoggedIn: boolean;
+  loginMouseEnter: boolean;
 
   appConfig$: Observable<IAppConfig>;
 
@@ -60,10 +61,10 @@ export class LoginComponent implements OnInit {
               () => {
                 this.router.navigate([`../`], { relativeTo: this.activatedRoute });
               },
-              (error) => {
+              (errorResponse) => {
                 this.notificationService
                       .notify(
-                        'No MindBody User with this data, please contact your administrator.',
+                        `${errorResponse.error.Error.Message}`,
                         'CLOSE',
                         { duration: 1000000, panelClass: 'error' }
                       );

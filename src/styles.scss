@@ -32,8 +32,13 @@ h6 {
   font-size: 1.6rem;
 }
 
-p, .mat-form-field , span {
+p, .mat-form-field , span, label {
   font-size: 1.6rem !important;
 }
 
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* MATERIAL OVERWRITES */
+.mbDialog {
+  max-width: 60rem !important;
+}

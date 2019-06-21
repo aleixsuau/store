@@ -10,22 +10,33 @@
   }
 }
 
+.main_container {
+  margin: 0 auto;
+  padding: 2rem;
+  max-width: 160rem;
+}
 
-.user {
+.app_header {
   position: relative;
+  margin: 0 auto;
+  max-width: 160rem;
 
-  &__data {
-    cursor: pointer;
+  .user {
+    &__data {
+      cursor: pointer;
+    }
+
+    &__menu {
+      position: absolute;
+      z-index: 10;
+      background-color: white;
+      padding: 0.4rem;
+      text-align: center;
+      box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
+      border-radius: 0.2rem;
+      right: 1.6rem;
+      top: 5rem;
+    }
   }
 
-  &__menu {
-    position: absolute;
-    z-index: 10;
-    padding: 0.4rem;
-    text-align: center;
-    box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
-    border-radius: 0.2rem;
-    right: 1.6rem;
-    top: 5rem;
-  }
 }
