@@ -12,6 +12,25 @@
       </mat-card-header>
 
       <mat-card-content>
+        <div class="search_input"
+             fxLayout>
+          <mat-form-field fxFlex="1 1 auto">
+            <input matInput
+                   [formControl]="searchInput"
+                   [matAutocomplete]="auto"
+                   type="text"
+                   placeholder="Search">
+          </mat-form-field>
+
+          <mat-autocomplete #auto="matAutocomplete"
+                            (optionSelected)="searchOptionSelected($event.option.value)">
+            <mat-option *ngFor="let client of searchResults"
+                        [value]="client">
+              {{ client.FirstName + ' ' + client.LastName }}
+            </mat-option>
+          </mat-autocomplete>
+        </div>
+
         <mat-table [dataSource]="dataSource"
               [trackBy]="trackBy"
               matSort
@@ -33,7 +52,7 @@
             <mat-cell *matCellDef="let item">
               <div class="profile_image"
                   [ngStyle]="{ 'background-image': 'url(' + (item.PhotoUrl || '/assets/images/user_profile_icon.svg') + ')',
-                            'background-size': 'cover'}">
+                            'background-size': 'cover' }">
               </div>
             </mat-cell>
           </ng-container>

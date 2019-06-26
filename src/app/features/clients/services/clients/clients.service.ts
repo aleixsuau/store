@@ -17,12 +17,16 @@ export class ClientsService {
     private configService: ConfigService,
   ) { }
 
-  getClients(offset?: number): Observable<IClientsResponse> {
+  getClients(offset?: number, SearchText?: string): Observable<IClientsResponse> {
+    let url = `${environment.firebase.functions_path}/${this.basePath}?limit=${this.configService.config.queryLimit}&offset=${offset || 0}`;
+
+    if (SearchText) { url = `${environment.firebase.functions_path}/${this.basePath}?SearchText=${SearchText}`; }
+
     return this.httpClient
-                 .get<IClientsResponse>(`${environment.firebase.functions_path}/${this.basePath}?limit=${this.configService.config.queryLimit}&offset=${offset || 0}`);
+                 .get<IClientsResponse>(url);
   }
 
-  getClient(id: string): Observable<IClient> {
+  getClient(id?: string): Observable<IClient> {
     return this.httpClient
                  .get<IClient>(`${environment.firebase.functions_path}/${this.basePath}?ClientIds=${id}`);
   }

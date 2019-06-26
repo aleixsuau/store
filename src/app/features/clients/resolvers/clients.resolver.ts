@@ -11,7 +11,7 @@ export class ClientsResolverService implements Resolve<any> {
     private clientsService: ClientsService,
   ) {}
 
-  resolve(activeRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<IClient[]> {
+  resolve(activeRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<IClientsResponse> {
     return this.clientsService.getClients();
   }
 }

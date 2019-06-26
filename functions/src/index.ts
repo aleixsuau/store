@@ -78,8 +78,8 @@ function _login(siteId: string, username: string, password: string, res: express
     .catch(error => res.status(500).send(error));
 }
 
-function _getClients(siteId: string, token: string, limit: string, offset: string, res: express.Response) {
-  console.log('_getClients', siteId, token, limit, offset, `${baseUrl}/client/clients?${limit || '200'}&offset=${offset}`);
+function _getClients(siteId: string, token: string, searchText: string, limit: string, offset: string, res: express.Response) {
+  console.log('_getClients', siteId, token, limit, offset, searchText, `${baseUrl}/client/clients?${limit || '200'}&offset=${offset}`);
 
   if (!token) { res.status(401).send({message: 'Unauthorized'});}
   if (!siteId ) { res.status(422).send({message: 'SiteId param is missing'});}
@@ -95,6 +95,11 @@ function _getClients(siteId: string, token: string, limit: string, offset: strin
           'Authorization': token,
         },
       };
+
+      if (searchText) {
+        requestConfig.url += `${baseUrl}/client/clients?&SearchText=${searchText}`;
+      }
+      console.log('requestConfig', requestConfig);
 
       request
         .get(
@@ -167,7 +172,7 @@ function _addClient(client: any, siteId: string, token: string, res: express.Res
 /** ENDPOINTS **/
 // server.get('/config/:siteId', (req, res) => res.send(_getConfig(req.params.siteId, req, res)));
 // CLIENTS
-server.get('/clients', (req, res) => _getClients(req.header('siteId'), req.header('Authorization'), req.query.limit, req.query.offset, res));
+server.get('/clients', (req, res) => _getClients(req.header('siteId'), req.header('Authorization'), req.query.searchText, req.query.limit, req.query.offset, res));
 server.post('/clients', (req, res) => _addClient(req.body.Client, req.header('siteId'), req.header('Authorization'), res));
 server.patch('/clients/:clientId', (req, res) => _updateClient(req.params.clientId, req.body.Client, req.header('siteId'), req.header('Authorization'), res));
 // AUTH

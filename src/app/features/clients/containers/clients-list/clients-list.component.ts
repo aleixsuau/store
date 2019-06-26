@@ -1,4 +1,4 @@
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { ClientsService } from './../../services/clients/clients.service';
 import { fadeAnimation } from './../../../../shared/animations/animations';
 import { Component, OnInit, ViewChild, AfterViewInit, TemplateRef, OnDestroy } from '@angular/core';
@@ -6,6 +6,7 @@ import { MatPaginator, MatSort, MatTableDataSource, MatDialog } from '@angular/m
 import { ActivatedRoute } from '@angular/router';
 import { transition, trigger, useAnimation } from '@angular/animations';
 import { Subscription } from 'rxjs';
+import { debounceTime, switchMap, filter } from 'rxjs/operators';
 
 
 @Component({
@@ -31,6 +32,7 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   paginatorPageSize = 10;
   paginatorPageSizeOptions = [5, 10, 20];
   clientForm: FormGroup;
+  searchInput: FormControl;
   clientFormSubscription: Subscription;
   clientFormChanged: boolean;
   clientFormModel = {
@@ -74,6 +76,7 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   };
   paginatorLength: number;
   paginatorDisabled: boolean;
+  searchResults: IClient[];
 
 
   @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
@@ -89,15 +92,23 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit() {
     this.clients = this.activatedRoute.snapshot.data.clients.Clients;
-    console.log('this.activatedRoute.snapshot.data.clients', this.activatedRoute.snapshot.data.clients.PaginationResponse.TotalResults);
     this.paginatorLength =  this.activatedRoute.snapshot.data.clients.PaginationResponse.TotalResults;
     this.setClientsPage(0, this.paginatorPageSize);
     this.clientForm = this.formBuilder.group(this.clientFormModel);
+    this.searchInput = new FormControl(null);
+
+    this.searchInput
+        .valueChanges
+        .pipe(
+          debounceTime(400),
+          filter(changes => changes != null),
+          switchMap(changes => this.clientsService.getClients(null, changes))
+        )
+        .subscribe(results => this.searchResults = results.Clients);
   }
 
   ngAfterViewInit(): void {
     this.dataSource.sort = this.sort;
-    // this.dataSource.paginator = this.paginator;
   }
 
   ngOnDestroy() {
@@ -171,5 +182,10 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
 
             this.clientForm.reset();
           });
+  }
+
+  searchOptionSelected(client: IClient) {
+    this.openClientFormDialog(client);
+    this.searchInput.reset();
   }
 }
