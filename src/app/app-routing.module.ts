@@ -18,6 +18,18 @@ const routes: Routes = [
         component: LoginComponent,
       },
       {
+        path: 'retail',
+        component: BaseComponent,
+        canActivate: [AuthGuard],
+        canActivateChild: [AuthGuard],
+        children: [
+          {
+            path: '',
+            loadChildren: () => import('./features/retail/retail.module').then(m => m.RetailModule),
+          }
+        ]
+      },
+      {
         path: '',
         component: BaseComponent,
         canActivate: [AuthGuard],

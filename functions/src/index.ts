@@ -172,7 +172,7 @@ function _addClient(client: any, siteId: string, token: string, res: express.Res
 /** ENDPOINTS **/
 // server.get('/config/:siteId', (req, res) => res.send(_getConfig(req.params.siteId, req, res)));
 // CLIENTS
-server.get('/clients', (req, res) => _getClients(req.header('siteId'), req.header('Authorization'), req.query.searchText, req.query.limit, req.query.offset, res));
+server.get('/clients', (req, res) => _getClients(req.header('siteId'), req.header('Authorization'), req.query.SearchText, req.query.limit, req.query.offset, res));
 server.post('/clients', (req, res) => _addClient(req.body.Client, req.header('siteId'), req.header('Authorization'), res));
 server.patch('/clients/:clientId', (req, res) => _updateClient(req.params.clientId, req.body.Client, req.header('siteId'), req.header('Authorization'), res));
 // AUTH

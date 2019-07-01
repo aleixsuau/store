@@ -11,6 +11,7 @@ import { map, tap } from 'rxjs/operators';
 })
 export class ClientsService {
   basePath = 'clients';
+
   constructor(
     private httpClient: HttpClient,
     private notificationService: NotificationService,

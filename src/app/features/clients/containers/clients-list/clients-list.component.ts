@@ -6,7 +6,7 @@ import { MatPaginator, MatSort, MatTableDataSource, MatDialog } from '@angular/m
 import { ActivatedRoute } from '@angular/router';
 import { transition, trigger, useAnimation } from '@angular/animations';
 import { Subscription } from 'rxjs';
-import { debounceTime, switchMap, filter } from 'rxjs/operators';
+import { debounceTime, switchMap } from 'rxjs/operators';
 
 
 @Component({
@@ -101,7 +101,6 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
         .valueChanges
         .pipe(
           debounceTime(400),
-          filter(changes => changes != null),
           switchMap(changes => this.clientsService.getClients(null, changes))
         )
         .subscribe(results => this.searchResults = results.Clients);

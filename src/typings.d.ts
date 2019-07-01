@@ -5,7 +5,7 @@ interface IAppConfig {
 }
 
 interface IClient {
-  Id?: number,
+  Id?: number;
   AddressLine1?: string;
   AddressLine2?: string;
   ApptGenderPrefMale?: string;
@@ -143,35 +143,21 @@ interface ErrorWithContext {
 
 
 interface IContract {
-  Id: number;
+  Id: string;
   Name: string;
   Description: string;
   AssignsMembershipId: number;
   AssignsMembershipName: string;
   SoldOnline: boolean;
-  ContractItems: IContractItem;
-}
-
-interface IContractItem {
-  Id: number;
-  Name: string;
-  Description: string;
-  Type: string;
-  Price: number;
-  Quantity: number;
-  OneTimeItem: boolean;
+  ContractItems: IContractItem[];
   IntroOffer: string;
   AutopaySchedule: IContractAutopaySchedule;
-}
-
-interface IContractAutopaySchedule {
-  FrequencyType: string;
-  FrequencyValue: number;
-  FrequencyTimeUnit: string;
   NumberOfAutopays: number;
-  AutopayTriggerType: string;
-  ActionUponCompletionOfAutopays: string;
-  ClientsChargedOn: string;
+  AutopayTriggerType: 'OnSetSchedule' | 'PricingOptionRunsOutOrExpires';
+  ActionUponCompletionOfAutopays: 'ContractExpires' | 'ContractAutomaticallyRenews';
+  ClientsChargedOn: 'OnSaleDate' | 'FirstOfTheMonth' | 'FifteenthOfTheMonth' |
+                    'LastDayOfTheMonth' | 'FirstOrFifteenthOfTheMonth' | 'FirstOrSixteenthOfTheMonth' |
+                    'FifteenthOrEndOfTheMonth' | 'SpecificDate';
   ClientsChargedOnSpecificDate: string;
   DiscountAmount: number;
   DepositAmount: number;
@@ -193,6 +179,22 @@ interface IContractAutopaySchedule {
   TotalContractAmountSubtotal: number;
   TotalContractAmountTax: number;
   TotalContractAmountTotal: number;
+}
+
+interface IContractItem {
+  Id: number;
+  Name: string;
+  Description: string;
+  Type: 'Class' | 'Enrollment' | 'Appointment' | 'Resource' | 'Arrival';
+  Price: number;
+  Quantity: number;
+  OneTimeItem: boolean;
+}
+
+interface IContractAutopaySchedule {
+  FrequencyType: string;
+  FrequencyValue: number;
+  FrequencyTimeUnit: 'Weekly' | 'Monthly' | 'Yearly';
 }
 
 interface IContractMembershipTypeRestrictions {
