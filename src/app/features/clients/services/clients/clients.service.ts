@@ -40,6 +40,7 @@ export class ClientsService {
 
   updateClient(client: IClient): Observable<IClient> {
     return this.httpClient
-                 .patch<IClient>(`${environment.firebase.functions_path}/clients/${client.Id}`, {Client: client});
+                 .patch<IClient>(`${environment.firebase.functions_path}/clients/${client.Id}`, {Client: client})
+                 .pipe(tap(newClient => this.notificationService.notify('Client updated')));
   }
 }

@@ -1,3 +1,5 @@
+@import '../../../../../variables';
+
 
 mat-radio-group {
   height: 100%;
@@ -17,5 +19,26 @@ mat-radio-group {
 }
 
 .row {
-  height: 5rem;
+  height: 6.5rem;
 }
+
+mat-radio-group {
+  height: 60% !important;
+}
+
+mat-expansion-panel {
+  margin: 1rem 0rem 1rem 0rem;
+}
+
+.client_form mat-icon {
+  font-size: 1.8rem !important;
+  margin-right: 0.4rem;
+  margin-left: 0.4rem;
+  vertical-align: sub;
+  color: $lighter-grey;
+}
+
+label {
+  color: $lighter-grey;
+}
+

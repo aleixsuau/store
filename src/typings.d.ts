@@ -75,14 +75,15 @@ interface IClient {
 }
 
 interface IClientCreditCard {
-  Address: string;
-  CardHolder: string;
   CardNumber: string;
-  City: string;
   ExpMonth: string;
   ExpYear: string;
-  PostalCode: string;
-  State: string;
+  Address?: string;
+  CardHolder?: string;
+  City?: string;
+  PostalCode?: string;
+  State?: string;
+  CVV?: number;
 }
 
 interface IClientsResponse extends PaginationResponse {

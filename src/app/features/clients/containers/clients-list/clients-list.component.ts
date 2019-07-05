@@ -1,3 +1,4 @@
+import { NotificationService } from './../../../../core/services/notification/notification.service';
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { ClientsService } from './../../services/clients/clients.service';
 import { fadeAnimation } from './../../../../shared/animations/animations';
@@ -5,7 +6,7 @@ import { Component, OnInit, ViewChild, AfterViewInit, TemplateRef, OnDestroy } f
 import { MatPaginator, MatSort, MatTableDataSource, MatDialog } from '@angular/material';
 import { ActivatedRoute } from '@angular/router';
 import { transition, trigger, useAnimation } from '@angular/animations';
-import { Subscription } from 'rxjs';
+import { Subscription, of } from 'rxjs';
 import { debounceTime, switchMap } from 'rxjs/operators';
 
 
@@ -33,51 +34,15 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   paginatorPageSizeOptions = [5, 10, 20];
   clientForm: FormGroup;
   searchInput: FormControl;
+  matDialogSubscription: Subscription;
   clientFormSubscription: Subscription;
+  clientCreditCardFormSubscription: Subscription;
   clientFormChanged: boolean;
-  clientFormModel = {
-    FirstName: [null, [Validators.required]],
-    LastName: [null, [Validators.required]],
-    BirthDate: [null, [Validators.required]],
-    Gender: null,
-    Email: [null, [Validators.email, Validators.required]],
-    MobilePhone: null,
-    AddressLine1: null,
-    AddressLine2: null,
-    City: null,
-    PostalCode: null,
-    Country: null,
-    IsProspect: false,
-    SendScheduleEmails: false,
-    SendAccountEmails: false,
-    // TODO: Cover the rest of client props
-    /* ApptGenderPrefMale: null,
-    AppointmentGenderPreference: null,
-    ClientCreditCard: null,
-    ClientIndexes: null,
-    ClientRelationships: null,
-    CustomClientFields: null,
-    EmergencyContactInfoEmail: null,
-    EmergencyContactInfoName: null,
-    EmergencyContactInfoPhone: null,
-    EmergencyContactInfoRelationship: null,
-    HomeLocation: null,
-    HomePhone: null,
-    LiabilityRelease: null,
-    MiddleName: null,
-    MobileProvider: null,
-    ProspectStage: null,
-    ReferredBy: null,
-    SalesReps: null,
-    State: null,
-    Test: null,
-    WorkExtension: null,
-    WorkPhone: null, */
-  };
+  clientCreditCardChanged: boolean;
   paginatorLength: number;
   paginatorDisabled: boolean;
   searchResults: IClient[];
-
+  showCreditCardForm: boolean;
 
   @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: false}) sort: MatSort;
@@ -88,13 +53,13 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
     private clientsService: ClientsService,
     private formBuilder: FormBuilder,
     private matDialog: MatDialog,
+    private notificationService: NotificationService,
   ) { }
 
   ngOnInit() {
     this.clients = this.activatedRoute.snapshot.data.clients.Clients;
     this.paginatorLength =  this.activatedRoute.snapshot.data.clients.PaginationResponse.TotalResults;
-    this.setClientsPage(0, this.paginatorPageSize);
-    this.clientForm = this.formBuilder.group(this.clientFormModel);
+    this.setClientsPage(this.clients, 0, this.paginatorPageSize);
     this.searchInput = new FormControl(null);
 
     this.searchInput
@@ -103,7 +68,13 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
           debounceTime(400),
           switchMap(changes => this.clientsService.getClients(null, changes))
         )
-        .subscribe(results => this.searchResults = results.Clients);
+        .subscribe(results => {
+          this.searchResults = results.Clients;
+
+          if (!this.searchResults.length) {
+            this.notificationService.notify('No results', null, {panelClass: 'error'});
+          }
+        });
   }
 
   ngAfterViewInit(): void {
@@ -113,6 +84,11 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     if (this.clientFormSubscription) {
       this.clientFormSubscription.unsubscribe();
+      this.clientCreditCardFormSubscription.unsubscribe();
+    }
+
+    if (this.matDialogSubscription) {
+      this.matDialogSubscription.unsubscribe();
     }
   }
 
@@ -120,71 +96,174 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
     return row && row._id;
   }
 
-  paginatorChange(page) {
-    this.setClientsPage(page.pageIndex, page.pageSize, page.previousPageIndex);
+  paginatorChange(clients, page) {
+    this.setClientsPage(this.clients, page.pageIndex, page.pageSize, page.previousPageIndex);
   }
 
-  setClientsPage(pageIndex: number, pageSize: number, previousPageIndex = 0) {
+  setClientsPage(clients: IClient[], pageIndex: number, pageSize: number, previousPageIndex = 0) {
     const firstItem = pageIndex * pageSize;
     const lastItem = (pageIndex + 1) * pageSize;
 
-    if (firstItem >= this.clients.length) {
+    if (firstItem >= clients.length) {
       this.paginatorDisabled = true;
 
       this.clientsService
             .getClients(firstItem - 1)
             .subscribe(response => {
-              this.clients = [...this.clients, ...response.Clients];
+              this.clients = [...clients, ...response.Clients];
               const clientsPage = this.clients.slice(firstItem, lastItem);
               this.dataSource = new MatTableDataSource(clientsPage);
               this.paginatorDisabled = false;
             });
     } else {
-      const clientsPage = this.clients.slice(firstItem, lastItem);
+      const clientsPage = clients.slice(firstItem, lastItem);
       this.dataSource = new MatTableDataSource(clientsPage);
     }
   }
 
   openClientFormDialog(client?: IClient) {
-    if (client) {
-      this.clientBeingEdited = client;
+    this.setUpClientForm(client);
+    this.clientBeingEdited = client;
 
-      const {
-        FirstName, LastName, BirthDate, Gender, Email,
-        MobilePhone, AddressLine1, AddressLine2, City, PostalCode,
-        Country, IsProspect, SendScheduleEmails, SendAccountEmails
-      } = client;
+    this.clientFormSubscription = this.clientForm
+                                          .valueChanges
+                                          .subscribe(changes => this.clientFormChanged = true);
 
-      const clientFormModel = {
-        FirstName, LastName, BirthDate, Gender, Email,
-        MobilePhone, AddressLine1, AddressLine2, City, PostalCode,
-        Country, IsProspect, SendScheduleEmails, SendAccountEmails
-      };
+    this.clientCreditCardFormSubscription = this.clientForm
+                                                  .get('ClientCreditCard')
+                                                  .valueChanges
+                                                  .subscribe(changes => this.clientCreditCardChanged = true);
 
-      this.clientForm.setValue(clientFormModel);
-      this.clientFormSubscription = this.clientForm.valueChanges.subscribe(changes => {
-        this.clientFormChanged = true;
-      });
+    this.matDialogSubscription = this.matDialog
+                                        .open(this.clientTemplate, {panelClass: 'mbDialog'})
+                                        .afterClosed()
+                                        .subscribe(() => {
+                                          this.clientBeingEdited = null;
+                                          this.clientFormChanged = false;
+                                          this.clientCreditCardChanged = false;
+                                          this.clientFormSubscription.unsubscribe();
+                                          this.clientCreditCardFormSubscription.unsubscribe();
+                                        });
+  }
+
+  saveClient(client: IClient) {
+    const clientModelToSave = {...this.clientBeingEdited, ...client};
+
+    if (this.clientBeingEdited && this.clientFormChanged) {
+      // Remove *** display credit card data (to not overwrite original data)
+      if (!this.clientCreditCardChanged) {
+        delete clientModelToSave.ClientCreditCard;
+      }
+
+      this.clientsService
+            .updateClient(clientModelToSave)
+            .pipe(switchMap(() => this.clientsService.getClients()))
+            .subscribe(clients => this.resetDataAndForm(clients));
+    } else if (this.clientForm.valid) {
+      // Remove null credit card data (MindBody throws error)
+      if (this.clientForm.get('ClientCreditCard').pristine) {
+        clientModelToSave.ClientCreditCard = null;
+      }
+
+      this.clientsService
+            .addClient(clientModelToSave)
+            .pipe(switchMap(() => this.clientsService.getClients()))
+            .subscribe(clients => this.resetDataAndForm(clients));
     }
+  }
 
-    this.matDialog
-          .open(this.clientTemplate, {panelClass: 'mbDialog'})
-          .afterClosed()
-          .subscribe(formValue => {
-            const clientModelToSave = {...this.clientBeingEdited, ...formValue};
+  resetDataAndForm(clients: IClientsResponse) {
+    this.clients = clients.Clients;
+    this.clientFormChanged = false;
+    this.clientCreditCardChanged = false;
+    this.setClientsPage(this.clients, 0, this.paginatorPageSize);
+  }
 
-            if (this.clientBeingEdited && this.clientFormChanged) {
-              this.clientsService.updateClient(clientModelToSave).subscribe();
-            } else if (this.clientForm.valid) {
-              this.clientsService.addClient(clientModelToSave).subscribe();
-            }
-
-            this.clientForm.reset();
-          });
+  setUpClientForm(client?: IClient) {
+    const clientFormConfig = {
+      FirstName: [client && client.FirstName || null, [Validators.required]],
+      LastName: [client && client.LastName || null, [Validators.required]],
+      BirthDate: [client && client.BirthDate || null, [Validators.required]],
+      Gender: client && client.Gender || null,
+      Email: [client && client.Email || null, [Validators.email, Validators.required]],
+      MobilePhone: client && client.MobilePhone || null,
+      AddressLine1: client && client.AddressLine1 || null,
+      AddressLine2: client && client.AddressLine2 || null,
+      City: client && client.City || null,
+      PostalCode: client && client.PostalCode || null,
+      Country: client && client.Country || null,
+      IsProspect: client && client.IsProspect || false,
+      SendScheduleEmails: client && client.SendScheduleEmails || false,
+      SendAccountEmails: client && client.SendAccountEmails || false,
+      ClientCreditCard: this.formBuilder.group({
+        CardNumber: [
+          {
+            value: client && client.ClientCreditCard && client.ClientCreditCard.CardNumber || null,
+            disabled: client && client.ClientCreditCard != null,
+          },
+          [ Validators.min(9999999999), Validators.max(9999999999999999999) ]
+        ],
+        ExpMonth: [
+          {
+            value: client && client.ClientCreditCard && client.ClientCreditCard.ExpMonth || null,
+            disabled:  client && client.ClientCreditCard != null,
+          },
+          [ Validators.min(1), Validators.max(12) ]
+        ],
+        ExpYear: [
+          {
+            value: client && client.ClientCreditCard && client.ClientCreditCard.ExpYear || null,
+            disabled:  client && client.ClientCreditCard != null,
+          },
+          [  Validators.min(new Date().getFullYear()), Validators.max(new Date().getFullYear() + 50) ]
+        ],
+        CVV: [
+          {
+            value: client && client.ClientCreditCard && client.ClientCreditCard.CardNumber && '***' || null,
+            disabled:  client && client.ClientCreditCard != null,
+          },
+          [ Validators.min(1), Validators.max(999)]
+        ],
+        /* CardHolder: null,
+        Address: null,
+        City: null,
+        PostalCode: null,
+        State: null, */
+      }),
+      // TODO: Cover the rest of client props
+      /* ApptGenderPrefMale: null,
+      AppointmentGenderPreference: null,
+      ClientCreditCard: null,
+      ClientIndexes: null,
+      ClientRelationships: null,
+      CustomClientFields: null,
+      EmergencyContactInfoEmail: null,
+      EmergencyContactInfoName: null,
+      EmergencyContactInfoPhone: null,
+      EmergencyContactInfoRelationship: null,
+      HomeLocation: null,
+      HomePhone: null,
+      LiabilityRelease: null,
+      MiddleName: null,
+      MobileProvider: null,
+      ProspectStage: null,
+      ReferredBy: null,
+      SalesReps: null,
+      State: null,
+      Test: null,
+      WorkExtension: null,
+      WorkPhone: null, */
+    };
+    this.clientForm = this.formBuilder.group(clientFormConfig);
   }
 
   searchOptionSelected(client: IClient) {
     this.openClientFormDialog(client);
     this.searchInput.reset();
+  }
+
+  resetCreditCard() {
+    this.clientForm.get('ClientCreditCard').reset();
+    this.clientForm.get('ClientCreditCard').enable();
   }
 }

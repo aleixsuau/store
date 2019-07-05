@@ -1,3 +1,5 @@
+import { ConfigService } from 'src/app/core/config/service/config.service';
+import { CryptoService } from './../../services/crypto/crypto.service';
 import { ClientsService } from './../../../clients/services/clients/clients.service';
 import { FormGroup, FormBuilder, Validators, FormControl, FormGroupDirective, NgForm, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
@@ -38,6 +40,8 @@ export class RetailComponent implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private formBuilder: FormBuilder,
     private clientsService: ClientsService,
+    private configService: ConfigService,
+    private cryptoService: CryptoService,
   ) { }
 
   ngOnInit() {
@@ -71,6 +75,7 @@ export class RetailComponent implements OnInit, OnDestroy {
   }
 
   sellContract(formValue) {
-    console.log('sellContract', formValue);
+    // TODO: finish sellings
+    const encrypted = this.cryptoService.encrypt(formValue, this.configService.siteId);
   }
 }

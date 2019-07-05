@@ -145,6 +145,9 @@ function _updateClient(clientId: string, client: any, siteId: string, token: str
 }
 
 function _addClient(client: any, siteId: string, token: string, res: express.Response) {
+  // 1 - If credit client has credit card
+  //     1 - Save Client to MB
+  //     2 - Save CVV to firestore
   console.log('_addClient', client, siteId, token);
   _getAppConfig(siteId)
     .then(appConfig => {
@@ -169,8 +172,50 @@ function _addClient(client: any, siteId: string, token: string, res: express.Res
     .catch(error => res.status(500).send(error));
 }
 
+function _sale(contract: any, siteId: string, token: string, res: express.Response) {
+  console.log('_addcontract', contract, siteId, token);
+  // 1 - Get Amount
+  // 2 - Get Client payment Data
+  // 3 - Get Site payment gateAway
+  // 4 - Process payment
+  // 5 - Sen sale to MB
+  // 6 - Return 200 with payment response
+
+  _getAppConfig(siteId)
+    .then(appConfig => {
+      console.log('appConfig', appConfig);
+      const amountToCharge = contract.TotalContractAmountTotal;
+
+      const requestConfig = {
+        url: `${baseUrl}/client/addclient`,
+        headers: {
+          'Api-Key': appConfig.apiKey,
+          'SiteId': siteId,
+          'Authorization': token,
+        },
+        json: contract,
+      };
+      console.log('requestConfig', requestConfig)
+
+      request
+        .post(
+          requestConfig,
+          (error, response, body) => res.status(response.statusCode).send(body),
+        );
+    })
+    .catch(error => res.status(500).send(error));
+}
+
+function _paymentGetAway(paymentType: string, quantity: number) {
+  // Handle different gateAways
+  return Promise.resolve()
+}
+
+
+
 /** ENDPOINTS **/
-// server.get('/config/:siteId', (req, res) => res.send(_getConfig(req.params.siteId, req, res)));
+// SALE
+server.post('/sale', (req, res) => _sale(req.body.Contract, req.header('siteId'), req.header('Authorization'), res));
 // CLIENTS
 server.get('/clients', (req, res) => _getClients(req.header('siteId'), req.header('Authorization'), req.query.SearchText, req.query.limit, req.query.offset, res));
 server.post('/clients', (req, res) => _addClient(req.body.Client, req.header('siteId'), req.header('Authorization'), res));
@@ -186,6 +231,8 @@ server.post('/errors', (req, res) => _handleErrors(req.header('siteId'), req.hea
 server.put('/:id', (req, res) => res.send(Widgets.update(req.params.id, req.body)));
 server.delete('/:id', (req, res) => res.send(Widgets.delete(req.params.id)));
 server.get('/', (req, res) => res.send(Widgets.list())); */
+// server.get('/config/:siteId', (req, res) => res.send(_getConfig(req.params.siteId, req, res)));
+
 
 // Expose Express API as a single Cloud Function:
 exports.api = functions.https.onRequest(server);
