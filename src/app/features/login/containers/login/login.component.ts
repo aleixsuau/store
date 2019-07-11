@@ -7,6 +7,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { transition, trigger, useAnimation } from '@angular/animations';
 import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 import { ConfigService } from 'src/app/core/config/service/config.service';
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -57,15 +58,14 @@ export class LoginComponent implements OnInit {
   login(username: string, password: string, keepMeLoggedIn: boolean) {
     this.authService
             .login(username, password, keepMeLoggedIn)
+            .pipe(tap(() => this.router.navigate([`../`], { relativeTo: this.activatedRoute })))
             .subscribe(
-              () => {
-                this.router.navigate([`../`], { relativeTo: this.activatedRoute });
-              },
+              () => {},
               (errorResponse) => {
                 this.notificationService
                       .notify(
                         `${errorResponse.error.Error.Message}`,
-                        'CLOSE',
+                        'X',
                         { duration: 1000000, panelClass: 'error' }
                       );
               }
