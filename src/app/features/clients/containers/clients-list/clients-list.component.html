@@ -206,7 +206,7 @@
              fxLayoutAlign="space-between center">
           <mat-form-field fxFlex="1 1 100%">
             <input [type]="clientForm.get('ClientCreditCard.CardNumber').disabled ? 'text' : 'number'"
-                    placeholder="Card Number"
+                    placeholder="Number"
                     matInput
                     formControlName="CardNumber"
                     automcomplete="off">
@@ -262,7 +262,8 @@
                     mat-raised-button
                     color="warn"
                     type="button"
-                    (click)="resetCreditCard();">
+                    (click)="resetCreditCard();"
+                    [disabled]="!clientBeingEdited?.ClientCreditCard">
               <mat-icon>delete</mat-icon>
               Remove Credit Card
             </button>

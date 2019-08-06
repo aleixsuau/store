@@ -15,9 +15,12 @@ export class SalesService {
     private notificationService: NotificationService,
   ) { }
 
-  sale(contract: IContract) {
+  sellContract(contract: IContract, client: IClient) {
     return this.httpClient
-                  .post<IClient>(`${environment.firebase.functions_path}/sale`, {Contract: contract})
-                  .pipe(tap(newClient => this.notificationService.notify('Contract Sold')));
+                  .post<IClient>(`${environment.firebase.functions_path}/clients/${client.UniqueId}/contracts`, contract)
+                  .pipe(tap(response => {
+                    console.log('addContract response:', response);
+                    this.notificationService.notify('Contract Sold');
+                  }));
   }
 }

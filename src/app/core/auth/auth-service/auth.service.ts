@@ -74,7 +74,7 @@ export class AuthService {
   }
 
   getToken() {
-    return localStorage.getItem('token') || sessionStorage.getItem('token');
+    return sessionStorage.getItem('token') || localStorage.getItem('token');
   }
 
   setToken(token, keepMeLoggedIn?) {

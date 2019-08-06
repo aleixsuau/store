@@ -66,7 +66,7 @@ export class LoginComponent implements OnInit {
                       .notify(
                         `${errorResponse.error.Error.Message}`,
                         'X',
-                        { duration: 1000000, panelClass: 'error' }
+                        { duration: 10000, panelClass: 'error' }
                       );
               }
             );

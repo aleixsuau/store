@@ -1,4 +1,3 @@
-import { ClientsService } from './services/clients/clients.service';
 import { NgModule } from '@angular/core';
 import { MatTableModule, MatPaginatorModule } from '@angular/material';
 
@@ -15,8 +14,5 @@ import { SharedModule } from 'src/app/shared/shared.module';
     MatTableModule,
     MatPaginatorModule,
   ],
-  providers: [
-    ClientsService,
-  ]
 })
 export class ClientsModule { }

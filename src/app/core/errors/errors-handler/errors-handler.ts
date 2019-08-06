@@ -25,7 +25,7 @@ export class ErrorsHandler implements ErrorHandler {
     if (!navigator.onLine) {
       // No Internet connection
       const conectionFailMessage = 'No Internet Connection';
-      return notificationService.notify(conectionFailMessage, 'X', {panelClass: 'wk-error'});
+      return notificationService.notify(conectionFailMessage, 'X', { duration: 10000, panelClass: 'error' });
     }
 
     if (error instanceof HttpErrorResponse) {
@@ -36,20 +36,19 @@ export class ErrorsHandler implements ErrorHandler {
       } else {
         // Handle Http Error (error.status === 403, 404...)
         if (error.status === 401 || error.status === 403) {
-          notificationService.notify('Unauthenticated user', 'X', { panelClass: 'error' });
+          notificationService.notify(`Unauthenticated user: ${error.error || error.message}`, 'X', { duration: 10000, panelClass: 'error' });
           router.navigate([`${configService.siteId}/login`]);
           return;
-        }
-
-        if (error.status === 500) {
-          notificationService.notify(`Server Error: ${error.message}`);
+        } else if (error.status === 500) {
+          notificationService.notify(`ERROR 500: ${error.error || error.message}`,  'X', { duration: 10000, panelClass: 'error' });
+          errorsService.log(error).subscribe();
+        } else {
+          notificationService.notify(`ERROR ${error.status}: ${error.error || error.message}`, 'X', { duration: 10000, panelClass: 'error' });
           errorsService.log(error).subscribe();
         }
-        // And show notification to the user
-        return notificationService.notify(`${error.status} - ${error.message}`, 'X', {panelClass: 'wk-error'});
       }
     } else {
-      // Client Error Happend
+      // Client Error Happened
       // Send the error to the server and then
       // redirect the user to the page with all the info
       errorsService

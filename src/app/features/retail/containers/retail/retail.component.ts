@@ -1,3 +1,4 @@
+import { SalesService } from './../../services/sales/sales.service';
 import { ConfigService } from 'src/app/core/config/service/config.service';
 import { CryptoService } from './../../services/crypto/crypto.service';
 import { ClientsService } from './../../../clients/services/clients/clients.service';
@@ -15,9 +16,7 @@ class ClientErrorMatcher implements ErrorStateMatcher {
 }
 
 function clientValidator(control: AbstractControl): {[key: string]: any} | null {
-    return control.value && !control.value.Id ?
-              { 'clientError': true } :
-              null;
+    return control.value && !control.value.Id ? { 'clientError': true } : null;
 }
 
 @Component({
@@ -28,7 +27,6 @@ function clientValidator(control: AbstractControl): {[key: string]: any} | null 
 export class RetailComponent implements OnInit, OnDestroy {
   clients: IClient[];
   contracts: IContract[];
-  selectedClient: IClient;
   retailForm: FormGroup;
   retailFormSubscription: Subscription;
   clientErrorMatcher = new ClientErrorMatcher();
@@ -40,8 +38,7 @@ export class RetailComponent implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private formBuilder: FormBuilder,
     private clientsService: ClientsService,
-    private configService: ConfigService,
-    private cryptoService: CryptoService,
+    private salesService: SalesService,
   ) { }
 
   ngOnInit() {
@@ -69,13 +66,11 @@ export class RetailComponent implements OnInit, OnDestroy {
   }
 
   displayClientFn(client: IClient) {
-    return client ?
-            client.FirstName + ' ' + client.LastName :
-            null;
+    return client ? client.FirstName + ' ' + client.LastName : null;
   }
 
-  sellContract(formValue) {
-    // TODO: finish sellings
-    const encrypted = this.cryptoService.encrypt(formValue, this.configService.siteId);
+  sellContract(contract: IContract, client: IClient) {
+    console.log('sellContract', contract, client);
+    this.salesService.sellContract(contract, client).subscribe();
   }
 }

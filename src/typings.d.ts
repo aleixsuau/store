@@ -1,11 +1,33 @@
 interface IAppConfig {
+  id: string;
   token: string;
-  backgroundImage: string;
+  apiKey: string;
+  customization: {
+    language: string;
+    country: string;
+    backgroundImage: string;
+  };
+  payments: {
+    gateaway: {
+      name: string;
+      url: string;
+      apiToken: {
+        test: string;
+        production: string;
+      };
+      apiKey: {
+        test: string;
+        production: string;
+      };
+    },
+    needs_cvv: boolean;
+  };
   queryLimit: number;
 }
 
 interface IClient {
   Id?: number;
+  UniqueId?: string;
   AddressLine1?: string;
   AddressLine2?: string;
   ApptGenderPrefMale?: string;
@@ -84,6 +106,7 @@ interface IClientCreditCard {
   PostalCode?: string;
   State?: string;
   CVV?: number;
+  paymentMethod?: string;
 }
 
 interface IClientsResponse extends PaginationResponse {
@@ -186,7 +209,7 @@ interface IContractItem {
   Id: number;
   Name: string;
   Description: string;
-  Type: 'Class' | 'Enrollment' | 'Appointment' | 'Resource' | 'Arrival';
+  Type: 'Package' | 'Product' | 'Service' | 'Tip';
   Price: number;
   Quantity: number;
   OneTimeItem: boolean;

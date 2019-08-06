@@ -8,7 +8,6 @@
 
       <mat-card-content fxLayout="row wrap"
                         fxLayoutAlign="center center">
-
         <mat-form-field fxFlex="1 1 100%">
           <mat-select placeholder="Contract"
                       formControlName="contract">
@@ -63,7 +62,7 @@
         <button mat-raised-button
                 color="primary"
                 [disabled]="retailForm.invalid"
-                (click)="sellContract(retailForm.value, selectedClient)">
+                (click)="sellContract(retailForm.get('contract').value, retailForm.get('client').value)">
           Sell Contract
         </button>
       </mat-card-actions>

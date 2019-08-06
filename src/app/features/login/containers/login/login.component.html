@@ -1,6 +1,6 @@
 <div class="background"
     [ngStyle]="{
-      'background-image': 'url(' + (appConfig$ | async)?.backgroundImage + ')',
+      'background-image': 'url(' + (appConfig$ | async)?.customization.backgroundImage + ')',
       'background-size': 'cover',
       'background-position': 'center',
       'filter': loginMouseEnter ? 'blur(10px)' : null

@@ -36,9 +36,8 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   searchInput: FormControl;
   matDialogSubscription: Subscription;
   clientFormSubscription: Subscription;
-  clientCreditCardFormSubscription: Subscription;
+  searchInputSubscription: Subscription;
   clientFormChanged: boolean;
-  clientCreditCardChanged: boolean;
   paginatorLength: number;
   paginatorDisabled: boolean;
   searchResults: IClient[];
@@ -59,22 +58,22 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     this.clients = this.activatedRoute.snapshot.data.clients.Clients;
     this.paginatorLength =  this.activatedRoute.snapshot.data.clients.PaginationResponse.TotalResults;
-    this.setClientsPage(this.clients, 0, this.paginatorPageSize);
     this.searchInput = new FormControl(null);
+    this.searchInputSubscription = this.searchInput
+                                          .valueChanges
+                                          .pipe(
+                                            debounceTime(400),
+                                            switchMap(changes => this.clientsService.getClients(null, changes))
+                                          )
+                                          .subscribe(results => {
+                                            this.searchResults = results.Clients;
 
-    this.searchInput
-        .valueChanges
-        .pipe(
-          debounceTime(400),
-          switchMap(changes => this.clientsService.getClients(null, changes))
-        )
-        .subscribe(results => {
-          this.searchResults = results.Clients;
+                                            if (!this.searchResults.length) {
+                                              this.notificationService.notify('No results', null, {panelClass: 'error'});
+                                            }
+                                          });
 
-          if (!this.searchResults.length) {
-            this.notificationService.notify('No results', null, {panelClass: 'error'});
-          }
-        });
+    this.setClientsPage(this.clients, 0, this.paginatorPageSize);
   }
 
   ngAfterViewInit(): void {
@@ -84,12 +83,13 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     if (this.clientFormSubscription) {
       this.clientFormSubscription.unsubscribe();
-      this.clientCreditCardFormSubscription.unsubscribe();
     }
 
     if (this.matDialogSubscription) {
       this.matDialogSubscription.unsubscribe();
     }
+
+    this.searchInputSubscription.unsubscribe();
   }
 
   trackBy(index: number, row) {
@@ -129,20 +129,13 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
                                           .valueChanges
                                           .subscribe(changes => this.clientFormChanged = true);
 
-    this.clientCreditCardFormSubscription = this.clientForm
-                                                  .get('ClientCreditCard')
-                                                  .valueChanges
-                                                  .subscribe(changes => this.clientCreditCardChanged = true);
-
     this.matDialogSubscription = this.matDialog
                                         .open(this.clientTemplate, {panelClass: 'mbDialog'})
                                         .afterClosed()
                                         .subscribe(() => {
                                           this.clientBeingEdited = null;
                                           this.clientFormChanged = false;
-                                          this.clientCreditCardChanged = false;
                                           this.clientFormSubscription.unsubscribe();
-                                          this.clientCreditCardFormSubscription.unsubscribe();
                                         });
   }
 
@@ -151,14 +144,14 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
 
     if (this.clientBeingEdited && this.clientFormChanged) {
       // Remove *** display credit card data (to not overwrite original data)
-      if (!this.clientCreditCardChanged) {
+      if (this.clientForm.get('ClientCreditCard').pristine) {
         delete clientModelToSave.ClientCreditCard;
       }
 
       this.clientsService
             .updateClient(clientModelToSave)
             .pipe(switchMap(() => this.clientsService.getClients()))
-            .subscribe(clients => this.resetDataAndForm(clients));
+            .subscribe(clients => this.resetClientsAndFlags(clients));
     } else if (this.clientForm.valid) {
       // Remove null credit card data (MindBody throws error)
       if (this.clientForm.get('ClientCreditCard').pristine) {
@@ -168,15 +161,18 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
       this.clientsService
             .addClient(clientModelToSave)
             .pipe(switchMap(() => this.clientsService.getClients()))
-            .subscribe(clients => this.resetDataAndForm(clients));
+            .subscribe(clients => this.resetClientsAndFlags(clients));
     }
   }
 
-  resetDataAndForm(clients: IClientsResponse) {
+  resetClientsAndFlags(clients: IClientsResponse) {
     this.clients = clients.Clients;
     this.clientFormChanged = false;
-    this.clientCreditCardChanged = false;
     this.setClientsPage(this.clients, 0, this.paginatorPageSize);
+
+    if (this.clientForm.get('ClientCreditCard.CardNumber').value) {
+      this.clientForm.get('ClientCreditCard').disable();
+    }
   }
 
   setUpClientForm(client?: IClient) {

@@ -46,9 +46,11 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .success {
   background-color: green;
   color: white;
+  text-transform: uppercase;
 }
 
 .error {
   background-color: red;
   color: white;
+  text-transform: uppercase;
 }
