@@ -1,6 +1,5 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import * as request from 'request';
 import * as cors from 'cors';
 import * as express from 'express';
 import * as bodyParser from "body-parser";
@@ -25,6 +24,7 @@ const DDBB = admin.firestore();
 const server = express();
 const httpClient = axios;
 
+// MIDDLEWARE
 // Automatically allow cross-origin requests
 server.use(cors({
   origin: true,
@@ -33,12 +33,22 @@ server.use(cors({
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({ extended: false }));
 
+/*
+// ADD appConfig in this middleware??
+server.use(async (req, res, next) => {
+  console.log('HELLO from the middleware:', req.header('siteId'));
+  const siteId = req.header('siteId');
+  const appConfig = await _getAppConfig(siteId, res);
 
-// Add middleware to authenticate requests
-// server.use(myMiddleware);
+  req['appConfig'] = appConfig;
 
+  next();
+}) */
+
+
+// UTILS
 export function _getAppConfig(siteId: string, res?: express.Response): Promise<IAppConfig> {
-  console.log('_getAppConfig', siteId)
+  console.log('_getAppConfig', siteId);
   if (!siteId) { throw new Error('Please provide an ID'); }
 
   return DDBB.collection('config')
@@ -56,6 +66,26 @@ export function _getAppConfig(siteId: string, res?: express.Response): Promise<I
               });
 }
 
+function handleClientErrors(req: express.Request, res: express.Response) {
+  const siteId = req.header('siteId');
+  const token = req.header('Authorization');
+  console.log('handleClientErrors', siteId, token, req.body);
+  res.status(200).send({message: 'Error received'});
+}
+
+function _handleServerErrors(error: any, res: express.Response) {
+  if (error.response) {
+    console.log('_handleServerErrors', error.response);
+    const errorResponse: IMindbodyError = error.response.data;
+    res.status(error.response.status).send(`MindBody Error: ${errorResponse.Error.Code}, ${errorResponse.Error.Message}`);
+  } else {
+    console.log('_handleServerErrors', error);
+    res.status(error.code || 500).send(`${error.name || error.code}: ${error.message}`);
+  }
+}
+
+
+// ROUTE HANDLERS
 function getConfig(req: express.Request, res: express.Response) {
   const siteId = req.params.siteId;
 
@@ -75,7 +105,29 @@ async function login(req: express.Request, res: express.Response) {
 
   console.log('req', req)
   console.log('_login', siteId, username, password);
-  _getAppConfig(siteId)
+  try {
+    const appConfig = await _getAppConfig(siteId, res);
+    const url = `${baseUrl}/usertoken/issue`;
+    const config = {
+      headers: {
+      'Api-Key': appConfig.apiKey,
+      'SiteId': siteId,
+      }
+    };
+    const tokenRequest = {
+      Username: username,
+      Password: password,
+    };
+    console.log('tokenRequest', tokenRequest, config);
+
+    const tokenResponse = await httpClient.post(url, tokenRequest, config);
+    console.log('tokenResponse', tokenResponse.status, tokenResponse.data);
+
+    res.status(tokenResponse.status).send(tokenResponse.data);
+  } catch(error) {
+    _handleServerErrors(error, res);
+  }
+  /* _getAppConfig(siteId)
     .then(appConfig => {
       console.log('appConfig', appConfig);
       const requestConfig = {
@@ -97,28 +149,11 @@ async function login(req: express.Request, res: express.Response) {
           (error, response, body) => res.status(response.statusCode).send(body)
         );
     })
-    .catch(error => res.status(500).send(error));
-}
-
-function handleClientErrors(req: express.Request, res: express.Response) {
-  const siteId = req.header('siteId');
-  const token = req.header('Authorization');
-  console.log('handleClientErrors', siteId, token, req.body);
-  res.status(200).send({message: 'Error received'});
-}
-
-function _handleServerErrors(error: any, res: express.Response) {
-  if (error.response) {
-    console.log('_handleServerErrors', error.response);
-    const errorResponse: IMindbodyError = error.response.data;
-    res.status(error.response.status).send(`MindBody Error: ${errorResponse.Error.Code}, ${errorResponse.Error.Message}`);
-  } else {
-    console.log('_handleServerErrors', error);
-    res.status(error.code || 500).send(`${error.name || error.code}: ${error.message}`);
-  }
+    .catch(error => res.status(500).send(error)); */
 }
 
 async function getAllClients(req: express.Request, res: express.Response) {
+  console.log('REQUEST getAllClients', req.appConfig);
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
   const searchText = req.query.SearchText;
@@ -289,6 +324,97 @@ async function updateClient(req: express.Request, res: express.Response) {
     .catch(error => res.status(500).send(error)); */
 }
 
+async function addContract(req: express.Request, res: express.Response) {
+  const siteId = req.header('siteId');
+  const token = req.header('Authorization');
+  const clientId = req.params.id;
+  const contract = req.body;
+  console.log('addContract', siteId, token, clientId, contract);
+
+  try {
+    const appConfig = await _getAppConfig(siteId);
+    const config = {
+      headers: {
+      'Api-Key': appConfig.apiKey,
+      'SiteId': siteId,
+      'Authorization': token,
+      }
+    };
+    // TODO: replace this mocked data with the contract's data
+    // Right now the /contracts endpoint is not working in test :(
+    // REMEMBER: We need to pass the correct amount on
+    // cartOrder.Payments[0].Metadata.Amount, if not MindBody
+    // throws an error.
+    const cartOrder = {
+      ClientId: clientId,
+      Test: true,
+      Items: [
+        {
+          Item: {
+            Type: 'Service',
+            Metadata: {
+              Id: '1364', // contract.Id,
+            }
+          },
+          DiscountAmount: 0,
+          Quantity: 1
+        }
+      ],
+      Payments: [
+        {
+          Type: 'Cash',
+          Metadata: {
+            Amount: 108, // contract.FirstPaymentAmountTotal,
+          }
+        }
+      ]
+    };
+    // Check if the Cart total is correct and if the user is Authorized to sell
+    const cartTotalResponse = await httpClient.post(`${baseUrl}/sale/checkoutshoppingcart`, cartOrder, config);
+    console.log('cartTotalResponse', cartTotalResponse.data);
+    const clientPaymentConfig = await _getPaymentsConfig(appConfig, clientId);
+    console.log('clientPaymentConfig', clientPaymentConfig)
+
+    if (clientPaymentConfig) {
+      if (appConfig.payments.gateaway.name === 'mercadopago') {
+        const paymentsApiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
+        const paymentsApiKey = appConfig.test ? appConfig.payments.gateaway.apiKey.test : appConfig.payments.gateaway.apiKey.production;
+        const cardTokenResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/card_tokens?public_key=${paymentsApiKey}`, { card_id: clientPaymentConfig.cardId, security_code: clientPaymentConfig.CVV })
+        const cardToken = cardTokenResponse.data.id;
+        const mercadopagoOrder = {
+          transaction_amount: cartOrder.Payments[0].Metadata.Amount,
+          token: cardToken,
+          description: contract.Description,
+          installments: 1,
+          payer: {
+              id: clientPaymentConfig.clientId,
+              // email: customer.body.email,
+          }
+        };
+        console.log('mercadopagoOrder: ', mercadopagoOrder, paymentsApiToken)
+
+        const paymentResponse = await _makePaymentWithMercadopago(appConfig, paymentsApiToken, mercadopagoOrder);
+        console.log('paymentResponse', paymentResponse);
+        // TODO: Complete the sell pushing the contract to MindBody
+      }
+    } else {
+      throw new CustomError('This client does not have Credit Card associated', 400);
+    }
+  } catch (error) {
+    // _handleServerErrors(error, res);
+    // The request was made and the server responded with a status code
+    // that falls out of the range of 2xx
+    if (error.response) {
+      const errorResponse = error.response.data;
+      console.log('_getMercadopagoPaymentsConfig ERROR1:', errorResponse, errorResponse.status, errorResponse.cause, Object.keys(errorResponse), errorResponse);
+      const errorMessage = `${errorResponse.error}: ${errorResponse.cause[0].description}`;
+      res.status(errorResponse.status).send(errorMessage);
+    } else {
+      res.status(error.code || 500).send(`${error.name}: ${error.message}`);
+    }
+  }
+}
+
 async function _getPaymentsConfig(appConfig: IAppConfig, clientId: number): Promise<IClientPaymentsConfig | null> {
   console.log('_getPaymentsConfig', appConfig, clientId);
   const clientPaymentsConfigSnapshop = await DDBB
@@ -436,102 +562,44 @@ async function _createMercadopagoPaymentsConfig(
   }
 }
 
-async function addContract(req: express.Request, res: express.Response) {
-  const siteId = req.header('siteId');
-  const token = req.header('Authorization');
-  const clientId = req.params.id;
-  const contract = req.body;
-  console.log('addContract', siteId, token, clientId, contract);
-
-  try {
-    const appConfig = await _getAppConfig(siteId);
-    const config = {
-      headers: {
-      'Api-Key': appConfig.apiKey,
-      'SiteId': siteId,
-      'Authorization': token,
-      }
-    };
-    // TODO: replace this mocked data with the contract's data
-    // Right now the /contracts endpoint is not working in test :(
-    // REMEMBER: We need to pass the correct amount on
-    // cartOrder.Payments[0].Metadata.Amount, if not MindBody
-    // throws an error.
-    const cartOrder = {
-      ClientId: clientId,
-      Test: true,
-      Items: [
-        {
-          Item: {
-            Type: 'Service',
-            Metadata: {
-              Id: '1364', // contract.Id,
-            }
-          },
-          DiscountAmount: 0,
-          Quantity: 1
-        }
-      ],
-      Payments: [
-        {
-          Type: 'Cash',
-          Metadata: {
-            Amount: 108, // contract.FirstPaymentAmountTotal,
-          }
-        }
-      ]
-    };
-    // Check if the Cart total is correct and if the user is Authorized to sell
-    const cartTotalResponse = await httpClient.post(`${baseUrl}/sale/checkoutshoppingcart`, cartOrder, config);
-    console.log('cartTotalResponse', cartTotalResponse.data);
-    const clientPaymentConfig = await _getPaymentsConfig(appConfig, clientId);
-    console.log('clientPaymentConfig', clientPaymentConfig)
-
-    if (clientPaymentConfig) {
-      if (appConfig.payments.gateaway.name === 'mercadopago') {
-        const paymentsApiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
-        // const paymentsApiKey = appConfig.test ? appConfig.payments.gateaway.apiKey.test : appConfig.payments.gateaway.apiKey.production;
-
-        const mercadopagoOrder = {
-          transaction_amount: cartOrder.Payments[0].Metadata.Amount,
-          token: clientPaymentConfig.cardToken,
-          description: contract.Description,
-          installments: 1,
-          payer: {
-              id: clientPaymentConfig.clientId,
-              // email: customer.body.email,
-          }
-        };
-        console.log('mercadopagoOrder: ', mercadopagoOrder, paymentsApiToken)
-
-        const paymentResponse = await _makePaymentWithMercadopago(appConfig, paymentsApiToken, mercadopagoOrder);
-        console.log('paymentResponse', paymentResponse);
-        // TODO: Complete the sell pushing the contract to MindBody
-      }
-    } else {
-      throw new CustomError('This client does not have Credid Card associated', 400);
-    }
-  } catch (error) {
-    // _handleServerErrors(error, res);
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    if (error.response) {
-      const errorResponse = error.response.data;
-      console.log('_getMercadopagoPaymentsConfig ERROR1:', errorResponse, errorResponse.status, errorResponse.cause, Object.keys(errorResponse), errorResponse);
-      const errorMessage = `${errorResponse.error}: ${errorResponse.cause[0].description}`;
-      res.status(errorResponse.status).send(errorMessage);
-    } else {
-      res.status(error.code || 500).send(`${error.name}: ${error.message}`);
-    }
-  }
-}
-
 async function _makePaymentWithMercadopago(appConfig: IAppConfig, apiToken: string, order: any) {
   const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments?access_token=${apiToken}`, order);
   console.log('paymentResponse', paymentResponse.data);
 
   return paymentResponse.data;
 }
+
+// ROUTES
+// CLIENTS
+server
+  .route('/clients')
+  .get(getAllClients)
+  .post(addClient);
+
+server
+  .route('/clients/:id')
+  .patch(updateClient);
+
+server
+  .route('/clients/:id/contracts')
+  .post(addContract);
+
+// AUTH
+server
+  .route('/auth')
+  .post(login);
+
+// CONFIG
+server
+  .route('/config/:siteId')
+  .get(getConfig);
+
+// ERRORS
+server
+  .route('/errors')
+  .post(handleClientErrors);
+
+
 
 /* try {
   const mercadopagoUser = await httpClient
@@ -660,33 +728,15 @@ function _paymentGetAway(paymentUrl: string, quantity: number) {
 
 
 
-/** ENDPOINTS **/
 // SALE
 // server.post('/sale', (req, res) => _sale(req.body.Contract, req.header('siteId'), req.header('Authorization'), res));
-// CLIENTS
-server
-  .route('/clients')
-  .get(getAllClients)
-  .post(addClient);
 
-server
-  .route('/clients/:id')
-  .patch(updateClient);
-
-server
-  .route('/clients/:id/contracts')
-  .post(addContract);
 
 
 /* server.get('/clients', getAllClients);
 server.post('/clients', addClient);
 server.patch('/clients/:clientId', updateClient); */
-// AUTH
-server.post('/auth', login);
-// CONFIG
-server.get('/config/:siteId', getConfig);
-// ERRORS
-server.post('/errors', (req, res) => handleClientErrors);
+
 // server.get('/clients', (req, res) => _getAllClients(req.body.siteId, req.body.token, res));
 /* server.post('/', (req, res) => res.send(Widgets.create()));
 server.put('/:id', (req, res) => res.send(Widgets.update(req.params.id, req.body)));

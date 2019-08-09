@@ -48,7 +48,6 @@ export class AuthService {
     private userService: UserService,
   ) {}
 
-
   login(username: string, password: string, keepMeLoggedIn: boolean): Observable<IAuthData> {
     return this.httpClient
                   .post<IAuthData>(`${environment.firebase.functions_path}/${this._endPoint}`, {username, password})
@@ -79,7 +78,8 @@ export class AuthService {
 
   setToken(token, keepMeLoggedIn?) {
     const storage = keepMeLoggedIn ? localStorage : sessionStorage;
-
+    // Remove other user's tokens
+    this.deleteToken();
     storage.setItem('token', token);
   }
 

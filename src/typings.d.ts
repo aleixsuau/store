@@ -2,6 +2,7 @@ interface IAppConfig {
   id: string;
   token: string;
   apiKey: string;
+  test: boolean;
   customization: {
     language: string;
     country: string;

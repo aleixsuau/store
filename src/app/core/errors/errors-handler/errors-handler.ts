@@ -1,4 +1,4 @@
-import { ConfigService } from 'src/app/core/config/service/config.service';
+import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorHandler, Injectable, Injector } from '@angular/core';
 import { Router } from '@angular/router';
@@ -19,7 +19,7 @@ export class ErrorsHandler implements ErrorHandler {
 
     const notificationService = this.injector.get<NotificationService>(NotificationService);
     const errorsService = this.injector.get<ErrorsService>(ErrorsService);
-    const configService = this.injector.get<ConfigService>(ConfigService);
+    const authService = this.injector.get<AuthService>(AuthService);
     const router = this.injector.get(Router);
 
     if (!navigator.onLine) {
@@ -37,7 +37,7 @@ export class ErrorsHandler implements ErrorHandler {
         // Handle Http Error (error.status === 403, 404...)
         if (error.status === 401 || error.status === 403) {
           notificationService.notify(`Unauthenticated user: ${error.error || error.message}`, 'X', { duration: 10000, panelClass: 'error' });
-          router.navigate([`${configService.siteId}/login`]);
+          authService.logout();
           return;
         } else if (error.status === 500) {
           notificationService.notify(`ERROR 500: ${error.error || error.message}`,  'X', { duration: 10000, panelClass: 'error' });

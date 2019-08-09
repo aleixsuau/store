@@ -1,3 +1,10 @@
+// tslint:disable-next-line:no-namespace
+/* declare namespace Express {
+  export interface Request {
+    appConfig?: IAppConfig;
+  }
+} */
+
 interface IAppConfig {
   id: string;
   token: string;
@@ -126,8 +133,6 @@ interface IMindbodyError {
 }
 
 // MERCADOPAGO
-declare module 'mercadopago';
-
 interface IMercadoPagoError {
   message: string;
   error:  string;
