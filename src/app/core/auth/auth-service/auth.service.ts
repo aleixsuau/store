@@ -78,7 +78,7 @@ export class AuthService {
 
   setToken(token, keepMeLoggedIn?) {
     const storage = keepMeLoggedIn ? localStorage : sessionStorage;
-    // Remove other user's tokens
+    // Remove previous/other user's tokens
     this.deleteToken();
     storage.setItem('token', token);
   }

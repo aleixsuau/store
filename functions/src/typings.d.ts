@@ -5,6 +5,24 @@
   }
 } */
 
+// TODO: Finish DDBB interfaces
+interface IMindBroBusiness {
+  clients: IMindBroClient[];
+  config: IAppConfig;
+}
+
+interface IMindBroClient {
+  contracts: IContract[];
+  payments: IMindBroPayments;
+}
+
+interface IMindBroPayments {
+  CVV: string;
+  cardId: string;
+  cardToken: string;
+  clientId: string;
+}
+
 interface IAppConfig {
   id: string;
   token: string;
@@ -130,6 +148,66 @@ interface IMindbodyError {
     Message: string;
     Code: string;
   }
+}
+
+interface IContract {
+  Id: string;
+  Name: string;
+  Description: string;
+  AssignsMembershipId: number;
+  AssignsMembershipName: string;
+  SoldOnline: boolean;
+  ContractItems: IContractItem[];
+  IntroOffer: string;
+  AutopaySchedule: IContractAutopaySchedule;
+  NumberOfAutopays: number;
+  AutopayTriggerType: 'OnSetSchedule' | 'PricingOptionRunsOutOrExpires';
+  ActionUponCompletionOfAutopays: 'ContractExpires' | 'ContractAutomaticallyRenews';
+  ClientsChargedOn: 'OnSaleDate' | 'FirstOfTheMonth' | 'FifteenthOfTheMonth' |
+                    'LastDayOfTheMonth' | 'FirstOrFifteenthOfTheMonth' | 'FirstOrSixteenthOfTheMonth' |
+                    'FifteenthOrEndOfTheMonth' | 'SpecificDate';
+  ClientsChargedOnSpecificDate: string;
+  DiscountAmount: number;
+  DepositAmount: number;
+  FirstAutopayFree: boolean;
+  LastAutopayFree: boolean;
+  ClientTerminateOnline: boolean;
+  MembershipTypeRestrictions: IContractMembershipTypeRestrictions;
+  LocationPurchaseRestrictionIds: number[];
+  LocationPurchaseRestrictionNames: string[];
+  AgreementTerms: string;
+  RequiresElectronicConfirmation: boolean;
+  AutopayEnabled: boolean;
+  FirstPaymentAmountSubtotal: number;
+  FirstPaymentAmountTax: number;
+  FirstPaymentAmountTotal: number;
+  RecurringPaymentAmountSubtotal: number;
+  RecurringPaymentAmountTax: number;
+  RecurringPaymentAmountTotal: number;
+  TotalContractAmountSubtotal: number;
+  TotalContractAmountTax: number;
+  TotalContractAmountTotal: number;
+}
+
+interface IContractItem {
+  Id: number;
+  Name: string;
+  Description: string;
+  Type: 'Package' | 'Product' | 'Service' | 'Tip';
+  Price: number;
+  Quantity: number;
+  OneTimeItem: boolean;
+}
+
+interface IContractAutopaySchedule {
+  FrequencyType: string;
+  FrequencyValue: number;
+  FrequencyTimeUnit: 'Weekly' | 'Monthly' | 'Yearly';
+}
+
+interface IContractMembershipTypeRestrictions {
+  Id: number;
+  Name: string;
 }
 
 // MERCADOPAGO

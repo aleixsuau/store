@@ -47,40 +47,38 @@ server.use(async (req, res, next) => {
 
 
 // UTILS
-export function _getAppConfig(siteId: string, res?: express.Response): Promise<IAppConfig> {
+export async function _getAppConfig(siteId: string, res?: express.Response): Promise<IAppConfig> {
   console.log('_getAppConfig', siteId);
   if (!siteId) { throw new Error('Please provide an ID'); }
 
-  return DDBB.collection('config')
-              .doc(siteId)
-              .get()
-              .then(config => {
-                // return config.data() as IAppConfig;
-                if (!config.exists || !config.data()){
-                  console.log('No App with this ID');
-                  res.status(404).send({code: 404, message: 'No App with this ID'});
-                  throw new CustomError('No App with this ID', 404);
-                } else {
-                  return config.data() as IAppConfig;
-                }
-              });
+  const businessData = await DDBB.collection('business').doc(siteId).get();
+
+  console.log('businessDataaaaa', businessData.data(), businessData.data().config);
+
+  if (!businessData.exists || !businessData.data() || !businessData.data().config){
+    console.log('No App with this ID');
+    res.status(404).json({code: 404, message: 'No App with this ID'});
+    return null;
+  } else {
+    return businessData.data().config as IAppConfig;
+  }
 }
 
 function handleClientErrors(req: express.Request, res: express.Response) {
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
   console.log('handleClientErrors', siteId, token, req.body);
-  res.status(200).send({message: 'Error received'});
+  res.status(200).json({message: 'Error received'});
 }
 
 function _handleServerErrors(error: any, res: express.Response) {
   if (error.response) {
     console.log('_handleServerErrors', error.response);
     const errorResponse: IMindbodyError = error.response.data;
-    res.status(error.response.status).send(`MindBody Error: ${errorResponse.Error.Code}, ${errorResponse.Error.Message}`);
+    res.status(error.response.status).json(`MindBody Error: ${errorResponse.Error.Code}, ${errorResponse.Error.Message}`);
   } else {
     console.log('_handleServerErrors', error);
-    res.status(error.code || 500).send(`${error.name || error.code}: ${error.message}`);
+    res.status(error.code || 500).json(`${error.name || error.code}: ${error.message}`);
   }
 }
 
@@ -93,9 +91,9 @@ function getConfig(req: express.Request, res: express.Response) {
     .then(appConfig => {
       // Keep apiKey private
       const {apiKey, ...appConfigCopy} = appConfig;
-      res.status(200).send(appConfigCopy);
+      res.status(200).json(appConfigCopy);
     })
-    .catch(error => res.status(500).send(error));
+    .catch(error => res.status(500).json(error));
 }
 
 async function login(req: express.Request, res: express.Response) {
@@ -123,7 +121,7 @@ async function login(req: express.Request, res: express.Response) {
     const tokenResponse = await httpClient.post(url, tokenRequest, config);
     console.log('tokenResponse', tokenResponse.status, tokenResponse.data);
 
-    res.status(tokenResponse.status).send(tokenResponse.data);
+    res.status(tokenResponse.status).json(tokenResponse.data);
   } catch(error) {
     _handleServerErrors(error, res);
   }
@@ -146,14 +144,13 @@ async function login(req: express.Request, res: express.Response) {
       request
         .post(
           requestConfig,
-          (error, response, body) => res.status(response.statusCode).send(body)
+          (error, response, body) => res.status(response.statusCode).json(body)
         );
     })
-    .catch(error => res.status(500).send(error)); */
+    .catch(error => res.status(500).json(error)); */
 }
 
 async function getAllClients(req: express.Request, res: express.Response) {
-  console.log('REQUEST getAllClients', req.appConfig);
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
   const searchText = req.query.SearchText;
@@ -161,8 +158,8 @@ async function getAllClients(req: express.Request, res: express.Response) {
   const offset = req.query.offset;
   console.log('_getAllClients', siteId, token, limit, offset, searchText, `${baseUrl}/client/clients?${limit || 200}&offset=${offset || 0}${searchText ? `&SearchText=${searchText}` : ''}`);
 
-  if (!token) { res.status(401).send({message: 'Unauthorized'});}
-  if (!siteId ) { res.status(422).send({message: 'SiteId param is missing'});}
+  if (!token) { res.status(401).json({message: 'Unauthorized'});}
+  if (!siteId ) { res.status(422).json({message: 'SiteId param is missing'});}
 
   try {
     const appConfig = await _getAppConfig(siteId, res);
@@ -176,7 +173,7 @@ async function getAllClients(req: express.Request, res: express.Response) {
     };
     const clientsResponse = await httpClient.get(url, config);
 
-    res.status(clientsResponse.status).send(clientsResponse.data);
+    res.status(clientsResponse.status).json(clientsResponse.data);
   } catch(error) {
     _handleServerErrors(error, res);
   }
@@ -219,18 +216,21 @@ async function addClient(req: express.Request, res: express.Response) {
     // paymentsConfig (token, CVV...) on Firebase under the
     // client's MindBody id
     if (paymentsConfig) {
+      console.log('paymentsConfig', `business/${appConfig.id}/clients/${newClientResponse.data.Client.UniqueId}`, paymentsConfig)
       await DDBB
-              .collection(`payments/${appConfig.id}/clients`)
+              .doc(`business/${appConfig.id}/clients/${newClientResponse.data.Client.UniqueId}`)
+              .set({payments: paymentsConfig});
+              /* .collection(`payments/${appConfig.id}/clients`)
               .doc(`${newClientResponse.data.Client.UniqueId}`)
-              .set(paymentsConfig);
+              .set(paymentsConfig); */
     }
     console.log('newClient', Object.keys(newClientResponse), newClientResponse.data)
       res
         .status(newClientResponse.status)
-        .send(newClientResponse.data.Client || newClientResponse.statusText);
+        .json(newClientResponse.data.Client || newClientResponse.statusText);
   } catch (error) {
     console.log('catch', error, Object.keys(error));
-    res.status(error.code).send(error.message);
+    res.status(error.code).json(error.message);
   }
 }
 
@@ -283,17 +283,19 @@ async function updateClient(req: express.Request, res: express.Response) {
     // client's MindBody id
     if (isSavingANewCreditCard) {
       await DDBB
-              .collection(`payments/${appConfig.id}/clients`)
+              .doc(`business/${appConfig.id}/clients/${updatedClientResponse.data.Client.UniqueId}`)
+              .update({payments: paymentsConfig});
+              /* .collection(`business/${appConfig.id}/clients/${}`)
               .doc(`${updatedClientResponse.data.Client.UniqueId}`)
-              .set(paymentsConfig);
+              .set(paymentsConfig); */
     }
     console.log('updatedClientResponse: ', Object.keys(updatedClientResponse), updatedClientResponse.data)
       res
         .status(updatedClientResponse.status)
-        .send(updatedClientResponse.data.Client || updatedClientResponse.statusText);
+        .json(updatedClientResponse.data.Client || updatedClientResponse.statusText);
   } catch (error) {
     console.log('updatedClient catch', error.response, error.code, error.message, Object.keys(error), error.response, error.toJSON);
-    res.status(error.code).send(error.message);
+    res.status(error.code).json(error.message);
   }
 
 
@@ -318,10 +320,10 @@ async function updateClient(req: express.Request, res: express.Response) {
       request
         .post(
           requestConfig,
-          (error, response, body) => res.status(response.statusCode).send(body),
+          (error, response, body) => res.status(response.statusCode).json(body),
         );
     })
-    .catch(error => res.status(500).send(error)); */
+    .catch(error => res.status(500).json(error)); */
 }
 
 async function addContract(req: express.Request, res: express.Response) {
@@ -365,10 +367,12 @@ async function addContract(req: express.Request, res: express.Response) {
           Type: 'Cash',
           Metadata: {
             Amount: 108, // contract.FirstPaymentAmountTotal,
+            Id: '1364',
           }
         }
       ]
     };
+    console.log('cartOrder', cartOrder)
     // Check if the Cart total is correct and if the user is Authorized to sell
     const cartTotalResponse = await httpClient.post(`${baseUrl}/sale/checkoutshoppingcart`, cartOrder, config);
     console.log('cartTotalResponse', cartTotalResponse.data);
@@ -393,9 +397,20 @@ async function addContract(req: express.Request, res: express.Response) {
         };
         console.log('mercadopagoOrder: ', mercadopagoOrder, paymentsApiToken)
 
+        // const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments?access_token=${paymentsApiToken}`, mercadopagoOrder);
         const paymentResponse = await _makePaymentWithMercadopago(appConfig, paymentsApiToken, mercadopagoOrder);
         console.log('paymentResponse', paymentResponse);
-        // TODO: Complete the sell pushing the contract to MindBody
+        if (paymentResponse.status === 'approved') {
+          const cartResponse = await httpClient.post(`${baseUrl}/sale/checkoutshoppingcart`, { ...cartOrder, Test: false }, config);
+          console.log('cartResponse', cartResponse.data)
+          // TODO: Save contract into Firebase DDBB in order to charge it every X time
+          await DDBB
+                .collection(`business/${appConfig.id}/clients/${clientId}/contracts`)
+                .add(contract);
+
+          res.status(200).json('Payment Done!');
+        }
+
       }
     } else {
       throw new CustomError('This client does not have Credit Card associated', 400);
@@ -408,38 +423,36 @@ async function addContract(req: express.Request, res: express.Response) {
       const errorResponse = error.response.data;
       console.log('_getMercadopagoPaymentsConfig ERROR1:', errorResponse, errorResponse.status, errorResponse.cause, Object.keys(errorResponse), errorResponse);
       const errorMessage = `${errorResponse.error}: ${errorResponse.cause[0].description}`;
-      res.status(errorResponse.status).send(errorMessage);
+      res.status(errorResponse.status).json(errorMessage);
     } else {
-      res.status(error.code || 500).send(`${error.name}: ${error.message}`);
+      res.status(error.code || 500).json(`${error.name}: ${error.message}`);
     }
   }
 }
 
 async function _getPaymentsConfig(appConfig: IAppConfig, clientId: number): Promise<IClientPaymentsConfig | null> {
   console.log('_getPaymentsConfig', appConfig, clientId);
-  const clientPaymentsConfigSnapshop = await DDBB
+  const clientSnapshop = await DDBB.doc(`business/${appConfig.id}/clients/${clientId}`).get();
+                                    /* await DDBB
                                               .collection('payments')
                                               .doc(appConfig.id)
                                               .collection('clients')
                                               .doc(`${clientId}`)
-                                              .get();
-  const clientPaymentsConfig = clientPaymentsConfigSnapshop.data() as IClientPaymentsConfig | null;
+                                              .get(); */
+  const clientPaymentsConfig = clientSnapshop.data() && clientSnapshop.data().payments || null as IClientPaymentsConfig | null;
+  console.log('clientPaymentsConfig', clientPaymentsConfig);
 
   return clientPaymentsConfig;
 }
 
 async function _createPaymentsConfig(appConfig: IAppConfig, client: IClient): Promise<IClientPaymentsConfig> | null {
   console.log('_createPaymentsConfig', appConfig, client, client.Id);
-  const clientPaymentsConfigSnapshop = await DDBB
-                                              .collection('payments')
-                                              .doc(appConfig.id)
-                                              .collection('clients')
-                                              .doc(`${client.Id}`)
-                                              .get();
-  const clientPaymentsConfig = clientPaymentsConfigSnapshop.data() as IClientPaymentsConfig | null;
+
+  const clientPaymentsConfig = await _getPaymentsConfig(appConfig, client.Id);
 
   // If the user comes with a CVV inside the credit card data, then
   // he is creating a new Credit Card (MindBody doesn't save CVV)
+  // If the user already has a CrediCard, pass its data to update
   if (appConfig.payments.gateaway.name === 'mercadopago') {
     return _createMercadopagoPaymentsConfig(appConfig, client, clientPaymentsConfig);
   }
@@ -703,7 +716,7 @@ function _getContractTotal(appConfig: any, contract: any, siteId: string, token:
   request
       .post(
         requestConfig,
-        (error, response, body) => res.status(response.statusCode).send(body),
+        (error, response, body) => res.status(response.statusCode).json(body),
       )
 }
 
@@ -738,11 +751,11 @@ server.post('/clients', addClient);
 server.patch('/clients/:clientId', updateClient); */
 
 // server.get('/clients', (req, res) => _getAllClients(req.body.siteId, req.body.token, res));
-/* server.post('/', (req, res) => res.send(Widgets.create()));
-server.put('/:id', (req, res) => res.send(Widgets.update(req.params.id, req.body)));
-server.delete('/:id', (req, res) => res.send(Widgets.delete(req.params.id)));
-server.get('/', (req, res) => res.send(Widgets.list())); */
-// server.get('/config/:siteId', (req, res) => res.send(_getConfig(req.params.siteId, req, res)));
+/* server.post('/', (req, res) => res.json(Widgets.create()));
+server.put('/:id', (req, res) => res.json(Widgets.update(req.params.id, req.body)));
+server.delete('/:id', (req, res) => res.json(Widgets.delete(req.params.id)));
+server.get('/', (req, res) => res.json(Widgets.list())); */
+// server.get('/config/:siteId', (req, res) => res.json(_getConfig(req.params.siteId, req, res)));
 
 
 // Expose Express API as a single Cloud Function:
@@ -782,16 +795,16 @@ const DDBB = admin.firestore(); */
 /* export const config = functions.https.onRequest((req, res) => {
   console.log('Auth req1:', req.params, req.body, req);
   if (req.method === 'OPTIONS') {
-    return corsHandler(req, res, () => res.status(200).send());
+    return corsHandler(req, res, () => res.status(200).json());
   };
 
-  return corsHandler(req, res, () => res.status(200).send('holi'));
+  return corsHandler(req, res, () => res.status(200).json('holi'));
 }); */
 
 /* export const auth = functions.https.onRequest((req, res) => {
   console.log('Auth req1:', req.method, req.body, req);
   if (req.method === 'OPTIONS') {
-    return corsHandler(req, res, () => res.status(200).send());
+    return corsHandler(req, res, () => res.status(200).json());
   };
 
   if (req.method === 'POST') {
@@ -816,9 +829,9 @@ const DDBB = admin.firestore(); */
                     (error, response, body) => {
                       console.log('body', body);
                       if (error) {
-                        return corsHandler(req, res, () => res.status(401).send({message: 'Unauthorized: 401', error}));
+                        return corsHandler(req, res, () => res.status(401).json({message: 'Unauthorized: 401', error}));
                       } else {
-                        return corsHandler(req, res, () => res.status(200).send(body));
+                        return corsHandler(req, res, () => res.status(200).json(body));
                       }
                     });
                   })
@@ -828,7 +841,7 @@ const DDBB = admin.firestore(); */
 
 /* export const clients = functions.https.onRequest((req, res) => {
   console.log('req5', req)
-  if (req.method === 'OPTIONS') { return corsHandler(req, res, () => res.status(200).send())};
+  if (req.method === 'OPTIONS') { return corsHandler(req, res, () => res.status(200).json())};
 
   if (req.method === 'GET') {
     const siteId = req.body.siteId;
@@ -848,7 +861,7 @@ const DDBB = admin.firestore(); */
                       headers,
                     }, (error, response, body) => {
                       console.log('body', body);
-                      return corsHandler(req, res, () => res.status(200).send(body));
+                      return corsHandler(req, res, () => res.status(200).json(body));
                     });
             });
 
