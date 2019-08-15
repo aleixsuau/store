@@ -207,7 +207,7 @@ interface IContract {
 }
 
 interface IContractItem {
-  Id: number;
+  Id: string;
   Name: string;
   Description: string;
   Type: 'Package' | 'Product' | 'Service' | 'Tip';

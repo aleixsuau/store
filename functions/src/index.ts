@@ -65,6 +65,8 @@ export async function _getAppConfig(siteId: string, res?: express.Response): Pro
 }
 
 function handleClientErrors(req: express.Request, res: express.Response) {
+  if (req.method === 'OPTIONS') { res.status(200).json() };
+
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
   console.log('handleClientErrors', siteId, token, req.body);
@@ -85,6 +87,8 @@ function _handleServerErrors(error: any, res: express.Response) {
 
 // ROUTE HANDLERS
 function getConfig(req: express.Request, res: express.Response) {
+  if (req.method === 'OPTIONS') { res.status(200).json() };
+
   const siteId = req.params.siteId;
 
   _getAppConfig(siteId)
@@ -97,11 +101,11 @@ function getConfig(req: express.Request, res: express.Response) {
 }
 
 async function login(req: express.Request, res: express.Response) {
+  if (req.method === 'OPTIONS') { res.status(200).json() };
+
   const siteId = req.header('siteId');
   const username = req.body.username;
   const password = req.body.password;
-
-  console.log('req', req)
   console.log('_login', siteId, username, password);
   try {
     const appConfig = await _getAppConfig(siteId, res);
@@ -116,41 +120,18 @@ async function login(req: express.Request, res: express.Response) {
       Username: username,
       Password: password,
     };
-    console.log('tokenRequest', tokenRequest, config);
 
     const tokenResponse = await httpClient.post(url, tokenRequest, config);
-    console.log('tokenResponse', tokenResponse.status, tokenResponse.data);
 
     res.status(tokenResponse.status).json(tokenResponse.data);
   } catch(error) {
     _handleServerErrors(error, res);
   }
-  /* _getAppConfig(siteId)
-    .then(appConfig => {
-      console.log('appConfig', appConfig);
-      const requestConfig = {
-        url: `${baseUrl}/usertoken/issue`,
-        headers: {
-          'Api-Key': appConfig.apiKey,
-          'SiteId': siteId,
-        },
-        json: {
-          'Username': username,
-          'Password': password,
-        },
-      }
-      console.log('requestConfig', requestConfig);
-
-      request
-        .post(
-          requestConfig,
-          (error, response, body) => res.status(response.statusCode).json(body)
-        );
-    })
-    .catch(error => res.status(500).json(error)); */
 }
 
 async function getAllClients(req: express.Request, res: express.Response) {
+  if (req.method === 'OPTIONS') { res.status(200).json() };
+
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
   const searchText = req.query.SearchText;
@@ -180,6 +161,8 @@ async function getAllClients(req: express.Request, res: express.Response) {
 };
 
 async function addClient(req: express.Request, res: express.Response) {
+  if (req.method === 'OPTIONS') { res.status(200).json() };
+
   const client: IClient = req.body.Client;
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
@@ -219,10 +202,7 @@ async function addClient(req: express.Request, res: express.Response) {
       console.log('paymentsConfig', `business/${appConfig.id}/clients/${newClientResponse.data.Client.UniqueId}`, paymentsConfig)
       await DDBB
               .doc(`business/${appConfig.id}/clients/${newClientResponse.data.Client.UniqueId}`)
-              .set({payments: paymentsConfig});
-              /* .collection(`payments/${appConfig.id}/clients`)
-              .doc(`${newClientResponse.data.Client.UniqueId}`)
-              .set(paymentsConfig); */
+              .set({ payments_config: paymentsConfig });
     }
     console.log('newClient', Object.keys(newClientResponse), newClientResponse.data)
       res
@@ -235,6 +215,8 @@ async function addClient(req: express.Request, res: express.Response) {
 }
 
 async function updateClient(req: express.Request, res: express.Response) {
+  if (req.method === 'OPTIONS') { res.status(200).json() };
+
   const clientId = req.params.id;
   const client = req.body.Client;
   const siteId = req.header('siteId');
@@ -284,10 +266,7 @@ async function updateClient(req: express.Request, res: express.Response) {
     if (isSavingANewCreditCard) {
       await DDBB
               .doc(`business/${appConfig.id}/clients/${updatedClientResponse.data.Client.UniqueId}`)
-              .update({payments: paymentsConfig});
-              /* .collection(`business/${appConfig.id}/clients/${}`)
-              .doc(`${updatedClientResponse.data.Client.UniqueId}`)
-              .set(paymentsConfig); */
+              .update({ payments_config: paymentsConfig });
     }
     console.log('updatedClientResponse: ', Object.keys(updatedClientResponse), updatedClientResponse.data)
       res
@@ -297,40 +276,15 @@ async function updateClient(req: express.Request, res: express.Response) {
     console.log('updatedClient catch', error.response, error.code, error.message, Object.keys(error), error.response, error.toJSON);
     res.status(error.code).json(error.message);
   }
-
-
-  /* _getAppConfig(siteId)
-    .then(appConfig => {
-      console.log('appConfig', appConfig);
-      const requestConfig = {
-        url: `${baseUrl}/client/updateclient?ClientIds=${clientId}`,
-        headers: {
-          'Api-Key': appConfig.apiKey,
-          'SiteId': siteId,
-          'Authorization': token,
-        },
-        json: {
-          Client: client,
-          // TODO: Set CrossRegionalUpdate from the Site configuration
-          CrossRegionalUpdate: false,
-        },
-      };
-      console.log('requestConfig', requestConfig)
-
-      request
-        .post(
-          requestConfig,
-          (error, response, body) => res.status(response.statusCode).json(body),
-        );
-    })
-    .catch(error => res.status(500).json(error)); */
 }
 
 async function addContract(req: express.Request, res: express.Response) {
+  if (req.method === 'OPTIONS') { res.status(200).json() };
+
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
   const clientId = req.params.id;
-  const contract = req.body;
+  const contract: IContract = req.body;
   console.log('addContract', siteId, token, clientId, contract);
 
   try {
@@ -347,35 +301,56 @@ async function addContract(req: express.Request, res: express.Response) {
     // REMEMBER: We need to pass the correct amount on
     // cartOrder.Payments[0].Metadata.Amount, if not MindBody
     // throws an error.
+    // TODO: IMPORTANT: Price/OnlinePrice
+    const servicesCatalogResponse = await httpClient.get(`${baseUrl}/sale/services`, config);
+    const servicesCatalog: IService[] = servicesCatalogResponse.data.Services;
+    console.log('servicesCatalog', servicesCatalog);
+    const contractItems = contract.ContractItems.map(contractItem => {
+      const formattedItem = {
+        Item: {
+          Type: contractItem.Type,
+          Metadata: {
+            Id: contractItem.Id,
+          }
+        },
+        // TODO: Add discount management
+        DiscountAmount: 0,
+        Quantity: contractItem.Quantity,
+      }
+
+      return formattedItem;
+    });
+
+    console.log('contractItems', contractItems);
+
+    const contractAmount = contract.ContractItems.reduce((result, contractItem) => {
+      let subTotal = contractItem.Price * contractItem.Quantity;
+      // TODO: Add products coverage to contracts? (A contract can include products?)
+      const serviceDetails = servicesCatalog.find(service => service.Id === contractItem.Id);
+      if (serviceDetails) {
+        const taxRate = serviceDetails.TaxRate;
+        subTotal += (subTotal * taxRate);
+      }
+
+      return result + subTotal;
+    }, 0);
+    console.log('contractAmount', contractAmount);
+
     const cartOrder = {
       ClientId: clientId,
-      Test: true,
-      Items: [
-        {
-          Item: {
-            Type: 'Service',
-            Metadata: {
-              Id: '1364', // contract.Id,
-            }
-          },
-          DiscountAmount: 0,
-          Quantity: 1
-        }
-      ],
+      Test: appConfig.test,
+      Items: contractItems,
       Payments: [
         {
           Type: 'Cash',
           Metadata: {
-            Amount: 108, // contract.FirstPaymentAmountTotal,
-            Id: '1364',
+            // TODO: contract.FirstPaymentAmountTotal instead of this calculation??
+            Amount: contractAmount,
           }
         }
       ]
     };
     console.log('cartOrder', cartOrder)
-    // Check if the Cart total is correct and if the user is Authorized to sell
-    const cartTotalResponse = await httpClient.post(`${baseUrl}/sale/checkoutshoppingcart`, cartOrder, config);
-    console.log('cartTotalResponse', cartTotalResponse.data);
     const clientPaymentConfig = await _getPaymentsConfig(appConfig, clientId);
     console.log('clientPaymentConfig', clientPaymentConfig)
 
@@ -391,26 +366,37 @@ async function addContract(req: express.Request, res: express.Response) {
           description: contract.Description,
           installments: 1,
           payer: {
-              id: clientPaymentConfig.clientId,
-              // email: customer.body.email,
+            id: clientPaymentConfig.clientId,
           }
         };
         console.log('mercadopagoOrder: ', mercadopagoOrder, paymentsApiToken)
 
-        // const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments?access_token=${paymentsApiToken}`, mercadopagoOrder);
-        const paymentResponse = await _makePaymentWithMercadopago(appConfig, paymentsApiToken, mercadopagoOrder);
+        const paymentResponse: IMercadoPagoPayment = await _makePaymentWithMercadopago(appConfig, paymentsApiToken, mercadopagoOrder);
         console.log('paymentResponse', paymentResponse);
-        if (paymentResponse.status === 'approved') {
+        // Save the payment to Firebase under the Id of the payment
+        // with the id of the MindBody client (to query per client)
+        const paymentToSave = {
+          ...paymentResponse,
+          date_created: new Date(paymentResponse.date_created),
+          mindBodyId: clientId
+        };
+        await DDBB
+                .collection(`business/${appConfig.id}/payments`)
+                .doc(`${paymentToSave.id}`)
+                .set(paymentToSave);
+
+        if (paymentToSave.status === 'approved') {
           const cartResponse = await httpClient.post(`${baseUrl}/sale/checkoutshoppingcart`, { ...cartOrder, Test: false }, config);
           console.log('cartResponse', cartResponse.data)
           // TODO: Save contract into Firebase DDBB in order to charge it every X time
           await DDBB
-                .collection(`business/${appConfig.id}/clients/${clientId}/contracts`)
-                .add(contract);
+                  .collection(`business/${appConfig.id}/clients/${clientId}/contracts`)
+                  .add(contract);
 
           res.status(200).json('Payment Done!');
+        } else {
+          throw new CustomError(`Mercadopago ${ paymentToSave.status ? ': ' + paymentToSave.status : ''}`, 400);
         }
-
       }
     } else {
       throw new CustomError('This client does not have Credit Card associated', 400);
@@ -421,9 +407,16 @@ async function addContract(req: express.Request, res: express.Response) {
     // that falls out of the range of 2xx
     if (error.response) {
       const errorResponse = error.response.data;
+      let errorMessage;
       console.log('_getMercadopagoPaymentsConfig ERROR1:', errorResponse, errorResponse.status, errorResponse.cause, Object.keys(errorResponse), errorResponse);
-      const errorMessage = `${errorResponse.error}: ${errorResponse.cause[0].description}`;
-      res.status(errorResponse.status).json(errorMessage);
+      if (errorResponse.error) {
+        errorMessage = `${errorResponse.error}: ${errorResponse.cause[0] && errorResponse.cause[0].description || errorResponse.message}`;
+      // Mercadopago Error
+      } else if (errorResponse.Error) {
+        errorMessage = `${errorResponse.Error.Code}: ${errorResponse.Error.Message}`;
+      }
+
+      res.status(errorResponse.status || 500).json(errorMessage);
     } else {
       res.status(error.code || 500).json(`${error.name}: ${error.message}`);
     }
@@ -433,13 +426,7 @@ async function addContract(req: express.Request, res: express.Response) {
 async function _getPaymentsConfig(appConfig: IAppConfig, clientId: number): Promise<IClientPaymentsConfig | null> {
   console.log('_getPaymentsConfig', appConfig, clientId);
   const clientSnapshop = await DDBB.doc(`business/${appConfig.id}/clients/${clientId}`).get();
-                                    /* await DDBB
-                                              .collection('payments')
-                                              .doc(appConfig.id)
-                                              .collection('clients')
-                                              .doc(`${clientId}`)
-                                              .get(); */
-  const clientPaymentsConfig = clientSnapshop.data() && clientSnapshop.data().payments || null as IClientPaymentsConfig | null;
+  const clientPaymentsConfig = clientSnapshop.data() && clientSnapshop.data().payments_config || null as IClientPaymentsConfig | null;
   console.log('clientPaymentsConfig', clientPaymentsConfig);
 
   return clientPaymentsConfig;
@@ -492,11 +479,6 @@ async function _createMercadopagoPaymentsConfig(
     console.log('creditCardTokenId', creditCardTokenId, creditCardToken)
     let clientId;
 
-    /* mercadopago.configure({
-      sandbox: appConfig.test,
-      access_token: apiToken,
-    }); */
-
     // If the client already had a saved credit card,
     // then we get the Mercadopago id from his paymentsConfig
     // to save the card associated to him and delete his
@@ -511,8 +493,6 @@ async function _createMercadopagoPaymentsConfig(
         last_name: client.LastName,
       }
       console.log('apiToken', apiToken, clientData)
-      // const clientResponse = await mercadopago.customers.create(clientData, { token: apiToken });
-      // clientId = clientResponse.body.id;
       const clientResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/customers?access_token=${apiToken}`, clientData);
       clientId = clientResponse.data.id;
       console.log('clientResponse', clientResponse.data);
@@ -521,35 +501,18 @@ async function _createMercadopagoPaymentsConfig(
     // Associate the creditCardTokenId to a user (required by Mercadopago)
     const card = {
       token: creditCardTokenId,
-      // id: clientId,
     }
 
-    // const newCardResponse = await mercadopago.customers.cards.create(card);
     const newCardResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/customers/${clientId}/cards?access_token=${apiToken}`, card);
     const cardId = newCardResponse.data.id;
-
     console.log('newCardResponse', cardId, newCardResponse.data)
 
     // If the user already had a Credit Card, remove it after
     // saving the new one (we only allow one credit card per client)
     if (clientPaymentsConfig && clientPaymentsConfig.clientId) {
-      /* const config = {
-        headers: {
-        'Api-Key': appConfig.apiKey,
-        'Authorization': apiToken,
-        }
-      }; */
       console.log('Delete url:', `${appConfig.payments.gateaway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
       const deleteCardResponse = await httpClient.delete(`${appConfig.payments.gateaway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
       console.log('deleteCardResponse', deleteCardResponse);
-      /* await mercadopago
-              .customers
-              .cards
-              .delete(clientPaymentsConfig.clientId, clientPaymentsConfig.cardId)
-              .catch((error: any) => {
-                console.log('_createMercadopagoPaymentsConfig DELETE ERROR:', clientPaymentsConfig.clientId, clientPaymentsConfig.cardId, error.name, error.status, error.message, error);
-                throw new CustomError(`${error.name}: ${error.cause[0].description || error.message}`, error.status);
-              }) */
     }
 
     // Return paymentConfig to save it on Firebase
@@ -575,11 +538,11 @@ async function _createMercadopagoPaymentsConfig(
   }
 }
 
-async function _makePaymentWithMercadopago(appConfig: IAppConfig, apiToken: string, order: any) {
+async function _makePaymentWithMercadopago(appConfig: IAppConfig, apiToken: string, order: any): Promise<IMercadoPagoPayment> {
   const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments?access_token=${apiToken}`, order);
   console.log('paymentResponse', paymentResponse.data);
 
-  return paymentResponse.data;
+  return paymentResponse.data as IMercadoPagoPayment;
 }
 
 // ROUTES
@@ -612,259 +575,27 @@ server
   .route('/errors')
   .post(handleClientErrors);
 
+/*
+QUERY BY DATE
+  let start = new Date('2017-01-01');
+  let end = new Date('2018-01-01');
 
+  // ORDERBY???
 
-/* try {
-  const mercadopagoUser = await httpClient
-                                  .get(
-                                    `${appConfig.payments.gateaway.url}/customers/search`,
-                                    { params: { email: client.Email } }
-                                  );
-  console.log('mercadopagoUser', mercadopagoUser)
-
-} catch (error) {
-
-} */
-
-/* async function _sale(contract: any, siteId: string, token: string, res: express.Response) {
-  console.log('_addcontract', contract, siteId, token);
-  // 1 - Get Amount (MindBody cartCheckout??)
-  // 2 - Get Client payment Data:
-  //     - If the client has credit card token proceed
-  //     - Else, create token (PayU) and proceed
-  // 3 - Get Site payment gateAway
-  // 4 - Process payment
-  //     - If SC needed, get it from ddbb and proceed
-  //     - Else, proceed
-  // 5 - Response
-  //     - If payment Ok: Send sale to MB and return 200 with payment response
-  //     - Else, return payment error
-
-  const appConfig = await _getAppConfig(siteId);
-  const total = await _getContractTotal(appConfig, contract, siteId, token);
-  const clientPaymentData = await _getClientPaymentData(siteId, contract.client.UniqueId);
-
-  if (clientPaymentData) {
-
-  } else {
-
-  }
-}
-
-function _getContractTotal(appConfig: any, contract: any, siteId: string, token: string) {
-  return Promise.resolve(100);
-
-  // TODO: Finish this (waiting for mindbody answer to how calculate the total with taxes)
-  const order = {
-    'ClientId': contract.client.UniqueId,
-    'Test': true,
-    'LocationId': 1,
-    'InStore': true,
-    'Items': [
-       {
-        'Item': {
-          'Type': 'Service',
-          'Metadata': {
-            'Id': '123456789'
-          }
-        },
-        'DiscountAmount': 0,
-        'Quantity': 1
-      },
-      {
-        'Item': {
-          'Type': 'Service',
-          'Metadata': {
-            'Id': '1364'
-          }
-        },
-        'DiscountAmount': 0,
-        'Quantity': 1
-      }
-    ],
-    'Payments': [
-      {
-        'Type': 'CreditCard',
-        'Metadata': {
-          'Amount': 238,
-          'CreditCardNumber':'4687898983747303',
-          'ExpMonth': 6,
-          'ExpYear' : 2028,
-          'Cvv': 922,
-          'BillingName':'Bob Jones',
-          'BillingAddress': '4051 Broad Street',
-          'BillingCity' : 'San Luis Obispo',
-          'BillingState' : 'CA',
-          'BillingPostalCode': '93405',
-          'SaveInfo': true
-        }
-      }
-    ]
-  };
-
-  const requestConfig = {
-    url: `${baseUrl}/sale/checkoutshoppingcart`,
-    headers: {
-      'Api-Key': appConfig.apiKey,
-      'SiteId': siteId,
-      'Authorization': token,
-    },
-    json: contract,
-  };
-  console.log('requestConfig', requestConfig)
-
-  request
-      .post(
-        requestConfig,
-        (error, response, body) => res.status(response.statusCode).json(body),
-      )
-}
-
-function _getClientPaymentData(siteId: string, clientId: string){
-    console.log('_getClientPaymentData', siteId, clientId);
-
-    return DDBB.collection('payments')
-                .doc(siteId)
-                .collection('clients')
-                .doc(clientId)
-                .get()
-                .then(paymentData => {
-                  console.log('paymentData', paymentData)
-                  return paymentData.data();
-                });
-}
-
-function _paymentGetAway(paymentUrl: string, quantity: number) {
-  // Handle different gateAways
-  return Promise.resolve()
-} */
+  this.afs.collection('invoices', ref => ref
+      .where('dueDate', '>', start)
+      .where('dueDate', '<', end)
+  );
+*/
 
 
 
-// SALE
-// server.post('/sale', (req, res) => _sale(req.body.Contract, req.header('siteId'), req.header('Authorization'), res));
 
-
-
-/* server.get('/clients', getAllClients);
-server.post('/clients', addClient);
-server.patch('/clients/:clientId', updateClient); */
-
-// server.get('/clients', (req, res) => _getAllClients(req.body.siteId, req.body.token, res));
-/* server.post('/', (req, res) => res.json(Widgets.create()));
-server.put('/:id', (req, res) => res.json(Widgets.update(req.params.id, req.body)));
-server.delete('/:id', (req, res) => res.json(Widgets.delete(req.params.id)));
-server.get('/', (req, res) => res.json(Widgets.list())); */
-// server.get('/config/:siteId', (req, res) => res.json(_getConfig(req.params.siteId, req, res)));
 
 
 // Expose Express API as a single Cloud Function:
 exports.api = functions.https.onRequest(server);
 
 
-// Initialize admin
-/* admin.initializeApp(functions.config().firebase);
-// Create DDBB
-const corsHandler = cors({ origin: true });
-const baseUrl = `https://api.mindbodyonline.com/public/v6`;
-const DDBB = admin.firestore(); */
 
-/* async function _getApiKey(id: string) {
-  console.log('_getApiKey', id);
-  const config = await DDBB.collection('sites').doc(id).get();
 
-  if (!config.exists){
-    throw new Error("App doesn't exist.")
-  } else {
-    return config.data();
-  }
-}; */
-
-  /*
-  // QUERY
-  return DDBB
-          .collection('sites')
-          .where('id', '==', id)
-          .get()
-          .then(sitesQuerySnapShot => {
-            return sitesQuerySnapShot.docs.map((documentSnapshot) => documentSnapshot.data());
-          });
-
-}*/
-
-/* export const config = functions.https.onRequest((req, res) => {
-  console.log('Auth req1:', req.params, req.body, req);
-  if (req.method === 'OPTIONS') {
-    return corsHandler(req, res, () => res.status(200).json());
-  };
-
-  return corsHandler(req, res, () => res.status(200).json('holi'));
-}); */
-
-/* export const auth = functions.https.onRequest((req, res) => {
-  console.log('Auth req1:', req.method, req.body, req);
-  if (req.method === 'OPTIONS') {
-    return corsHandler(req, res, () => res.status(200).json());
-  };
-
-  if (req.method === 'POST') {
-    const siteId = req.body.siteId;
-    const Username = req.body.username;
-    const Password = req.body.password;
-
-    return _getApiKey(siteId)
-            .then(apikey => {
-              console.log('apikey', apikey);
-              const headers = {
-                'Api-Key': apikey,
-                SiteId: siteId,
-              };
-
-              return request.post(
-                    {
-                      url: `${baseUrl}/usertoken/issue`,
-                      headers,
-                      body: { Username, Password },
-                    },
-                    (error, response, body) => {
-                      console.log('body', body);
-                      if (error) {
-                        return corsHandler(req, res, () => res.status(401).json({message: 'Unauthorized: 401', error}));
-                      } else {
-                        return corsHandler(req, res, () => res.status(200).json(body));
-                      }
-                    });
-                  })
-                  .catch(error => error);
-  }
-}); */
-
-/* export const clients = functions.https.onRequest((req, res) => {
-  console.log('req5', req)
-  if (req.method === 'OPTIONS') { return corsHandler(req, res, () => res.status(200).json())};
-
-  if (req.method === 'GET') {
-    const siteId = req.body.siteId;
-    const token = req.body.token;
-
-    return _getApiKey(siteId)
-            .then(apikey => {
-              console.log('apikey', apikey);
-              const headers = {
-                'Api-Key': apikey,
-                SiteId: siteId,
-                Authorization: token,
-              };
-
-            return request.get({
-                      url: `${baseUrl}/client/clients`,
-                      headers,
-                    }, (error, response, body) => {
-                      console.log('body', body);
-                      return corsHandler(req, res, () => res.status(200).json(body));
-                    });
-            });
-
-  }
-});
- */

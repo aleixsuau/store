@@ -1,6 +1,4 @@
 import { SalesService } from './../../services/sales/sales.service';
-import { ConfigService } from 'src/app/core/config/service/config.service';
-import { CryptoService } from './../../services/crypto/crypto.service';
 import { ClientsService } from './../../../clients/services/clients/clients.service';
 import { FormGroup, FormBuilder, Validators, FormControl, FormGroupDirective, NgForm, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
@@ -70,7 +68,6 @@ export class RetailComponent implements OnInit, OnDestroy {
   }
 
   sellContract(contract: IContract, client: IClient) {
-    console.log('sellContract', contract, client);
     this.salesService.sellContract(contract, client).subscribe();
   }
 }
