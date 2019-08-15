@@ -14,8 +14,7 @@ export class AuthGuard implements CanActivate {
   ) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
-    const siteId = route.params['siteId'];
-    this.configService.siteId = siteId;
+    const siteId = this.configService.siteId;
 
     if (this.authService.getToken()) {
       return true;

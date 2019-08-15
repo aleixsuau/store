@@ -11,6 +11,11 @@ import { Component, OnInit } from '@angular/core';
 export class BaseComponent implements OnInit {
   user$: Observable<IUser>;
   showUserMenu = false;
+  navLinks = [
+    { path: 'clients', label: 'clients' },
+    { path: 'retail', label: 'retail' },
+    { path: 'payments', label: 'payments' },
+  ];
 
   constructor(
     private userService: UserService,

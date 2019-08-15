@@ -17,18 +17,10 @@ const routes: Routes = [
         path: 'login',
         component: LoginComponent,
       },
-      {
+      /* {
         path: 'retail',
-        component: BaseComponent,
-        canActivate: [AuthGuard],
-        canActivateChild: [AuthGuard],
-        children: [
-          {
-            path: '',
-            loadChildren: () => import('./features/retail/retail.module').then(m => m.RetailModule),
-          }
-        ]
-      },
+        loadChildren: () => import('./features/retail/retail.module').then(m => m.RetailModule),
+      }, */
       {
         path: '',
         component: BaseComponent,
@@ -37,8 +29,17 @@ const routes: Routes = [
         children: [
           {
             path: '',
+            pathMatch: 'full',
+            redirectTo: 'clients',
+          },
+          {
+            path: 'clients',
             loadChildren: () => import('./features/clients/clients.module').then(m => m.ClientsModule),
-          }
+          },
+          {
+            path: 'retail',
+            loadChildren: () => import('./features/retail/retail.module').then(m => m.RetailModule),
+          },
         ]
       },
     ]

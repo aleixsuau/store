@@ -140,7 +140,7 @@ async function getAllClients(req: express.Request, res: express.Response) {
   console.log('_getAllClients', siteId, token, limit, offset, searchText, `${baseUrl}/client/clients?${limit || 200}&offset=${offset || 0}${searchText ? `&SearchText=${searchText}` : ''}`);
 
   if (!token) { res.status(401).json({message: 'Unauthorized'});}
-  if (!siteId ) { res.status(422).json({message: 'SiteId param is missing'});}
+  if (!siteId ) { res.status(422).json({message: 'SiteId header is missing'});}
 
   try {
     const appConfig = await _getAppConfig(siteId, res);
@@ -545,7 +545,88 @@ async function _makePaymentWithMercadopago(appConfig: IAppConfig, apiToken: stri
   return paymentResponse.data as IMercadoPagoPayment;
 }
 
+async function getPayments(req: express.Request, res: express.Response) {
+  if (req.method === 'OPTIONS') { res.status(200).json() };
+
+  const siteId = req.header('siteId');
+  const token = req.header('Authorization');
+  const limit = req.query.limit || 100;
+  const offset = req.query.offset || 0;
+  const status = req.query.status;
+  const dateFrom = req.query.dateFrom;
+  const dateTo = req.query.dateTo;
+  console.log('getPayments', siteId, token, limit, offset, status, dateFrom, dateTo);
+
+  if (!token) { res.status(401).json({message: 'Unauthorized'}); }
+  if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
+
+  try {
+    const appConfig = await _getAppConfig(siteId, res);
+    // Check Auth, if not it throws
+    await _checkMindbodyAuth(appConfig.apiKey, siteId, token);
+
+    let collectionRef = DDBB.collection(`business/${siteId}/payments`).orderBy('date_created');
+
+    if (dateFrom) {
+      const dateFromDate = new Date(dateFrom);
+
+      collectionRef = collectionRef.where('date_created', '>', dateFromDate);
+    }
+
+    if (dateTo) {
+      const dateToDate = new Date(dateTo);
+
+      collectionRef = collectionRef.where('date_created', '<', dateToDate);
+    }
+
+    if (status) {
+      collectionRef = collectionRef.where('status', '==', status);
+    }
+
+    const filteredPaymentsSnapshot = await collectionRef.limit(limit).offset(offset).get();
+    const filteredPayments = filteredPaymentsSnapshot.docs.map(snapshot => snapshot.data());
+    console.log('filteredPayments', filteredPayments);
+
+    res.status(200).json(filteredPayments);
+  } catch(error) {
+    _handleServerErrors(error, res);
+  }
+};
+
+async function _checkMindbodyAuth(apiKey: string, siteId: string, token: string) {
+  const config = {
+    headers: {
+    'Api-Key': apiKey,
+    'SiteId': siteId,
+    'Authorization': token,
+    }
+  };
+  const url = `${baseUrl}/sale/giftcards`;
+  // Make a call just to validate that the user is authenticated on Mindbody
+  try {
+    await httpClient.get(url, config);
+    return true;
+  } catch (error) {
+    throw new CustomError('Unauthenticated user', 401);
+  }
+}
+
 // ROUTES
+// ERRORS
+server
+  .route('/errors')
+  .post(handleClientErrors);
+
+// AUTH
+server
+  .route('/auth')
+  .post(login);
+
+// CONFIG
+server
+  .route('/config/:siteId')
+  .get(getConfig);
+
 // CLIENTS
 server
   .route('/clients')
@@ -560,38 +641,10 @@ server
   .route('/clients/:id/contracts')
   .post(addContract);
 
-// AUTH
+// PAYMENTS
 server
-  .route('/auth')
-  .post(login);
-
-// CONFIG
-server
-  .route('/config/:siteId')
-  .get(getConfig);
-
-// ERRORS
-server
-  .route('/errors')
-  .post(handleClientErrors);
-
-/*
-QUERY BY DATE
-  let start = new Date('2017-01-01');
-  let end = new Date('2018-01-01');
-
-  // ORDERBY???
-
-  this.afs.collection('invoices', ref => ref
-      .where('dueDate', '>', start)
-      .where('dueDate', '<', end)
-  );
-*/
-
-
-
-
-
+  .route('/payments')
+  .get(getPayments);
 
 // Expose Express API as a single Cloud Function:
 exports.api = functions.https.onRequest(server);
