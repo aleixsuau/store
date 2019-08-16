@@ -1,0 +1,163 @@
+<div class="main_container">
+    <div class="table_container">
+      <mat-card>
+        <div [formGroup]="filterForm"
+              fxLayout="row wrap"
+              fxLayoutAlign="space-between center"
+              fxLayoutGap="2rem">
+          <div class="search_input"
+               fxFlex="1 1 auto">
+            <mat-form-field>
+              <input matInput
+                     formControlName="client"
+                     [matAutocomplete]="auto"
+                     type="text"
+                     placeholder="Client">
+            </mat-form-field>
+
+            <mat-autocomplete #auto="matAutocomplete"
+                              [displayWith]="clientAutocompleteDisplayFunction">
+              <mat-option *ngFor="let client of searchResults"
+                          [value]="client">
+                {{ client.FirstName + ' ' + client.LastName }} ( {{ client.Email }} )
+              </mat-option>
+            </mat-autocomplete>
+          </div>
+
+          <mat-form-field fxFlex="1 1 auto">
+            <mat-select placeholder="Contract"
+                        formControlName="contract">
+              <mat-option *ngFor="let contract of contracts"
+                          [value]="contract">
+                {{ contract.Name }}
+              </mat-option>
+
+              <mat-option [value]="null"> All </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 auto">
+            <input matInput
+                  [matDatepicker]="pickerFrom"
+                  formControlName="dateFrom"
+                  (click)="pickerFrom.open();"
+                  autocomplete="off"
+                  placeholder="Date from">
+            <mat-datepicker-toggle matPrefix [for]="pickerFrom"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFrom></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 auto">
+            <input matInput
+                  [matDatepicker]="pickerTo"
+                  formControlName="dateTo"
+                  (click)="pickerTo.open();"
+                  autocomplete="off"
+                  placeholder="Date to">
+            <mat-datepicker-toggle matPrefix [for]="pickerTo"></mat-datepicker-toggle>
+            <mat-datepicker #pickerTo></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 25rem">
+            <mat-label>Status</mat-label>
+
+            <mat-select formControlName="status"
+                        placeholder="status">
+              <mat-option *ngFor="let status of paymentStatuses"
+                          [value]="status.value">
+                {{ status.label }}
+              </mat-option>
+
+              <mat-option [value]="null"> All </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div fxFlex="1 1 auto"
+               fxLayoutAlign="end center">
+            <button mat-raised-button
+                    color="primary"
+                    (click)="getTableData(filterForm.value);"
+                    fxFlex="0 0 20rem">
+              FILTER
+            </button>
+          </div>
+        </div>
+
+        <mat-card-content>
+          <mat-table [dataSource]="dataSource"
+                    [trackBy]="trackBy"
+                    #table
+                    @fade>
+            <mat-header-row class="table-header"
+                            *matHeaderRowDef="columns"
+                            color="primary"
+                            @fade>
+            </mat-header-row>
+
+            <mat-row *matRowDef="let payment; columns: columns; let index = index"
+                    [ngClass]="{'highlight': index%2 == 1}">
+            </mat-row>
+
+            <ng-container matColumnDef="Date">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>DATE</mat-header-cell>
+              <mat-cell *matCellDef="let payment">{{ payment.date_created | date }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="Client">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>CLIENT</mat-header-cell>
+              <mat-cell *matCellDef="let payment">{{ payment.payer.first_name }} {{ payment.payer.last_name }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="Contract">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>CONTRACT</mat-header-cell>
+              <mat-cell *matCellDef="let payment">{{ payment.mindBroData.contract.Name }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="Total">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>TOTAL</mat-header-cell>
+              <mat-cell *matCellDef="let payment">{{ payment.transaction_amount }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="Status">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>STATUS</mat-header-cell>
+              <mat-cell *matCellDef="let payment">
+                <p [style.color]="payment.status === 'approved' ? 'green' : payment.status === 'pending' ? 'orange' : 'red'">{{ payment.status }}</p>
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="Actions">
+              <mat-header-cell *matHeaderCellDef mat-sort-header></mat-header-cell>
+              <mat-cell *matCellDef="let payment"
+                        fxLayoutAlign="end center">
+                <button mat-icon-button
+                        matTooltip="Refund this payment"
+                        (click)="refundPayment(payment.id);"
+                        [disabled]="payment.status !== 'approved'"
+                        color="primary"
+                        aria-label="refund payment">
+                  <mat-icon>replay</mat-icon>
+                </button>
+              </mat-cell>
+            </ng-container>
+          </mat-table>
+
+          <div class="table-message"
+                *ngIf="!payments?.length">
+            {{ 'Sorry, no results' }}
+          </div>
+
+          <div class="table-footer"
+              fxLayout="row"
+              fxLayoutAlign="end end">
+            <mat-paginator [pageSize]="paginatorPageSize"
+                           [pageSizeOptions]="paginatorPageSizeOptions"
+                           [length]="paginatorLength"
+                           [disabled]="paginatorDisabled"
+                           (page)="paginatorChange(payments, $event);"
+                           showFirstLastButtons="true">
+            </mat-paginator>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>

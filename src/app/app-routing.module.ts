@@ -17,10 +17,6 @@ const routes: Routes = [
         path: 'login',
         component: LoginComponent,
       },
-      /* {
-        path: 'retail',
-        loadChildren: () => import('./features/retail/retail.module').then(m => m.RetailModule),
-      }, */
       {
         path: '',
         component: BaseComponent,
@@ -39,6 +35,10 @@ const routes: Routes = [
           {
             path: 'retail',
             loadChildren: () => import('./features/retail/retail.module').then(m => m.RetailModule),
+          },
+          {
+            path: 'payments',
+            loadChildren: () => import('./features/payments/payments.module').then(m => m.PaymentsModule),
           },
         ]
       },

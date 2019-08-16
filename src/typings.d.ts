@@ -226,3 +226,102 @@ interface IContractMembershipTypeRestrictions {
   Id: number;
   Name: string;
 }
+
+interface IPayment {
+  id: number;
+  date_created_timestamp: IFirebaseTimestamp;
+  mindBroData: {
+    client: string;
+    contract: IContract;
+  };
+  date_created: string;
+  date_approved: string;
+  date_last_updated: string;
+  date_of_expiration: string;
+  money_release_date: string;
+  operation_type: string;
+  issuer_id: string;
+  payment_method_id: string;
+  payment_type_id: string;
+  status: 'pending' | 'in_process' | 'approved';
+  status_detail: string;
+  currency_id: string;
+  description: string;
+  live_mode: boolean;
+  sponsor_id: string;
+  authorization_code: string;
+  money_release_schema: string;
+  taxes_amount: number;
+  counter_currency: string;
+  shipping_amount: number;
+  pos_id: string;
+  store_id: string;
+  collector_id: number;
+  payer:
+   {
+     first_name: string;
+     last_name: string;
+     email: string;
+     identification: { number: string; type: string; };
+     phone: { area_code:  string; number:  string; extension: string; };
+     type: string;
+     entity_type: string;
+     id:  string;
+   };
+  metadata: {};
+  additional_info: {};
+  order: {};
+  external_reference: string;
+  transaction_amount: number;
+  transaction_amount_refunded: number;
+  coupon_amount: number;
+  differential_pricing_id: string;
+  deduction_schema: string;
+  transaction_details:
+   { payment_method_reference_id: string;
+     net_received_amount: number;
+     total_paid_amount: number;
+     overpaid_amount: number;
+     external_resource_url: string;
+     installment_amount: number;
+     financial_institution: string;
+     payable_deferral_period: string;
+     acquirer_reference: string; };
+  fee_details:
+   [ { type: string;
+       amount: number;
+       fee_payer: string; } ];
+  captured: boolean;
+  binary_mode: boolean;
+  call_for_authorize_id: string;
+  statement_descriptor: string;
+  installments: number;
+  card:
+   { id: string;
+     first_six_digits: string;
+     last_four_digits: string;
+     expiration_month: number;
+     expiration_year: number;
+     date_created: string;
+     date_last_updated: string;
+     cardholder: {
+       name: string;
+       identification: {
+        number: string;
+        type: string;
+       }
+     }
+  };
+  notification_url: string;
+  refunds: any[];
+  processing_mode: string;
+  merchant_account_id: string;
+  acquirer: string;
+  merchant_number: string;
+  acquirer_reconciliation: any[];
+}
+
+interface IFirebaseTimestamp {
+  _seconds: number;
+  _nanoseconds: number;
+}

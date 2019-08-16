@@ -75,11 +75,21 @@ function handleClientErrors(req: express.Request, res: express.Response) {
 
 function _handleServerErrors(error: any, res: express.Response) {
   if (error.response) {
-    console.log('_handleServerErrors', error.response);
-    const errorResponse: IMindbodyError = error.response.data;
-    res.status(error.response.status).json(`MindBody Error: ${errorResponse.Error.Code}, ${errorResponse.Error.Message}`);
+    console.log('_handleServerErrors error.response', Object.keys(error.response), error.response.data, error.response);
+
+    const errorResponse: IMindbodyError | any = error.response.data;
+    let errorMessage;
+    // The request was made and the server responded with a status code
+    // that falls out of the range of 2xx (Axios httpClient)
+    if (errorResponse.error) {
+      errorMessage = `${errorResponse.error}: ${errorResponse.cause[0] && errorResponse.cause[0].description || errorResponse.message}`;
+    // Mercadopago Error
+    } else if (errorResponse.Error) {
+      errorMessage = `MindBody Error: ${errorResponse.Error.Code}: ${errorResponse.Error.Message}`;
+    }
+
+    res.status(errorResponse.status || error.response.status || 500).json(errorMessage);
   } else {
-    console.log('_handleServerErrors', error);
     res.status(error.code || 500).json(`${error.name || error.code}: ${error.message}`);
   }
 }
@@ -209,8 +219,7 @@ async function addClient(req: express.Request, res: express.Response) {
         .status(newClientResponse.status)
         .json(newClientResponse.data.Client || newClientResponse.statusText);
   } catch (error) {
-    console.log('catch', error, Object.keys(error));
-    res.status(error.code).json(error.message);
+    _handleServerErrors(error, res);
   }
 }
 
@@ -238,10 +247,8 @@ async function updateClient(req: express.Request, res: express.Response) {
 
     if (isSavingANewCreditCard) {
       paymentsConfig = await _createPaymentsConfig(appConfig, client);
-      console.log('paymentsConfig', paymentsConfig)
     }
 
-    console.log('_updateClient paymentsConfig', paymentsConfig);
     // Update the user on MindBody
     const config = {
       headers: {
@@ -255,9 +262,7 @@ async function updateClient(req: express.Request, res: express.Response) {
       // TODO: Set CrossRegionalUpdate from the Site configuration
       CrossRegionalUpdate: false,
     };
-    console.log('updatedClientResponse url:', `${baseUrl}/client/updateclient?ClientIds=${clientId}`, updatedClient, config);
     const updatedClientResponse = await httpClient.post(`${baseUrl}/client/updateclient?ClientIds=${clientId}`, updatedClient, config);
-    console.log('updatedClientResponse', updatedClientResponse.data, updatedClientResponse.data.Client);
 
     // If there was a credit card and it was saved properly,
     // now we have the client's MindBody id, so we can save his
@@ -268,13 +273,11 @@ async function updateClient(req: express.Request, res: express.Response) {
               .doc(`business/${appConfig.id}/clients/${updatedClientResponse.data.Client.UniqueId}`)
               .update({ payments_config: paymentsConfig });
     }
-    console.log('updatedClientResponse: ', Object.keys(updatedClientResponse), updatedClientResponse.data)
       res
         .status(updatedClientResponse.status)
         .json(updatedClientResponse.data.Client || updatedClientResponse.statusText);
   } catch (error) {
-    console.log('updatedClient catch', error.response, error.code, error.message, Object.keys(error), error.response, error.toJSON);
-    res.status(error.code).json(error.message);
+    _handleServerErrors(error, res);
   }
 }
 
@@ -329,6 +332,7 @@ async function addContract(req: express.Request, res: express.Response) {
       const serviceDetails = servicesCatalog.find(service => service.Id === contractItem.Id);
       if (serviceDetails) {
         const taxRate = serviceDetails.TaxRate;
+
         subTotal += (subTotal * taxRate);
       }
 
@@ -371,15 +375,21 @@ async function addContract(req: express.Request, res: express.Response) {
         };
         console.log('mercadopagoOrder: ', mercadopagoOrder, paymentsApiToken)
 
-        const paymentResponse: IMercadoPagoPayment = await _makePaymentWithMercadopago(appConfig, paymentsApiToken, mercadopagoOrder);
+        const paymentResponse: IPayment = await _makePaymentWithMercadopago(appConfig, paymentsApiToken, mercadopagoOrder);
+
         console.log('paymentResponse', paymentResponse);
+        console.log('contract', contract)
         // Save the payment to Firebase under the Id of the payment
         // with the id of the MindBody client (to query per client)
         const paymentToSave = {
           ...paymentResponse,
-          date_created: new Date(paymentResponse.date_created),
-          mindBodyId: clientId
+          date_created_timestamp: new Date(paymentResponse.date_created),
+          mindBroData: {
+            client: clientId,
+            contract,
+          }
         };
+
         await DDBB
                 .collection(`business/${appConfig.id}/payments`)
                 .doc(`${paymentToSave.id}`)
@@ -402,24 +412,7 @@ async function addContract(req: express.Request, res: express.Response) {
       throw new CustomError('This client does not have Credit Card associated', 400);
     }
   } catch (error) {
-    // _handleServerErrors(error, res);
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    if (error.response) {
-      const errorResponse = error.response.data;
-      let errorMessage;
-      console.log('_getMercadopagoPaymentsConfig ERROR1:', errorResponse, errorResponse.status, errorResponse.cause, Object.keys(errorResponse), errorResponse);
-      if (errorResponse.error) {
-        errorMessage = `${errorResponse.error}: ${errorResponse.cause[0] && errorResponse.cause[0].description || errorResponse.message}`;
-      // Mercadopago Error
-      } else if (errorResponse.Error) {
-        errorMessage = `${errorResponse.Error.Code}: ${errorResponse.Error.Message}`;
-      }
-
-      res.status(errorResponse.status || 500).json(errorMessage);
-    } else {
-      res.status(error.code || 500).json(`${error.name}: ${error.message}`);
-    }
+    _handleServerErrors(error, res);
   }
 }
 
@@ -495,7 +488,6 @@ async function _createMercadopagoPaymentsConfig(
       console.log('apiToken', apiToken, clientData)
       const clientResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/customers?access_token=${apiToken}`, clientData);
       clientId = clientResponse.data.id;
-      console.log('clientResponse', clientResponse.data);
     }
 
     // Associate the creditCardTokenId to a user (required by Mercadopago)
@@ -505,14 +497,11 @@ async function _createMercadopagoPaymentsConfig(
 
     const newCardResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/customers/${clientId}/cards?access_token=${apiToken}`, card);
     const cardId = newCardResponse.data.id;
-    console.log('newCardResponse', cardId, newCardResponse.data)
 
     // If the user already had a Credit Card, remove it after
     // saving the new one (we only allow one credit card per client)
     if (clientPaymentsConfig && clientPaymentsConfig.clientId) {
-      console.log('Delete url:', `${appConfig.payments.gateaway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
-      const deleteCardResponse = await httpClient.delete(`${appConfig.payments.gateaway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
-      console.log('deleteCardResponse', deleteCardResponse);
+      await httpClient.delete(`${appConfig.payments.gateaway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
     }
 
     // Return paymentConfig to save it on Firebase
@@ -530,19 +519,21 @@ async function _createMercadopagoPaymentsConfig(
     // that falls out of the range of 2xx
     if (error.response) {
       const errorResponse = error.response.data;
-      console.log('_getMercadopagoPaymentsConfig ERROR1:', errorResponse, errorResponse.status, errorResponse.cause, Object.keys(errorResponse), errorResponse);
-      throw new CustomError(`${errorResponse.error}: ${errorResponse.cause[0].description}`, errorResponse.status);
+      const errorMessage = `${errorResponse.error}: ${errorResponse.cause[0] && errorResponse.cause[0].description || errorResponse.message}`;
+
+      console.log('_getMercadopagoPaymentsConfig ERROR1:', errorResponse, errorMessage, errorResponse.status, errorResponse.cause, Object.keys(errorResponse), errorResponse);
+      throw new CustomError(errorMessage, errorResponse.status);
     } else {
       throw new CustomError(`${error.name}: ${error.message}`, 500);
     }
   }
 }
 
-async function _makePaymentWithMercadopago(appConfig: IAppConfig, apiToken: string, order: any): Promise<IMercadoPagoPayment> {
+async function _makePaymentWithMercadopago(appConfig: IAppConfig, apiToken: string, order: any): Promise<IPayment> {
   const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments?access_token=${apiToken}`, order);
   console.log('paymentResponse', paymentResponse.data);
 
-  return paymentResponse.data as IMercadoPagoPayment;
+  return paymentResponse.data as IPayment;
 }
 
 async function getPayments(req: express.Request, res: express.Response) {
@@ -552,10 +543,12 @@ async function getPayments(req: express.Request, res: express.Response) {
   const token = req.header('Authorization');
   const limit = req.query.limit || 100;
   const offset = req.query.offset || 0;
+  const client = req.query.client;
+  const contract = req.query.contract;
   const status = req.query.status;
   const dateFrom = req.query.dateFrom;
   const dateTo = req.query.dateTo;
-  console.log('getPayments', siteId, token, limit, offset, status, dateFrom, dateTo);
+  console.log('getPayments', siteId, token, limit, offset, client, contract, status, dateFrom, dateTo);
 
   if (!token) { res.status(401).json({message: 'Unauthorized'}); }
   if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
@@ -565,27 +558,36 @@ async function getPayments(req: express.Request, res: express.Response) {
     // Check Auth, if not it throws
     await _checkMindbodyAuth(appConfig.apiKey, siteId, token);
 
-    let collectionRef = DDBB.collection(`business/${siteId}/payments`).orderBy('date_created');
+    let collectionRef = DDBB.collection(`business/${siteId}/payments`).orderBy('date_created_timestamp');
 
-    if (dateFrom) {
-      const dateFromDate = new Date(dateFrom);
-
-      collectionRef = collectionRef.where('date_created', '>', dateFromDate);
+    if (client) {
+      collectionRef = collectionRef.where('mindBroData.client', '==', client);
     }
 
-    if (dateTo) {
-      const dateToDate = new Date(dateTo);
-
-      collectionRef = collectionRef.where('date_created', '<', dateToDate);
+    if (contract) {
+      collectionRef = collectionRef.where('mindBroData.contract.Id', '==', contract);
     }
 
     if (status) {
       collectionRef = collectionRef.where('status', '==', status);
     }
 
+    if (dateFrom) {
+      const dateFromDate = new Date(dateFrom);
+
+      collectionRef = collectionRef.where('date_created_timestamp', '>=', dateFromDate);
+    }
+
+    if (dateTo) {
+      // Set end of the day
+      const dateToDate = new Date(dateTo).setHours(23, 59, 59, 999);
+      const dateToDateEndOfTheDay = new Date(dateToDate);
+
+      collectionRef = collectionRef.where('date_created_timestamp', '<=', dateToDateEndOfTheDay);
+    }
+
     const filteredPaymentsSnapshot = await collectionRef.limit(limit).offset(offset).get();
     const filteredPayments = filteredPaymentsSnapshot.docs.map(snapshot => snapshot.data());
-    console.log('filteredPayments', filteredPayments);
 
     res.status(200).json(filteredPayments);
   } catch(error) {
@@ -608,6 +610,31 @@ async function _checkMindbodyAuth(apiKey: string, siteId: string, token: string)
     return true;
   } catch (error) {
     throw new CustomError('Unauthenticated user', 401);
+  }
+}
+
+async function refundPayment(req: express.Request, res: express.Response) {
+  const siteId = req.header('siteId');
+  const token = req.header('Authorization');
+  const paymentId = req.params.id;
+  console.log('getPayments', siteId, token, paymentId);
+
+  if (!token) { res.status(401).json({message: 'Unauthorized'}); }
+  if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
+
+  try {
+    const appConfig = await _getAppConfig(siteId, res);
+    const apiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
+    const refundPaymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments/${paymentId}/refunds?access_token=${apiToken}`);
+    const refundedPayment = refundPaymentResponse.data;
+    console.log('refundedPayment', refundedPayment);
+
+    // Update payment status on Firebase DDBB
+    await DDBB.doc(`business/${siteId}/payments/${paymentId}`).update({ status: 'refunded' });
+
+    res.status(200).json(refundedPayment);
+  } catch(error) {
+    _handleServerErrors(error, res);
   }
 }
 
@@ -646,9 +673,15 @@ server
   .route('/payments')
   .get(getPayments);
 
+server
+  .route('/payments/:id/refund')
+  .post(refundPayment);
+
 // Expose Express API as a single Cloud Function:
 exports.api = functions.https.onRequest(server);
 
-
+exports.scheduledFunction = functions.pubsub.schedule('every 5 minutes').onRun((context) => {
+  console.log('5 MINUTES: This will be run every 5 minutes!');
+});
 
 

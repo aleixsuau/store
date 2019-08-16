@@ -13,10 +13,10 @@ interface IMindBroBusiness {
 
 interface IMindBroClient {
   contracts: IContract[];
-  payments: IMindBroPayments;
+  payments: IMindBroPaymentsConfig;
 }
 
-interface IMindBroPayments {
+interface IMindBroPaymentsConfig {
   CVV: string;
   cardId: string;
   cardToken: string;
@@ -236,8 +236,13 @@ interface IMercadoPagoError {
   ]
 }
 
-interface IMercadoPagoPayment {
+interface IPayment {
   id: number;
+  date_created_timestamp: IFirebaseTimestamp;
+  mindBroData: {
+    client: string;
+    contract: IContract;
+  };
   date_created: string;
   date_approved: string;
   date_last_updated: string;
@@ -247,7 +252,7 @@ interface IMercadoPagoPayment {
   issuer_id: string;
   payment_method_id: string;
   payment_type_id: string;
-  status: string;
+  status: 'pending' | 'in_process' | 'approved';
   status_detail: string;
   currency_id: string;
   description: string;
@@ -317,11 +322,17 @@ interface IMercadoPagoPayment {
      }
   };
   notification_url: string;
-  refunds: [];
+  refunds: any[];
   processing_mode: string;
   merchant_account_id: string;
   acquirer: string;
   merchant_number: string;
-  acquirer_reconciliation: [] }
+  acquirer_reconciliation: any[];
+}
+
+interface IFirebaseTimestamp {
+  _seconds: number;
+  _nanoseconds: number;
+}
 
 
