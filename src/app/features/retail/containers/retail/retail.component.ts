@@ -45,7 +45,6 @@ export class RetailComponent implements OnInit, OnDestroy {
       client: [null, [Validators.required, clientValidator]],
       contract: [null, Validators.required],
       SendEmail: false,
-      PromotionCode: null,
     });
 
     // TODO: Avoid call to server when the client is selected

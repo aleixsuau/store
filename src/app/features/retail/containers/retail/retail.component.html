@@ -1,14 +1,10 @@
 <div [formGroup]="retailForm">
   <mat-card>
-      <mat-card-header>
-        <mat-card-title>
-          <h6>RETAIL FORM</h6>
-        </mat-card-title>
-      </mat-card-header>
-
       <mat-card-content fxLayout="row wrap"
                         fxLayoutAlign="center center">
         <mat-form-field fxFlex="1 1 100%">
+          <mat-icon matPrefix>insert_drive_file</mat-icon>
+
           <mat-select placeholder="Contract"
                       formControlName="contract">
             <mat-option *ngFor="let contract of contracts"
@@ -23,6 +19,8 @@
         </mat-form-field>
 
         <mat-form-field fxFlex="1 1 100%">
+          <mat-icon matPrefix>search</mat-icon>
+
           <input matInput
                 formControlName="client"
                 [matAutocomplete]="clientAuto"
@@ -42,13 +40,6 @@
             {{ client.FirstName + ' ' + client.LastName }}
           </mat-option>
         </mat-autocomplete>
-
-        <mat-form-field fxFlex="1 1 100%">
-          <input matInput
-                 formControlName="PromotionCode"
-                 type="text"
-                 placeholder="Promotion Code">
-        </mat-form-field>
 
         <div fxFlex="1 1 100%"
              fxLayoutAlign="start center">

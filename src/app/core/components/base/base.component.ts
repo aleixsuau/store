@@ -12,9 +12,9 @@ export class BaseComponent implements OnInit {
   user$: Observable<IUser>;
   showUserMenu = false;
   navLinks = [
-    { path: 'clients', label: 'clients' },
-    { path: 'retail', label: 'retail' },
-    { path: 'payments', label: 'payments' },
+    { path: 'clients', label: 'clients', icon: 'people' },
+    { path: 'retail', label: 'retail', icon: 'shopping_basket' },
+    { path: 'payments', label: 'payments', icon: 'monetization_on' },
   ];
 
   constructor(

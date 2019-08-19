@@ -8,6 +8,8 @@
           <div class="search_input"
                fxFlex="1 1 auto">
             <mat-form-field>
+              <mat-icon matPrefix>search</mat-icon>
+
               <input matInput
                      formControlName="client"
                      [matAutocomplete]="auto"
@@ -25,6 +27,8 @@
           </div>
 
           <mat-form-field fxFlex="1 1 auto">
+            <mat-icon matPrefix>insert_drive_file</mat-icon>
+
             <mat-select placeholder="Contract"
                         formControlName="contract">
               <mat-option *ngFor="let contract of contracts"
@@ -59,6 +63,8 @@
           </mat-form-field>
 
           <mat-form-field fxFlex="1 1 25rem">
+            <mat-icon matPrefix>timelapse</mat-icon>
+
             <mat-label>Status</mat-label>
 
             <mat-select formControlName="status"
@@ -132,7 +138,7 @@
                 <button mat-icon-button
                         matTooltip="Refund this payment"
                         (click)="refundPayment(payment.id);"
-                        [disabled]="payment.status !== 'approved'"
+                        [disabled]="payment.status !== 'approved' && payment.status !== 'in_process'"
                         color="primary"
                         aria-label="refund payment">
                   <mat-icon>replay</mat-icon>
