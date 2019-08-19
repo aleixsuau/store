@@ -1,3 +1,5 @@
+@import '../../../../variables';
+
 :host ::ng-deep {
   .mat-toolbar {
     background-color: transparent;
@@ -14,10 +16,6 @@
   margin: 0 auto;
   padding: 2rem;
   max-width: 160rem;
-
-  .mat-icon {
-    margin-right: 1rem;
-  }
 }
 
 .app_header {
@@ -33,7 +31,7 @@
     &__menu {
       position: absolute;
       z-index: 10;
-      background-color: white;
+      background-color: $white;
       padding: 0.4rem;
       text-align: center;
       box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
@@ -43,4 +41,21 @@
     }
   }
 
+}
+
+/* MATERIAL */
+.mat-tab-nav-bar {
+  border-radius: 0.4rem 0.4rem 0rem 0rem;
+}
+
+.mat-icon {
+  margin-right: 1rem;
+}
+
+.mat-ink-bar {
+  height: 0.6rem;
+}
+
+a.mat-tab-label-active {
+  opacity: 1;
 }
