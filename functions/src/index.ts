@@ -560,7 +560,7 @@ async function _orderContract(contract: IContract, clientId: string, appConfig: 
         ClientId: clientId,
         Test: appConfig.test,
         Items: contractItems,
-        Payments: [
+        Orders: [
           {
             Type: 'Cash',
             Metadata: {
@@ -594,7 +594,7 @@ async function _orderContract(contract: IContract, clientId: string, appConfig: 
 
         return order;
       } else {
-        throw new CustomError('This site does not have a Payments Gateaway associated', 400);
+        throw new CustomError('This site does not have a Orders Gateaway associated', 400);
       }
     } else {
       throw new CustomError('This client does not have a Credit Card associated', 400);
@@ -721,7 +721,7 @@ async function _makePaymentWithMercadopago(contract: IContract, appConfig: IAppC
   const paymentsApiKey = appConfig.test ? appConfig.payments.gateaway.apiKey.test : appConfig.payments.gateaway.apiKey.production;
   const cardTokenResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/card_tokens?public_key=${paymentsApiKey}`, { card_id: clientPaymentConfig.cardId, security_code: clientPaymentConfig.CVV })
   const cardToken = cardTokenResponse.data.id;
-  // TODO: Cover the cases when the payment is the first or last
+  // TODO: Cover the cases when the order is the first or last
   const mercadopagoOrder = {
     transaction_amount: contract.RecurringPaymentAmountTotal,
     token: cardToken,
@@ -732,7 +732,7 @@ async function _makePaymentWithMercadopago(contract: IContract, appConfig: IAppC
     }
   };
   console.log('mercadopagoOrder 1: ', mercadopagoOrder, paymentsApiToken)
-  const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments?access_token=${paymentsApiToken}`, mercadopagoOrder);
+  const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/orders?access_token=${paymentsApiToken}`, mercadopagoOrder);
   console.log('mercadopagoPaymentResponse 1', paymentResponse.data);
 
   return paymentResponse.data as IPayment;
@@ -770,19 +770,19 @@ async function _makePaymentWithMercadopago(contract: IContract, appConfig: IAppC
   return autopayDatesFormatted;
 } */
 
-async function getPayments(req: express.Request, res: express.Response) {
+async function getOrders(req: express.Request, res: express.Response) {
   if (req.method === 'OPTIONS') { res.status(200).json() };
 
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
-  const limit = req.query.limit || 100;
+  const limit = req.query.limit || 1000;
   const offset = req.query.offset || 0;
   const client = req.query.client;
   const contract = req.query.contract;
   const status = req.query.status;
   const dateFrom = req.query.dateFrom;
   const dateTo = req.query.dateTo;
-  console.log('getPayments', siteId, token, limit, offset, client, contract, typeof contract, status, dateFrom, dateTo);
+  console.log('getOrders', siteId, token, limit, offset, client, contract, typeof contract, status, dateFrom, dateTo);
 
   if (!token) { res.status(401).json({message: 'Unauthorized'}); }
   if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
@@ -792,18 +792,18 @@ async function getPayments(req: express.Request, res: express.Response) {
     // Check Auth, if not it throws
     await _checkMindbodyAuth(appConfig.apiKey, siteId, token);
 
-    let collectionRef = DDBB.collection(`business/${siteId}/payments`).orderBy('date_created_timestamp');
+    let collectionRef = DDBB.collection(`business/${siteId}/orders`).orderBy('date_created_timestamp');
 
     if (client) {
-      collectionRef = collectionRef.where('mindBroData.client', '==', client);
+      collectionRef = collectionRef.where('client_id', '==', client);
     }
 
     if (contract) {
-      collectionRef = collectionRef.where('mindBroData.contract', '==', contract);
+      collectionRef = collectionRef.where('contract_id', '==', contract);
     }
 
     if (status) {
-      collectionRef = collectionRef.where('status', '==', status);
+      collectionRef = collectionRef.where('payment_status', '==', status);
     }
 
     if (dateFrom) {
@@ -851,7 +851,7 @@ async function refundPayment(req: express.Request, res: express.Response) {
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
   const paymentId = req.params.id;
-  console.log('getPayments', siteId, token, paymentId);
+  console.log('getOrders', siteId, token, paymentId);
 
   if (!token) { res.status(401).json({message: 'Unauthorized'}); }
   if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
@@ -859,12 +859,12 @@ async function refundPayment(req: express.Request, res: express.Response) {
   try {
     const appConfig = await _getAppConfig(siteId, res);
     const apiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
-    const refundPaymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments/${paymentId}/refunds?access_token=${apiToken}`);
+    const refundPaymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/orders/${paymentId}/refunds?access_token=${apiToken}`);
     const refundedPayment = refundPaymentResponse.data;
     console.log('refundedPayment', refundedPayment);
 
-    // Update payment status on Firebase DDBB
-    await DDBB.doc(`business/${siteId}/payments/${paymentId}`).update({ status: 'refunded' });
+    // Update order status on Firebase DDBB
+    await DDBB.doc(`business/${siteId}/orders/${paymentId}`).update({ status: 'refunded' });
 
     res.status(200).json(refundedPayment);
   } catch(error) {
@@ -1029,13 +1029,13 @@ server
   .route('/clients/:id/contracts')
   .post(addContract);
 
-// PAYMENTS
+// ORDERS
 server
-  .route('/payments')
-  .get(getPayments);
+  .route('/orders')
+  .get(getOrders);
 
 server
-  .route('/payments/:id/refund')
+  .route('/orders/:id/refund')
   .post(refundPayment);
 
 server
