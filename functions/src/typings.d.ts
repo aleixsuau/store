@@ -37,6 +37,7 @@ interface IAppConfig {
     gateaway: {
       name: string;
       url: string;
+      test_payment_response: string;
       apiToken: {
         test: string;
         production: string;
@@ -47,12 +48,14 @@ interface IAppConfig {
       };
     };
     needs_cvv: boolean;
+    charge_on_day: number;
+    number_of_retries: number;
   };
   queryLimit: number;
 }
 
 interface IClient {
-  Id?: number;
+  Id?: string;
   UniqueId?: string;
   AddressLine1?: string;
   AddressLine2?: string;
@@ -172,7 +175,7 @@ interface IContract {
   FirstAutopayFree: boolean;
   LastAutopayFree: boolean;
   ClientTerminateOnline: boolean;
-  MembershipTypeRestrictions: IContractMembershipTypeRestrictions;
+  MembershipTypeRestrictions: IContractMembershipTypeRestrictions[];
   LocationPurchaseRestrictionIds: number[];
   LocationPurchaseRestrictionNames: string[];
   AgreementTerms: string;
@@ -222,27 +225,45 @@ interface IService {
   Count: number;
 }
 
-
-// MERCADOPAGO
-interface IMercadoPagoError {
-  message: string;
-  error:  string;
-  status: number;
-  cause: [
-    {
-      code: string;
-      description: string;
-    }
-  ]
+interface IOrder {
+  id: string;
+  date_created_timestamp: Date;
+  client_id: string;
+  contract_id: string;
+  shopping_cart: IShoppingCart;
+  payment_status: 'rejected' | 'in_process' | 'approved' | 'error';
+  payment_status_detail: string;
+  payment_attemps: (IPayment | IPaymentError)[];
 }
+
+interface IShoppingCart {
+  Id: string;
+  CartItems: ICartItem[];
+  SubTotal: number;
+  DiscountTotal: number;
+  TaxTotal: number;
+  GrandTotal: number;
+}
+
+interface ICartItem {
+  Item: IService,
+  DiscountAmount: 0,
+  VisitIds: [],
+  AppointmentIds: [],
+  Appointments: [],
+  Id: 1,
+  Quantity: 1,
+}
+
 
 interface IPayment {
   id: number;
-  date_created_timestamp: IFirebaseTimestamp;
-  mindBroData: {
+  // date_created_timestamp: IFirebaseTimestamp | Date;
+  /* mindBroData: {
+    payment_id: string;
     client: string;
-    contract: IContract;
-  };
+    contract: string;
+  }; */
   date_created: string;
   date_approved: string;
   date_last_updated: string;
@@ -252,7 +273,7 @@ interface IPayment {
   issuer_id: string;
   payment_method_id: string;
   payment_type_id: string;
-  status: 'pending' | 'in_process' | 'approved';
+  status: 'rejected' | 'in_process' | 'approved';
   status_detail: string;
   currency_id: string;
   description: string;
@@ -330,9 +351,45 @@ interface IPayment {
   acquirer_reconciliation: any[];
 }
 
+interface IPaymentError {
+  error: any;
+}
+
 interface IFirebaseTimestamp {
   _seconds: number;
   _nanoseconds: number;
+}
+
+interface IClientContract {
+  Id: string;
+  date_created: Date;
+  autopays: IAutopay[];
+  remaining_autopays?: number;
+}
+
+interface IAutopay {
+  shopping_cart_order_id: string;
+  status: 'rejected' | 'in_process' | 'approved';
+  payment_attemps: IAutopayAttempt[];
+}
+
+interface IAutopayAttempt {
+  date: string;
+  status: 'rejected' | 'in_process' | 'approved';
+  status_detail: string;
+}
+
+// MERCADOPAGO
+interface IMercadoPagoError {
+  message: string;
+  error:  string;
+  status: number;
+  cause: [
+    {
+      code: string;
+      description: string;
+    }
+  ]
 }
 
 

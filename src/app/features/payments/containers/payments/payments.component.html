@@ -4,7 +4,8 @@
         <div [formGroup]="filterForm"
               fxLayout="row wrap"
               fxLayoutAlign="space-between center"
-              fxLayoutGap="2rem">
+              fxLayoutGap="2rem"
+              class="filter_form">
           <div class="search_input"
                fxFlex="1 1 auto">
             <mat-form-field>
@@ -116,7 +117,7 @@
 
             <ng-container matColumnDef="Contract">
               <mat-header-cell *matHeaderCellDef mat-sort-header>CONTRACT</mat-header-cell>
-              <mat-cell *matCellDef="let payment">{{ payment.mindBroData.contract.Name }}</mat-cell>
+              <mat-cell *matCellDef="let payment">{{ getContractData(payment.mindBroData.contract)?.Name }}</mat-cell>
             </ng-container>
 
             <ng-container matColumnDef="Total">

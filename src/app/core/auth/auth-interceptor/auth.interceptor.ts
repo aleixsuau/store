@@ -17,6 +17,7 @@ export class AuthInterceptor implements HttpInterceptor {
     this.authService = this.injector.get(AuthService);
     this.configService = this.injector.get(ConfigService);
 
+    console.log('AuthIntercept', this.authService.getToken(), this.configService.siteId)
     const authReq = request.clone({
       setHeaders: {
         Authorization: this.authService.getToken() || '',

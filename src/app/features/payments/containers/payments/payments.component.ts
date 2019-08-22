@@ -39,9 +39,10 @@ export class PaymentsComponent implements OnInit, OnDestroy {
   clientInputSubscription: Subscription;
   paymentStatuses = [
     { label: 'Approved', value: 'approved' },
-    { label: 'Pending', value: 'pending' },
+    { label: 'Rejected', value: 'rejected' },
     { label: 'In process', value: 'in_process' },
     { label: 'Refunded', value: 'refunded' },
+    { label: 'Error', value: 'error' },
   ];
   filterClient: IClient;
 
@@ -124,6 +125,10 @@ export class PaymentsComponent implements OnInit, OnDestroy {
             this.payments = payments;
             this.dataSource = new MatTableDataSource(this.payments);
           });
+  }
+
+  getContractData(contractId: string) {
+    return this.contracts.find(contract => contract.Id === contractId);
   }
 
   refundPayment(paymentId: string) {

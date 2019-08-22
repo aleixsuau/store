@@ -4,6 +4,8 @@ import * as cors from 'cors';
 import * as express from 'express';
 import * as bodyParser from "body-parser";
 import axios from 'axios';
+import * as UUID from 'uuid/v4';
+// import * as moment from 'moment';
 
 export class CustomError extends Error {
   code: number;
@@ -24,6 +26,205 @@ const DDBB = admin.firestore();
 const server = express();
 const httpClient = axios;
 
+// TODO: Delete this mock
+const contractsMock: IContract[] = [
+  {
+    Id: '1',
+    Name: 'Contract 1 Name',
+    Description: 'Contract 1 Description',
+    AssignsMembershipId: null,
+    AssignsMembershipName: null,
+    SoldOnline: true,
+    AutopaySchedule: {
+      FrequencyType: 'SetNumberOfAutopays',
+      FrequencyValue: 1,
+      FrequencyTimeUnit: 'Monthly',
+    },
+    IntroOffer: 'None',
+    NumberOfAutopays: 12,
+    AutopayTriggerType: 'OnSetSchedule',
+    ActionUponCompletionOfAutopays: 'ContractExpires',
+    ClientsChargedOn: 'FirstOfTheMonth',
+    ClientsChargedOnSpecificDate: null,
+    DiscountAmount: 0,
+    DepositAmount: 0,
+    FirstAutopayFree: false,
+    LastAutopayFree: false,
+    ClientTerminateOnline: false,
+    MembershipTypeRestrictions: null,
+    LocationPurchaseRestrictionIds: null,
+    LocationPurchaseRestrictionNames: null,
+    AgreementTerms: 'Agreement Terms',
+    RequiresElectronicConfirmation: false,
+    AutopayEnabled: true,
+    FirstPaymentAmountSubtotal: 300,
+    FirstPaymentAmountTax: 8,
+    FirstPaymentAmountTotal: 308,
+    RecurringPaymentAmountSubtotal: 300,
+    RecurringPaymentAmountTax: 8,
+    RecurringPaymentAmountTotal: 308,
+    TotalContractAmountSubtotal: 960,
+    TotalContractAmountTax: 120,
+    TotalContractAmountTotal: 1080,
+    ContractItems: [
+      {
+        Id: '1192',
+        Name: 'Six Week Bootcamp',
+        Description: 'Six Week Bootcamp ContractItem 1 Description',
+        Type: 'Service',
+        Price: 200,
+        Quantity: 1,
+        OneTimeItem: false,
+      },
+      {
+        Id: '1364',
+        Name: '10 Class Card',
+        Description: ' 10 Class Card ContractItem 2 Description',
+        Type: 'Service',
+        Price: 100,
+        Quantity: 1,
+        OneTimeItem: false,
+      }
+    ],
+  },
+  {
+    Id: '2',
+    Name: 'Contract 2 Name',
+    Description: 'Contract 2 Description',
+    AssignsMembershipId: null,
+    AssignsMembershipName: null,
+    SoldOnline: true,
+    AutopaySchedule: {
+      FrequencyType: 'SetNumberOfAutopays',
+      FrequencyValue: 2,
+      FrequencyTimeUnit: 'Weekly',
+    },
+    IntroOffer: 'None',
+    NumberOfAutopays: 12,
+    AutopayTriggerType: 'OnSetSchedule',
+    ActionUponCompletionOfAutopays: 'ContractExpires',
+    ClientsChargedOn: 'FirstOfTheMonth',
+    ClientsChargedOnSpecificDate: null,
+    DiscountAmount: 0,
+    DepositAmount: 0,
+    FirstAutopayFree: false,
+    LastAutopayFree: false,
+    ClientTerminateOnline: false,
+    MembershipTypeRestrictions: null,
+    LocationPurchaseRestrictionIds: null,
+    LocationPurchaseRestrictionNames: null,
+    AgreementTerms: 'Agreement Terms',
+    RequiresElectronicConfirmation: false,
+    AutopayEnabled: true,
+    FirstPaymentAmountSubtotal: 300,
+    FirstPaymentAmountTax: 8,
+    FirstPaymentAmountTotal: 308,
+    RecurringPaymentAmountSubtotal: 300,
+    RecurringPaymentAmountTax: 8,
+    RecurringPaymentAmountTotal: 308,
+    TotalContractAmountSubtotal: 960,
+    TotalContractAmountTax: 120,
+    TotalContractAmountTotal: 1080,
+    ContractItems: [
+      {
+        Id: '1192',
+        Name: 'Six Week Bootcamp',
+        Description: 'Six Week Bootcamp ContractItem 1 Description',
+        Type: 'Service',
+        Price: 200,
+        Quantity: 2,
+        OneTimeItem: false,
+      },
+      {
+        Id: '1364',
+        Name: '10 Class Card',
+        Description: ' 10 Class Card ContractItem 2 Description',
+        Type: 'Service',
+        Price: 100,
+        Quantity: 1,
+        OneTimeItem: false,
+      }
+    ],
+  },
+  {
+    Id: '3',
+    Name: 'Contract 3 Name MonthToMonth',
+    Description: 'Contract 3 Description',
+    AssignsMembershipId: null,
+    AssignsMembershipName: null,
+    SoldOnline: true,
+    AutopaySchedule: {
+      FrequencyType: 'MonthToMonth',
+      FrequencyValue: null,
+      FrequencyTimeUnit: null,
+    },
+    IntroOffer: 'None',
+    NumberOfAutopays: null,
+    AutopayTriggerType: 'OnSetSchedule',
+    ActionUponCompletionOfAutopays: 'ContractExpires',
+    ClientsChargedOn: 'FirstOfTheMonth',
+    ClientsChargedOnSpecificDate: null,
+    DiscountAmount: 0,
+    DepositAmount: 0,
+    FirstAutopayFree: false,
+    LastAutopayFree: false,
+    ClientTerminateOnline: false,
+    MembershipTypeRestrictions: null,
+    LocationPurchaseRestrictionIds: null,
+    LocationPurchaseRestrictionNames: null,
+    AgreementTerms: 'Agreement Terms',
+    RequiresElectronicConfirmation: false,
+    AutopayEnabled: true,
+    FirstPaymentAmountSubtotal: 300,
+    FirstPaymentAmountTax: 8,
+    FirstPaymentAmountTotal: 308,
+    RecurringPaymentAmountSubtotal: 300,
+    RecurringPaymentAmountTax: 8,
+    RecurringPaymentAmountTotal: 308,
+    TotalContractAmountSubtotal: 960,
+    TotalContractAmountTax: 120,
+    TotalContractAmountTotal: 1080,
+    ContractItems: [
+      {
+        Id: '1192',
+        Name: 'Six Week Bootcamp',
+        Description: 'Six Week Bootcamp ContractItem 1 Description',
+        Type: 'Service',
+        Price: 200,
+        Quantity: 1,
+        OneTimeItem: false,
+      },
+      {
+        Id: '1364',
+        Name: '10 Class Card',
+        Description: ' 10 Class Card ContractItem 2 Description',
+        Type: 'Service',
+        Price: 200,
+        Quantity: 1,
+        OneTimeItem: false,
+      }
+    ],
+  },
+];
+const mercadoPagoMessages: {[key: string]: string} = {
+  accredited: 'Listo, se acreditó el pago! En el resumen verás el cargo de amount como statement_descriptor',
+  pending_contingency: 'Estamos procesando el pago. En menos de 2 días hábiles enviaremos por e-mail el resultado.',
+  pending_review_manual: 'Estamos procesando el pago. En menos de 2 días hábiles enviaremos por e-mail el resultado.',
+  cc_rejected_bad_filled_card_number:	'Revisa el número de tarjeta',
+  cc_rejected_bad_filled_date: 'Revisa la fecha de vencimiento.',
+  cc_rejected_bad_filled_other: 'Revisa los datos.',
+  cc_rejected_bad_filled_security_code:'Revisa el código de seguridad.',
+  cc_rejected_blacklist: 'No pudimos procesar el pago.',
+  cc_rejected_call_for_authorize:	'Debes autorizar ante la entidad emisora de su tarjeta el pago de amount a Mercado Pago',
+  cc_rejected_card_disabled: 'Llama a la entidad emisora de su tarjeta para que active la tarjeta. El teléfono está al dorso de tu tarjeta.',
+  cc_rejected_card_error: 'No pudimos procesar el pago.',
+  cc_rejected_duplicated_payment:	'Ya hiciste un pago por ese valor. Si necesitas volver a pagar usa otra tarjeta u otro medio de pago.',
+  cc_rejected_high_risk: 'El pago fue rechazado.',
+  cc_rejected_insufficient_amount: 'La tarjeta no tiene fondos suficientes.',
+  cc_rejected_invalid_installments: 'La entidad emisora de la tarjeta no procesa pagos en cuotas.',
+  cc_rejected_max_attempts: 'Llegaste al límite de intentos permitidos.',
+  cc_rejected_other_reason: 'La entidad emisora de la tarjeta no procesó el pago.',
+};
 // MIDDLEWARE
 // Automatically allow cross-origin requests
 server.use(cors({
@@ -89,6 +290,8 @@ function _handleServerErrors(error: any, res: express.Response) {
     }
 
     res.status(errorResponse.status || error.response.status || 500).json(errorMessage);
+  } else if (error.Error) {
+    res.status(500).json(error.Error);
   } else {
     res.status(error.code || 500).json(`${error.name || error.code}: ${error.message}`);
   }
@@ -292,22 +495,31 @@ async function addContract(req: express.Request, res: express.Response) {
 
   try {
     const appConfig = await _getAppConfig(siteId);
-    const config = {
-      headers: {
-      'Api-Key': appConfig.apiKey,
-      'SiteId': siteId,
-      'Authorization': token,
-      }
-    };
-    // TODO: replace this mocked data with the contract's data
-    // Right now the /contracts endpoint is not working in test :(
-    // REMEMBER: We need to pass the correct amount on
-    // cartOrder.Payments[0].Metadata.Amount, if not MindBody
-    // throws an error.
-    // TODO: IMPORTANT: Price/OnlinePrice
-    const servicesCatalogResponse = await httpClient.get(`${baseUrl}/sale/services`, config);
-    const servicesCatalog: IService[] = servicesCatalogResponse.data.Services;
-    console.log('servicesCatalog', servicesCatalog);
+    // Order the contract
+    const contractOrder = await _orderContract(contract, clientId, appConfig, token);
+
+    // Only save the order when it succeeds (because this is the contract
+    // subscription not an Autopay).
+    if (contractOrder.payment_status === 'approved') {
+      // Save the order to the DDBB
+      await _saveOrderToDDBB(contractOrder, contract.Id, clientId, appConfig.id);
+      // Add the client to the contract
+      await DDBB
+              .collection(`business/${appConfig.id}/contracts/${contract.Id}/clients`)
+              .doc(clientId)
+              .set({ Id: clientId, date_created: contractOrder.date_created_timestamp.toISOString() });
+
+      res.status(200).json(contractOrder);
+    } else {
+      throw new CustomError(`Mercadopago ${ contractOrder.payment_status ? `: ${mercadoPagoMessages[contractOrder.payment_status_detail]} ` : ''}`, 400);
+    }
+  } catch (error) {
+    _handleServerErrors(error, res);
+  }
+}
+
+async function _orderContract(contract: IContract, clientId: string, appConfig: IAppConfig, token: string): Promise<IOrder> {
+  console.log('_orderContract', contract, clientId, appConfig, token);
     const contractItems = contract.ContractItems.map(contractItem => {
       const formattedItem = {
         Item: {
@@ -323,100 +535,73 @@ async function addContract(req: express.Request, res: express.Response) {
 
       return formattedItem;
     });
-
-    console.log('contractItems', contractItems);
-
-    const contractAmount = contract.ContractItems.reduce((result, contractItem) => {
-      let subTotal = contractItem.Price * contractItem.Quantity;
-      // TODO: Add products coverage to contracts? (A contract can include products?)
-      const serviceDetails = servicesCatalog.find(service => service.Id === contractItem.Id);
-      if (serviceDetails) {
-        const taxRate = serviceDetails.TaxRate;
-
-        subTotal += (subTotal * taxRate);
+    const MBHeadersConfig = {
+      headers: {
+      'Api-Key': appConfig.apiKey,
+      'SiteId': appConfig.id,
+      'Authorization': token,
       }
-
-      return result + subTotal;
-    }, 0);
-    console.log('contractAmount', contractAmount);
-
-    const cartOrder = {
-      ClientId: clientId,
-      Test: appConfig.test,
-      Items: contractItems,
-      Payments: [
-        {
-          Type: 'Cash',
-          Metadata: {
-            // TODO: contract.FirstPaymentAmountTotal instead of this calculation??
-            Amount: contractAmount,
-          }
-        }
-      ]
     };
-    console.log('cartOrder', cartOrder)
+
     const clientPaymentConfig = await _getPaymentsConfig(appConfig, clientId);
-    console.log('clientPaymentConfig', clientPaymentConfig)
+    let order: IOrder = {
+      id: UUID(),
+      date_created_timestamp: new Date(),
+      client_id: clientId,
+      contract_id: contract.Id,
+      shopping_cart: null,
+      payment_status: null,
+      payment_status_detail: null,
+      payment_attemps: [],
+    }
 
     if (clientPaymentConfig) {
+      const mindBodyCartOrder = {
+        ClientId: clientId,
+        Test: appConfig.test,
+        Items: contractItems,
+        Payments: [
+          {
+            Type: 'Cash',
+            Metadata: {
+              Amount: contract.FirstPaymentAmountTotal,
+            }
+          }
+        ]
+      };
+
+
       if (appConfig.payments.gateaway.name === 'mercadopago') {
-        const paymentsApiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
-        const paymentsApiKey = appConfig.test ? appConfig.payments.gateaway.apiKey.test : appConfig.payments.gateaway.apiKey.production;
-        const cardTokenResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/card_tokens?public_key=${paymentsApiKey}`, { card_id: clientPaymentConfig.cardId, security_code: clientPaymentConfig.CVV })
-        const cardToken = cardTokenResponse.data.id;
-        const mercadopagoOrder = {
-          transaction_amount: cartOrder.Payments[0].Metadata.Amount,
-          token: cardToken,
-          description: contract.Description,
-          installments: 1,
-          payer: {
-            id: clientPaymentConfig.clientId,
-          }
-        };
-        console.log('mercadopagoOrder: ', mercadopagoOrder, paymentsApiToken)
+        const paymentResponse: IPayment = await _makePaymentWithMercadopago(contract, appConfig, clientPaymentConfig);
 
-        const paymentResponse: IPayment = await _makePaymentWithMercadopago(appConfig, paymentsApiToken, mercadopagoOrder);
-
-        console.log('paymentResponse', paymentResponse);
-        console.log('contract', contract)
-        // Save the payment to Firebase under the Id of the payment
-        // with the id of the MindBody client (to query per client)
-        const paymentToSave = {
-          ...paymentResponse,
-          date_created_timestamp: new Date(paymentResponse.date_created),
-          mindBroData: {
-            client: clientId,
-            contract,
-          }
-        };
-
-        await DDBB
-                .collection(`business/${appConfig.id}/payments`)
-                .doc(`${paymentToSave.id}`)
-                .set(paymentToSave);
-
-        if (paymentToSave.status === 'approved') {
-          const cartResponse = await httpClient.post(`${baseUrl}/sale/checkoutshoppingcart`, { ...cartOrder, Test: false }, config);
-          console.log('cartResponse', cartResponse.data)
-          // TODO: Save contract into Firebase DDBB in order to charge it every X time
-          await DDBB
-                  .collection(`business/${appConfig.id}/clients/${clientId}/contracts`)
-                  .add(contract);
-
-          res.status(200).json('Payment Done!');
-        } else {
-          throw new CustomError(`Mercadopago ${ paymentToSave.status ? ': ' + paymentToSave.status : ''}`, 400);
+        order = {
+          ...order,
+          payment_status: paymentResponse.status,
+          payment_status_detail: paymentResponse.status_detail,
+          payment_attemps: [paymentResponse],
         }
+
+        if (paymentResponse.status === 'approved') {
+          const cartResponse = await httpClient.post(`${baseUrl}/sale/checkoutshoppingcart`, { ...mindBodyCartOrder, Test: false }, MBHeadersConfig);
+          order = {
+            ...order,
+            // TODO: Do we need to save the shopping_cart???
+            shopping_cart: cartResponse.data.ShoppingCart,
+          }
+        }
+
+        console.log('_orderContract order:', order);
+
+        return order;
+      } else {
+        throw new CustomError('This site does not have a Payments Gateaway associated', 400);
       }
     } else {
-      throw new CustomError('This client does not have Credit Card associated', 400);
+      throw new CustomError('This client does not have a Credit Card associated', 400);
     }
-  } catch (error) {
-    _handleServerErrors(error, res);
-  }
 }
 
-async function _getPaymentsConfig(appConfig: IAppConfig, clientId: number): Promise<IClientPaymentsConfig | null> {
+async function _getPaymentsConfig(appConfig: IAppConfig, clientId: string): Promise<IClientPaymentsConfig | null> {
   console.log('_getPaymentsConfig', appConfig, clientId);
   const clientSnapshop = await DDBB.doc(`business/${appConfig.id}/clients/${clientId}`).get();
   const clientPaymentsConfig = clientSnapshop.data() && clientSnapshop.data().payments_config || null as IClientPaymentsConfig | null;
@@ -463,7 +648,9 @@ async function _createMercadopagoPaymentsConfig(
       expiration_month: client.ClientCreditCard.ExpMonth.toString(),
       expiration_year: client.ClientCreditCard.ExpYear.toString(),
       cardholder: {
-        name: `${client.FirstName} ${client.LastName}`,
+        name: appConfig.test && appConfig.payments.gateaway.name === 'mercadopago' ?
+                appConfig.payments.gateaway.test_payment_response :
+                `${client.FirstName} ${client.LastName}`,
       }
     };
     console.log('apiKey', apiKey, creditCardTokenRequest)
@@ -529,12 +716,59 @@ async function _createMercadopagoPaymentsConfig(
   }
 }
 
-async function _makePaymentWithMercadopago(appConfig: IAppConfig, apiToken: string, order: any): Promise<IPayment> {
-  const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments?access_token=${apiToken}`, order);
-  console.log('paymentResponse', paymentResponse.data);
+async function _makePaymentWithMercadopago(contract: IContract, appConfig: IAppConfig, clientPaymentConfig: IClientPaymentsConfig): Promise<IPayment> {
+  const paymentsApiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
+  const paymentsApiKey = appConfig.test ? appConfig.payments.gateaway.apiKey.test : appConfig.payments.gateaway.apiKey.production;
+  const cardTokenResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/card_tokens?public_key=${paymentsApiKey}`, { card_id: clientPaymentConfig.cardId, security_code: clientPaymentConfig.CVV })
+  const cardToken = cardTokenResponse.data.id;
+  // TODO: Cover the cases when the payment is the first or last
+  const mercadopagoOrder = {
+    transaction_amount: contract.RecurringPaymentAmountTotal,
+    token: cardToken,
+    description: contract.Description,
+    installments: 1,
+    payer: {
+      id: clientPaymentConfig.clientId,
+    }
+  };
+  console.log('mercadopagoOrder 1: ', mercadopagoOrder, paymentsApiToken)
+  const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments?access_token=${paymentsApiToken}`, mercadopagoOrder);
+  console.log('mercadopagoPaymentResponse 1', paymentResponse.data);
 
   return paymentResponse.data as IPayment;
 }
+
+/* function _getAutopayDates(contract: IContract, date_created: string) {
+  if (contract.AutopaySchedule.FrequencyType === 'MonthToMonth') { return []; }
+
+  const autopays = contract.NumberOfAutopays;
+  let autopaysCounter = contract.NumberOfAutopays;
+  const firstAutopay = moment(date_created).startOf('day');
+  let autopayDates = [firstAutopay];
+  const FrequencyTimeUnit = contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                              'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                              'months' : 'years';
+
+  while(autopaysCounter--) {
+    const previousAutopayDate = autopayDates[autopays - autopaysCounter - 1];
+    const nextAutopayDate = previousAutopayDate.clone().add(contract.AutopaySchedule.FrequencyValue, FrequencyTimeUnit);
+
+    autopayDates = [...autopayDates, nextAutopayDate];
+  }
+
+  const autopayDateStrings = autopayDates.map(autopayDate => autopayDate.toISOString());
+  const autopayDatesFormatted: IAutopay[] = autopayDateStrings.map(autopayDate => {
+                                const autopayDateFormatted: IAutopay = {
+                                  status: null,
+                                  payment_attemps: [],
+                                };
+
+                                return autopayDateFormatted;
+                              })
+  console.log('autopayDateStrings', autopayDateStrings);
+
+  return autopayDatesFormatted;
+} */
 
 async function getPayments(req: express.Request, res: express.Response) {
   if (req.method === 'OPTIONS') { res.status(200).json() };
@@ -548,7 +782,7 @@ async function getPayments(req: express.Request, res: express.Response) {
   const status = req.query.status;
   const dateFrom = req.query.dateFrom;
   const dateTo = req.query.dateTo;
-  console.log('getPayments', siteId, token, limit, offset, client, contract, status, dateFrom, dateTo);
+  console.log('getPayments', siteId, token, limit, offset, client, contract, typeof contract, status, dateFrom, dateTo);
 
   if (!token) { res.status(401).json({message: 'Unauthorized'}); }
   if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
@@ -565,7 +799,7 @@ async function getPayments(req: express.Request, res: express.Response) {
     }
 
     if (contract) {
-      collectionRef = collectionRef.where('mindBroData.contract.Id', '==', contract);
+      collectionRef = collectionRef.where('mindBroData.contract', '==', contract);
     }
 
     if (status) {
@@ -638,6 +872,129 @@ async function refundPayment(req: express.Request, res: express.Response) {
   }
 }
 
+async function _saveOrderToDDBB(order: IOrder, contractId: string, clientId: string, appId: string) {
+  // Save the order into orders under the Id of the order (UUID)
+  return DDBB
+            .collection(`business/${appId}/orders`)
+            .doc(`${order.id}`)
+            .set(order);
+
+  // Save it into the Client too
+  /* await DDBB
+          .collection(`business/${appId}/clients/${clientId}/contracts/${contractId}`)
+          .doc(`${order.id}`)
+          .set(order);
+  */
+}
+
+async function getContracts(req: express.Request, res: express.Response) {
+  // TODO: Replace this mock with the call to MindBody
+  if (req.method === 'OPTIONS') { res.status(200).json() };
+
+  const siteId = req.header('siteId');
+  const token = req.header('Authorization');
+  console.log('getContracts', siteId, token);
+
+  if (!token) { res.status(401).json({message: 'Unauthorized'}); }
+  if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
+
+  try {
+    // const appConfig = await _getAppConfig(siteId, res);
+
+    res.status(200).json(contractsMock);
+  } catch(error) {
+    _handleServerErrors(error, res);
+  }
+};
+
+async function processMonthlyPayments(req: express.Request, res: express.Response) {
+  const siteId = req.params.Id;
+  const appConfig = await _getAppConfig(siteId, res);
+  try {
+    await _chargeAutopays(appConfig);
+    res.status(200).send('Ole')
+  } catch (error) {
+    console.log('processMonthlyPayments error', error);
+    _handleServerErrors(error, res);
+  }
+}
+
+async function _chargeAutopays(appConfig: IAppConfig) {
+  console.log('_chargeAutopays', appConfig)
+  // TODO: Replace this mock (contractsMock) with the call to MindBody
+  // const today = moment().date();
+
+  // Process all the monthToMonth on the appConfig.payments.charge_on_day
+  // TODO: Uncomment the following line
+  // if (today === appConfig.payments.charge_on_day) {
+    const monthToMonthContracts = contractsMock.filter(contract => contract.AutopaySchedule.FrequencyType === 'MonthToMonth');
+    console.log('monthToMonthContracts', monthToMonthContracts.length, monthToMonthContracts)
+    try {
+      await _processMonthToMonthContracts(monthToMonthContracts, appConfig);
+    } catch (error) {
+      console.log('_chargeAutopays error', error);
+    }
+  // }
+}
+
+async function _processMonthToMonthContracts(contracts: IContract[], appConfig: IAppConfig) {
+  console.log('_processMonthToMonthContracts', contracts, appConfig);
+  // TODO: Replace this test Auth call with the admin client account data (username and password)
+  // created for us to manage autopays
+  const url = `${baseUrl}/usertoken/issue`;
+  const config = {
+    headers: {
+    'Api-Key': appConfig.apiKey,
+    'SiteId': appConfig.id,
+    }
+  };
+  const tokenRequest = {
+    Username: 'Siteowner',
+    Password: 'apitest1234',
+  };
+
+  const tokenResponse = await httpClient.post(url, tokenRequest, config);
+
+  const token = tokenResponse.data.AccessToken;
+
+  for (let i = 0; i < contracts.length; i++) {
+    const currentContract = contracts[i];
+    console.log('CURRENT CONTRACT: ', i , currentContract)
+    const currentContractClientsResponse = await DDBB.collection(`business/${appConfig.id}/contracts/${currentContract.Id}/clients`).get();
+    const currentContractClients = currentContractClientsResponse.docs.map(snapshot => snapshot.data());
+
+    for (let j = 0; j < currentContractClients.length; j++) {
+      const currentClient = currentContractClients[j];
+      console.log('CURRENT CLIENT: ', i, j, currentClient)
+
+      try {
+        // Order the contract
+        const contractOrder = await _orderContract(currentContract, currentClient.Id, appConfig, token);
+        console.log('CONTRACT ORDER', i, j, contractOrder)
+
+        // Save the order to the DDBB
+        await _saveOrderToDDBB(contractOrder, currentContract.Id, currentClient.Id, appConfig.id);
+
+      } catch (error) {
+        const order: IOrder = {
+          id: UUID(),
+          date_created_timestamp: new Date(),
+          client_id: currentClient.Id,
+          contract_id: currentContract.Id,
+          shopping_cart: null,
+          payment_status: 'error',
+          payment_status_detail: JSON.stringify(error.response || error.message || error),
+          payment_attemps: [{ error: JSON.stringify(error.response || error.message || error) }],
+        }
+
+        console.log('_processMonthToMonthContracts ERROR', error.message, order);
+
+        await _saveOrderToDDBB(order, currentContract.Id, currentClient.Id, appConfig.id);
+      }
+    }
+  }
+}
+
 // ROUTES
 // ERRORS
 server
@@ -676,6 +1033,15 @@ server
 server
   .route('/payments/:id/refund')
   .post(refundPayment);
+
+server
+  .route('/payments/monthly/:Id')
+  .post(processMonthlyPayments);
+
+// CONTRACTS
+server
+  .route('/contracts')
+  .get(getContracts);
 
 // Expose Express API as a single Cloud Function:
 exports.api = functions.https.onRequest(server);
