@@ -14,7 +14,7 @@ export class BaseComponent implements OnInit {
   navLinks = [
     { path: 'clients', label: 'clients', icon: 'people' },
     { path: 'retail', label: 'retail', icon: 'shopping_basket' },
-    { path: 'payments', label: 'payments', icon: 'monetization_on' },
+    { path: 'orders', label: 'orders', icon: 'monetization_on' },
   ];
 
   constructor(

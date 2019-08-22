@@ -995,6 +995,10 @@ async function _processMonthToMonthContracts(contracts: IContract[], appConfig: 
   }
 }
 
+/* async function _processFailedPayments {
+
+} */
+
 // ROUTES
 // ERRORS
 server

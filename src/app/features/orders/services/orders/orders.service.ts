@@ -8,22 +8,22 @@ import { tap } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
-export class PaymentsService {
-  basePath = 'payments';
+export class OrdersService {
+  basePath = 'orders';
 
   constructor(
     private httpClient: HttpClient,
     private notificationService: NotificationService,
   ) { }
 
-  getPayments(params?): Observable<IPayment[]> {
+  getOrders(params?): Observable<IOrder[]> {
     return this.httpClient
-                  .get<IPayment[]>(`${environment.firebase.functions_path}/${this.basePath}`, { params });
+                  .get<IOrder[]>(`${environment.firebase.functions_path}/${this.basePath}`, { params });
   }
 
-  refundPayment(paymentId: string) {
+  refundOrder(orderId: string) {
     return this.httpClient
-                  .post<IPayment[]>(`${environment.firebase.functions_path}/${this.basePath}/${paymentId}/refund`, null)
-                  .pipe(tap(response => this.notificationService.notify('Payment refunded')));
+                  .post<IOrder[]>(`${environment.firebase.functions_path}/${this.basePath}/${orderId}/refund`, null)
+                  .pipe(tap(response => this.notificationService.notify('Order refunded')));
   }
 }

@@ -1,6 +1,6 @@
-import { ClientsService } from './../../../clients/services/clients/clients.service';
+import { ClientsService } from '../../../clients/services/clients/clients.service';
 import { NotificationService } from 'src/app/core/services/notification/notification.service';
-import { PaymentsService } from './../../services/payments/payments.service';
+import { OrdersService } from '../../services/orders/orders.service';
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormBuilder, FormGroup } from '@angular/forms';
@@ -11,9 +11,9 @@ import { trigger, transition, useAnimation } from '@angular/animations';
 import { fadeAnimation } from 'src/app/shared/animations/animations';
 
 @Component({
-  selector: 'app-payments',
-  templateUrl: './payments.component.html',
-  styleUrls: ['./payments.component.scss'],
+  selector: 'app-orders',
+  templateUrl: './orders.component.html',
+  styleUrls: ['./orders.component.scss'],
   animations: [
     trigger('fade', [
       transition('void => *', [
@@ -25,10 +25,10 @@ import { fadeAnimation } from 'src/app/shared/animations/animations';
     ])
   ]
 })
-export class PaymentsComponent implements OnInit, OnDestroy {
-  payments: IPayment[];
+export class OrdersComponent implements OnInit, OnDestroy {
+  orders: IOrder[];
   contracts: IContract[];
-  dataSource: MatTableDataSource<IPayment>;
+  dataSource: MatTableDataSource<IOrder>;
   columns = ['Date', 'Client', 'Contract', 'Total', 'Status', 'Actions'];
   filterForm: FormGroup;
   paginatorPageSize = 10;
@@ -37,7 +37,7 @@ export class PaymentsComponent implements OnInit, OnDestroy {
   paginatorDisabled: boolean;
   searchResults: IClient[];
   clientInputSubscription: Subscription;
-  paymentStatuses = [
+  orderStatuses = [
     { label: 'Approved', value: 'approved' },
     { label: 'Rejected', value: 'rejected' },
     { label: 'In process', value: 'in_process' },
@@ -50,14 +50,14 @@ export class PaymentsComponent implements OnInit, OnDestroy {
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private paymentsService: PaymentsService,
+    private ordersService: OrdersService,
     private clientsService: ClientsService,
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
   ) { }
 
   ngOnInit() {
-    this.payments = this.activatedRoute.snapshot.data.payments;
+    this.orders = this.activatedRoute.snapshot.data.orders;
     this.contracts = this.activatedRoute.snapshot.data.contracts;
     this.filterForm = this.formBuilder.group({
       client: null,
@@ -93,9 +93,9 @@ export class PaymentsComponent implements OnInit, OnDestroy {
                                             }
                                           });
 
-    console.log('this.payments', this.payments);
+    console.log('this.orders', this.orders);
 
-    this.dataSource = new MatTableDataSource(this.payments);
+    this.dataSource = new MatTableDataSource(this.orders);
   }
 
   ngOnDestroy() {
@@ -106,7 +106,7 @@ export class PaymentsComponent implements OnInit, OnDestroy {
     return row && row._id;
   }
 
-  paginatorChange(payments: IPayment[], page) {
+  paginatorChange(orders: IOrder[], page) {
     console.log('paginatorChange', page.pageIndex, page.pageSize, page.previousPageIndex);
   }
 
@@ -119,11 +119,11 @@ export class PaymentsComponent implements OnInit, OnDestroy {
       ...filters.status && { status: filters.status },
     };
     console.log('getTableData', params);
-    this.paymentsService
-          .getPayments(params)
-          .subscribe(payments => {
-            this.payments = payments;
-            this.dataSource = new MatTableDataSource(this.payments);
+    this.ordersService
+          .getOrders(params)
+          .subscribe(orders => {
+            this.orders = orders;
+            this.dataSource = new MatTableDataSource(this.orders);
           });
   }
 
@@ -131,10 +131,10 @@ export class PaymentsComponent implements OnInit, OnDestroy {
     return this.contracts.find(contract => contract.Id === contractId);
   }
 
-  refundPayment(paymentId: string) {
+  refundOrder(orderId: string) {
     // TODO: refresh and set the correct page of results
-    this.paymentsService
-          .refundPayment(paymentId)
+    this.ordersService
+          .refundOrder(orderId)
           .subscribe(() => this.getTableData(this.filterForm.value));
   }
 

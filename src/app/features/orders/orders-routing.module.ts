@@ -1,17 +1,17 @@
-import { PaymentsResolverService } from './resolvers/payments/payments.resolver';
+import { OrdersResolverService } from './resolvers/orders/orders.resolver';
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { PaymentsComponent } from './containers/payments/payments.component';
+import { OrdersComponent } from './containers/orders/orders.component';
 import { ContractsResolverService } from '../retail/resolvers/contracts/contracts.resolver';
 
 const routes: Routes = [
   {
     path: '',
     resolve: {
-      payments: PaymentsResolverService,
+      orders: OrdersResolverService,
       contracts: ContractsResolverService,
     },
-    component: PaymentsComponent,
+    component: OrdersComponent,
   }
 ];
 
@@ -19,4 +19,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class PaymentsRoutingModule { }
+export class OrdersRoutingModule { }
