@@ -11,3 +11,26 @@
   vertical-align: sub;
   color: $lighter-grey;
 }
+
+.order_dialog {
+  position: relative;
+
+  &__payment_attempts {
+    width: 100%;
+  }
+
+  &__close_button {
+    position: absolute;
+    top: -5rem;
+    right: -5rem;
+    z-index: 1;
+  }
+}
+
+mat-row {
+  cursor: pointer;
+}
+
+::ng-deep mat-dialog-container {
+  overflow: visible !important;
+}

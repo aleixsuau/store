@@ -6,7 +6,7 @@ import { Component, OnInit, ViewChild, AfterViewInit, TemplateRef, OnDestroy } f
 import { MatPaginator, MatSort, MatTableDataSource, MatDialog } from '@angular/material';
 import { ActivatedRoute } from '@angular/router';
 import { transition, trigger, useAnimation } from '@angular/animations';
-import { Subscription, of } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { debounceTime, switchMap } from 'rxjs/operators';
 
 

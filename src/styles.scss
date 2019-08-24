@@ -1,3 +1,4 @@
+@import './variables';
 /* You can add global styles to this file, and also import other style files */
 
 html, body { height: 100%; }
@@ -38,11 +39,6 @@ p, .mat-form-field , span, label {
 
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
-/* MATERIAL OVERWRITES */
-.mbDialog {
-  max-width: 60rem !important;
-}
-
 .success {
   background-color: green;
   color: white;
@@ -53,4 +49,22 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   background-color: red;
   color: white;
   text-transform: uppercase;
+}
+
+/* MATERIAL OVERWRITES */
+.mbDialog {
+  max-width: 60rem !important;
+}
+
+.mbDialogFull {
+  width: 85vw;
+}
+
+.mat-list-item-content {
+  width: 100% !important;
+  padding: 0px !important;
+}
+
+.mat-list-item {
+  border-bottom: 1px solid $light-grey;
 }

@@ -1,3 +1,30 @@
+/* EXPLANATION
+
+- CONTRACTS
+The IContract is a MindBody contract that contains all the items that are going to be charged.
+It also constains the periodicity of the charges (Autopays) on its property AutopaySchedule.FrequencyType that
+can be:
+    - 'SetNumberOfAutopays': set a schedule timing ('OnSaleDate' | 'FirstOfTheMonth' | 'SpecificDate'...)
+      and a number of payments (IContract.NumberOfAutopays).
+    - 'MonthToMonth': charge every month until the business owner stops it.
+
+Every time a IContract is purchased by a IClient:
+  1 - The IClient.Id, date_created and autopays_counter are added to the
+      IContract into the DDBB (business/${businessId}/contracts/${contractId}/clients).
+  2 - The IOrder is added to the DDBB (business/${businessId}/orders)
+  3 - TODO: where do we save the autopay dates into the IClient
+
+After the purchase, the server runs an automatic task every day to:
+  1 - Charge the Autopays that are due this day:
+      1 - Iterates over all the IContract (business/${businessId}/contracts)
+      2 - Checks IContract.AutopaySchedule and if it has to charge the contract today
+      3 - Iterates over all IContract.clients
+      4 - Checks if there are remaining autopays (business/${businessId}/contracts/${contractId}/clients/${clientID}/autopays_count)
+      5 - Processes the payments. If the payment fails, the payment is saved under IOrder.payment_attempts
+  2 - Retry the payments of the IOrders that failed
+      (if the IAppConfig.payments.number_of_retries has not been exceeded).
+*/
+
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as cors from 'cors';
@@ -5,7 +32,7 @@ import * as express from 'express';
 import * as bodyParser from "body-parser";
 import axios from 'axios';
 import * as UUID from 'uuid/v4';
-// import * as moment from 'moment';
+import * as moment from 'moment';
 
 export class CustomError extends Error {
   code: number;
@@ -239,7 +266,7 @@ server.use(bodyParser.urlencoded({ extended: false }));
 server.use(async (req, res, next) => {
   console.log('HELLO from the middleware:', req.header('siteId'));
   const siteId = req.header('siteId');
-  const appConfig = await _getAppConfig(siteId, res);
+  const appConfig = await _getAppConfig(siteId);
 
   req['appConfig'] = appConfig;
 
@@ -248,7 +275,7 @@ server.use(async (req, res, next) => {
 
 
 // UTILS
-export async function _getAppConfig(siteId: string, res?: express.Response): Promise<IAppConfig> {
+export async function _getAppConfig(siteId: string): Promise<IAppConfig> {
   console.log('_getAppConfig', siteId);
   if (!siteId) { throw new Error('Please provide an ID'); }
 
@@ -258,7 +285,6 @@ export async function _getAppConfig(siteId: string, res?: express.Response): Pro
 
   if (!businessData.exists || !businessData.data() || !businessData.data().config){
     console.log('No App with this ID');
-    res.status(404).json({code: 404, message: 'No App with this ID'});
     return null;
   } else {
     return businessData.data().config as IAppConfig;
@@ -275,6 +301,7 @@ function handleClientErrors(req: express.Request, res: express.Response) {
 }
 
 function _handleServerErrors(error: any, res: express.Response) {
+  console.log('_handleServerErrors', Object.keys(error), error.code, error.details, error.metadata, error);
   if (error.response) {
     console.log('_handleServerErrors error.response', Object.keys(error.response), error.response.data, error.response);
 
@@ -292,6 +319,9 @@ function _handleServerErrors(error: any, res: express.Response) {
     res.status(errorResponse.status || error.response.status || 500).json(errorMessage);
   } else if (error.Error) {
     res.status(500).json(error.Error);
+    // Firestore Error
+  } else if (error.metadata) {
+    res.status(500).json(error.metadata);
   } else {
     res.status(error.code || 500).json(`${error.name || error.code}: ${error.message}`);
   }
@@ -321,7 +351,7 @@ async function login(req: express.Request, res: express.Response) {
   const password = req.body.password;
   console.log('_login', siteId, username, password);
   try {
-    const appConfig = await _getAppConfig(siteId, res);
+    const appConfig = await _getAppConfig(siteId);
     const url = `${baseUrl}/usertoken/issue`;
     const config = {
       headers: {
@@ -356,7 +386,7 @@ async function getAllClients(req: express.Request, res: express.Response) {
   if (!siteId ) { res.status(422).json({message: 'SiteId header is missing'});}
 
   try {
-    const appConfig = await _getAppConfig(siteId, res);
+    const appConfig = await _getAppConfig(siteId);
     const url = `${baseUrl}/client/clients?${limit || 200}&offset=${offset || 0}${searchText ? `&SearchText=${searchText}` : ''}`;
     const config = {
       headers: {
@@ -388,7 +418,7 @@ async function addClient(req: express.Request, res: express.Response) {
   //      user’s MB id.
 
   try {
-    const appConfig = await _getAppConfig(siteId, res);
+    const appConfig = await _getAppConfig(siteId);
     const isSavingANewCreditCard = client.ClientCreditCard && client.ClientCreditCard.CVV;
     let paymentsConfig;
 
@@ -444,7 +474,7 @@ async function updateClient(req: express.Request, res: express.Response) {
 
   // TODO: handle remove card when the user had a credit card and updates without credit card
   try {
-    const appConfig = await _getAppConfig(siteId, res);
+    const appConfig = await _getAppConfig(siteId);
     const isSavingANewCreditCard = client.ClientCreditCard && client.ClientCreditCard.CVV;
     let paymentsConfig;
 
@@ -496,7 +526,7 @@ async function addContract(req: express.Request, res: express.Response) {
   try {
     const appConfig = await _getAppConfig(siteId);
     // Order the contract
-    const contractOrder = await _orderContract(contract, clientId, appConfig, token);
+    const contractOrder = await _processOneContractOrder(contract, clientId, appConfig, token);
 
     // Only save the order when it succeeds (because this is the contract
     // subscription not an Autopay).
@@ -504,10 +534,16 @@ async function addContract(req: express.Request, res: express.Response) {
       // Save the order to the DDBB
       await _saveOrderToDDBB(contractOrder, contract.Id, clientId, appConfig.id);
       // Add the client to the contract
+      const contractClientInfo = {
+        Id: clientId,
+        date_created: contractOrder.date_created_timestamp.toISOString(),
+        // TODO: Check if the contract already starts minus the firsy autopay (ie: 1 year = 11 autopays)
+        autopays_counter: --contract.NumberOfAutopays,
+      }
       await DDBB
               .collection(`business/${appConfig.id}/contracts/${contract.Id}/clients`)
               .doc(clientId)
-              .set({ Id: clientId, date_created: contractOrder.date_created_timestamp.toISOString() });
+              .set(contractClientInfo);
 
       res.status(200).json(contractOrder);
     } else {
@@ -516,89 +552,6 @@ async function addContract(req: express.Request, res: express.Response) {
   } catch (error) {
     _handleServerErrors(error, res);
   }
-}
-
-async function _orderContract(contract: IContract, clientId: string, appConfig: IAppConfig, token: string): Promise<IOrder> {
-  console.log('_orderContract', contract, clientId, appConfig, token);
-    const contractItems = contract.ContractItems.map(contractItem => {
-      const formattedItem = {
-        Item: {
-          Type: contractItem.Type,
-          Metadata: {
-            Id: contractItem.Id,
-          }
-        },
-        // TODO: Add discount management
-        DiscountAmount: 0,
-        Quantity: contractItem.Quantity,
-      }
-
-      return formattedItem;
-    });
-    const MBHeadersConfig = {
-      headers: {
-      'Api-Key': appConfig.apiKey,
-      'SiteId': appConfig.id,
-      'Authorization': token,
-      }
-    };
-
-    const clientPaymentConfig = await _getPaymentsConfig(appConfig, clientId);
-    let order: IOrder = {
-      id: UUID(),
-      date_created_timestamp: new Date(),
-      client_id: clientId,
-      contract_id: contract.Id,
-      shopping_cart: null,
-      payment_status: null,
-      payment_status_detail: null,
-      payment_attemps: [],
-    }
-
-    if (clientPaymentConfig) {
-      const mindBodyCartOrder = {
-        ClientId: clientId,
-        Test: appConfig.test,
-        Items: contractItems,
-        Orders: [
-          {
-            Type: 'Cash',
-            Metadata: {
-              Amount: contract.FirstPaymentAmountTotal,
-            }
-          }
-        ]
-      };
-
-
-      if (appConfig.payments.gateaway.name === 'mercadopago') {
-        const paymentResponse: IPayment = await _makePaymentWithMercadopago(contract, appConfig, clientPaymentConfig);
-
-        order = {
-          ...order,
-          payment_status: paymentResponse.status,
-          payment_status_detail: paymentResponse.status_detail,
-          payment_attemps: [paymentResponse],
-        }
-
-        if (paymentResponse.status === 'approved') {
-          const cartResponse = await httpClient.post(`${baseUrl}/sale/checkoutshoppingcart`, { ...mindBodyCartOrder, Test: false }, MBHeadersConfig);
-          order = {
-            ...order,
-            // TODO: Do we need to save the shopping_cart???
-            shopping_cart: cartResponse.data.ShoppingCart,
-          }
-        }
-
-        console.log('_orderContract order:', order);
-
-        return order;
-      } else {
-        throw new CustomError('This site does not have a Orders Gateaway associated', 400);
-      }
-    } else {
-      throw new CustomError('This client does not have a Credit Card associated', 400);
-    }
 }
 
 async function _getPaymentsConfig(appConfig: IAppConfig, clientId: string): Promise<IClientPaymentsConfig | null> {
@@ -732,7 +685,7 @@ async function _makePaymentWithMercadopago(contract: IContract, appConfig: IAppC
     }
   };
   console.log('mercadopagoOrder 1: ', mercadopagoOrder, paymentsApiToken)
-  const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/orders?access_token=${paymentsApiToken}`, mercadopagoOrder);
+  const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments?access_token=${paymentsApiToken}`, mercadopagoOrder);
   console.log('mercadopagoPaymentResponse 1', paymentResponse.data);
 
   return paymentResponse.data as IPayment;
@@ -760,7 +713,7 @@ async function _makePaymentWithMercadopago(contract: IContract, appConfig: IAppC
   const autopayDatesFormatted: IAutopay[] = autopayDateStrings.map(autopayDate => {
                                 const autopayDateFormatted: IAutopay = {
                                   status: null,
-                                  payment_attemps: [],
+                                  payment_attempts: [],
                                 };
 
                                 return autopayDateFormatted;
@@ -788,7 +741,7 @@ async function getOrders(req: express.Request, res: express.Response) {
   if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
 
   try {
-    const appConfig = await _getAppConfig(siteId, res);
+    const appConfig = await _getAppConfig(siteId);
     // Check Auth, if not it throws
     await _checkMindbodyAuth(appConfig.apiKey, siteId, token);
 
@@ -830,6 +783,7 @@ async function getOrders(req: express.Request, res: express.Response) {
 };
 
 async function _checkMindbodyAuth(apiKey: string, siteId: string, token: string) {
+  console.log('_checkMindbodyAuth', apiKey, siteId, token);
   const config = {
     headers: {
     'Api-Key': apiKey,
@@ -850,21 +804,25 @@ async function _checkMindbodyAuth(apiKey: string, siteId: string, token: string)
 async function refundPayment(req: express.Request, res: express.Response) {
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
-  const paymentId = req.params.id;
-  console.log('getOrders', siteId, token, paymentId);
+  const orderId = req.params.id;
+  console.log('getOrders', siteId, token, orderId);
 
   if (!token) { res.status(401).json({message: 'Unauthorized'}); }
   if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
 
   try {
-    const appConfig = await _getAppConfig(siteId, res);
+    const appConfig = await _getAppConfig(siteId);
     const apiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
-    const refundPaymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/orders/${paymentId}/refunds?access_token=${apiToken}`);
+    const orderResponse = await DDBB.doc(`business/${siteId}/orders/${orderId}`).get();
+    const orderPaymentAttempts = orderResponse.data().payment_attempts;
+    console.log('orderPaymentAttempts', orderPaymentAttempts, orderPaymentAttempts[orderPaymentAttempts.length - 1])
+    const paymentId = orderPaymentAttempts[orderPaymentAttempts.length - 1].id;
+    const refundPaymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments/${paymentId}/refunds?access_token=${apiToken}`);
     const refundedPayment = refundPaymentResponse.data;
     console.log('refundedPayment', refundedPayment);
 
     // Update order status on Firebase DDBB
-    await DDBB.doc(`business/${siteId}/orders/${paymentId}`).update({ status: 'refunded' });
+    await DDBB.doc(`business/${siteId}/orders/${orderId}`).update({ payment_status: 'refunded' });
 
     res.status(200).json(refundedPayment);
   } catch(error) {
@@ -899,7 +857,7 @@ async function getContracts(req: express.Request, res: express.Response) {
   if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
 
   try {
-    // const appConfig = await _getAppConfig(siteId, res);
+    // const appConfig = await _getAppConfig(siteId);
 
     res.status(200).json(contractsMock);
   } catch(error) {
@@ -907,38 +865,35 @@ async function getContracts(req: express.Request, res: express.Response) {
   }
 };
 
-async function processMonthlyPayments(req: express.Request, res: express.Response) {
-  const siteId = req.params.Id;
-  const appConfig = await _getAppConfig(siteId, res);
-  try {
-    await _chargeAutopays(appConfig);
-    res.status(200).send('Ole')
-  } catch (error) {
-    console.log('processMonthlyPayments error', error);
-    _handleServerErrors(error, res);
+async function processAllAppsAutopays(req: express.Request, res: express.Response) {
+  // TODO: Fire this function for every app
+  const apps = await DDBB.collection(`business`).get();
+  const appsArray = apps.docs.map(snapshot => snapshot.data());
+  console.log('processAllAppsAutopays appsArray', appsArray);
+
+  for (let i = 0; i < appsArray.length; i++) {
+    let appConfig;
+    try {
+      const siteId = appsArray[i].config.id;
+      appConfig = await _getAppConfig(siteId);
+      console.log('_processOneAppAutopays', appConfig);
+
+      await _processOneAppAutopays(appConfig);
+    } catch (error) {
+      console.log('processAllAppsAutopays error', error);
+      const appAutoPaysProcessingError = {
+        error: error,
+        date_created: new Date(),
+      };
+      // Save the error to the DDBB
+      const appAutoPaysProcessingErrorResponse = await DDBB.collection(`business/${appConfig.id}/autopay_errors`).add(appAutoPaysProcessingError);
+      console.log('appAutoPaysProcessingErrorResponse', appAutoPaysProcessingErrorResponse)
+      // TODO: Email me
+    }
   }
 }
 
-async function _chargeAutopays(appConfig: IAppConfig) {
-  console.log('_chargeAutopays', appConfig)
-  // TODO: Replace this mock (contractsMock) with the call to MindBody
-  // const today = moment().date();
-
-  // Process all the monthToMonth on the appConfig.payments.charge_on_day
-  // TODO: Uncomment the following line
-  // if (today === appConfig.payments.charge_on_day) {
-    const monthToMonthContracts = contractsMock.filter(contract => contract.AutopaySchedule.FrequencyType === 'MonthToMonth');
-    console.log('monthToMonthContracts', monthToMonthContracts.length, monthToMonthContracts)
-    try {
-      await _processMonthToMonthContracts(monthToMonthContracts, appConfig);
-    } catch (error) {
-      console.log('_chargeAutopays error', error);
-    }
-  // }
-}
-
-async function _processMonthToMonthContracts(contracts: IContract[], appConfig: IAppConfig) {
-  console.log('_processMonthToMonthContracts', contracts, appConfig);
+async function _processOneAppAutopays(appConfig: IAppConfig) {
   // TODO: Replace this test Auth call with the admin client account data (username and password)
   // created for us to manage autopays
   const url = `${baseUrl}/usertoken/issue`;
@@ -954,50 +909,252 @@ async function _processMonthToMonthContracts(contracts: IContract[], appConfig: 
   };
 
   const tokenResponse = await httpClient.post(url, tokenRequest, config);
-
   const token = tokenResponse.data.AccessToken;
+  // TODO: Replace this with the call to Mindbody
+  const appContracts = contractsMock;
 
-  for (let i = 0; i < contracts.length; i++) {
-    const currentContract = contracts[i];
-    console.log('CURRENT CONTRACT: ', i , currentContract)
-    const currentContractClientsResponse = await DDBB.collection(`business/${appConfig.id}/contracts/${currentContract.Id}/clients`).get();
-    const currentContractClients = currentContractClientsResponse.docs.map(snapshot => snapshot.data());
+  // Process All the app contracts
+  for (let i = 0; i < appContracts.length; i++) {
+    const contract = appContracts[i];
 
-    for (let j = 0; j < currentContractClients.length; j++) {
-      const currentClient = currentContractClients[j];
-      console.log('CURRENT CLIENT: ', i, j, currentClient)
-
+    if (isTodayTheContractsChargeDay(contract)) {
       try {
-        // Order the contract
-        const contractOrder = await _orderContract(currentContract, currentClient.Id, appConfig, token);
-        console.log('CONTRACT ORDER', i, j, contractOrder)
-
-        // Save the order to the DDBB
-        await _saveOrderToDDBB(contractOrder, currentContract.Id, currentClient.Id, appConfig.id);
-
+        await _processAllContractOrders(contract, appConfig, token);
       } catch (error) {
-        const order: IOrder = {
-          id: UUID(),
-          date_created_timestamp: new Date(),
-          client_id: currentClient.Id,
-          contract_id: currentContract.Id,
-          shopping_cart: null,
-          payment_status: 'error',
-          payment_status_detail: JSON.stringify(error.response || error.message || error),
-          payment_attemps: [{ error: JSON.stringify(error.response || error.message || error) }],
-        }
-
-        console.log('_processMonthToMonthContracts ERROR', error.message, order);
-
-        await _saveOrderToDDBB(order, currentContract.Id, currentClient.Id, appConfig.id);
+        console.log('_processOneAppAutopays error', error);
+        throw new CustomError(`_processOneAppAutopays error: ${JSON.stringify(error)}`, 500);
       }
+    }
+  }
+
+  // Retry all failed orders
+  try {
+    await _processFailedContractOrders(contractsMock, appConfig, token);
+  } catch (error) {
+    console.log('_processFailedContractOrders', error);
+  }
+}
+
+async function _processAllContractOrders(contract: IContract, appConfig: IAppConfig, token: string) {
+  console.log('_processAllContractOrders', contract, appConfig);
+  const contractClientsResponse = await DDBB.collection(`business/${appConfig.id}/contracts/${contract.Id}/clients`).get();
+  const contractClients = contractClientsResponse.docs.map(snapshot => snapshot.data());
+
+  for (let i = 0; i < contractClients.length; i++) {
+    const currentClient = contractClients[i];
+    console.log('CURRENT CLIENT: ', i, currentClient);
+
+    try {
+      // Order the contract
+      const contractOrder = await _processOneContractOrder(contract, currentClient.Id, appConfig, token);
+      console.log('CONTRACT ORDER', i, contractOrder)
+
+      // Save the order to the DDBB
+      await _saveOrderToDDBB(contractOrder, contract.Id, currentClient.Id, appConfig.id);
+
+    } catch (error) {
+      const order: IOrder = {
+        id: UUID(),
+        date_created: new Date().toISOString(),
+        date_created_timestamp: new Date(),
+        client_id: currentClient.Id,
+        contract_id: contract.Id,
+        shopping_cart: null,
+        payment_status: 'error',
+        payment_status_detail: JSON.stringify(error.response || error.message || error),
+        payment_attempts: [{ error: JSON.stringify(error.response || error.message || error) }],
+      }
+
+      console.log('_processAllContractOrders ERROR', error.message, order);
+
+      await _saveOrderToDDBB(order, contract.Id, currentClient.Id, appConfig.id);
     }
   }
 }
 
-/* async function _processFailedPayments {
+async function _processOneContractOrder(contract: IContract, clientId: string, appConfig: IAppConfig, token: string): Promise<IOrder> {
+  console.log('_processOneContractOrder', contract, clientId, appConfig, token);
+  // TODO: add IContract.FirstAutopayFree and IContract.LastAutopayFree
+  const contractItems = contract.ContractItems.map(contractItem => {
+    const formattedItem = {
+      Item: {
+        Type: contractItem.Type,
+        Metadata: {
+          Id: contractItem.Id,
+        }
+      },
+      // TODO: Add discount management
+      DiscountAmount: 0,
+      Quantity: contractItem.Quantity,
+    }
 
-} */
+    return formattedItem;
+  });
+  const MBHeadersConfig = {
+    headers: {
+    'Api-Key': appConfig.apiKey,
+    'SiteId': appConfig.id,
+    'Authorization': token,
+    }
+  };
+
+  const clientPaymentConfig = await _getPaymentsConfig(appConfig, clientId);
+  let order: IOrder = {
+    id: UUID(),
+    date_created: new Date().toISOString(),
+    date_created_timestamp: new Date(),
+    client_id: clientId,
+    contract_id: contract.Id,
+    shopping_cart: null,
+    payment_status: null,
+    payment_status_detail: null,
+    payment_attempts: [],
+  }
+
+  if (clientPaymentConfig) {
+    const mindBodyCartOrder = {
+      ClientId: clientId,
+      Test: appConfig.test,
+      Items: contractItems,
+      Payments: [
+        {
+          Type: 'Cash',
+          Metadata: {
+            Amount: contract.FirstPaymentAmountTotal,
+          }
+        }
+      ]
+    };
+
+    if (appConfig.payments.gateaway.name === 'mercadopago') {
+      const paymentResponse: IPayment = await _makePaymentWithMercadopago(contract, appConfig, clientPaymentConfig);
+
+      order = {
+        ...order,
+        payment_status: paymentResponse.status,
+        payment_status_detail: paymentResponse.status_detail,
+        payment_attempts: [paymentResponse],
+      }
+
+      if (paymentResponse.status === 'approved') {
+        const cartResponse = await httpClient.post(`${baseUrl}/sale/checkoutshoppingcart`, { ...mindBodyCartOrder, Test: false }, MBHeadersConfig);
+        order = {
+          ...order,
+          // TODO: Do we need to save the shopping_cart???
+          shopping_cart: cartResponse.data.ShoppingCart,
+        }
+      }
+
+      console.log('_processOneContractOrder order:', order);
+
+      return order;
+    } else {
+      throw new CustomError('This site does not have a Orders Gateaway associated', 400);
+    }
+  } else {
+    throw new CustomError('This client does not have a Credit Card associated', 400);
+  }
+}
+
+async function _processFailedContractOrders(contractsCatalog: IContract[], appConfig: IAppConfig, token: string) {
+  console.log('_processFailedContractOrders appConfig', appConfig)
+  const appOrders = await DDBB.collection(`business/${appConfig.id}/orders`).get();
+  const appOrdersArray = appOrders.docs.map(snapshot => snapshot.data());
+  console.log('appOrdersArray', appOrdersArray)
+  // Cancelled orders are the ones that have finished the max number
+  // of retries (appConfig.payments.number_of_retries;)
+  const failedOrders = appOrdersArray.filter(order => order.payment_status !== 'approved' && order.payment_status !== 'cancelled');
+  console.log('failedOrders', failedOrders);
+
+  for (let i = 0; i < failedOrders.length; i++) {
+    const failedOrder = failedOrders[i];
+    const maxRetries = appConfig.payments.number_of_retries;
+    let actualRetries = failedOrder.payment_attempts.length;
+    console.log('failedOrder', failedOrder, maxRetries, actualRetries);
+    const failedContract = contractsCatalog.find(contract => contract.Id === failedOrder.contract_id);
+    console.log('failedContract', failedContract);
+
+    try {
+      const newContractOrder = await _processOneContractOrder(failedContract, failedOrder.client_id, appConfig, token);
+      console.log('CONTRACT ORDER', i, newContractOrder);
+
+      const contractOrderUpdate = {
+        date_created_timestamp: newContractOrder.payment_status === 'approved' ? new Date() : failedOrder.date_created_timestamp,
+        payment_status: maxRetries === ++actualRetries ? 'cancelled' : newContractOrder.payment_status,
+        payment_status_detail: newContractOrder.payment_status_detail,
+        payment_attempts: [...failedOrder.payment_attempts, ...newContractOrder.payment_attempts],
+      }
+
+      // Update the IContract order with the new payment attempt
+      await DDBB.doc(`business/${appConfig.id}/orders/${failedOrder.id}`).update(contractOrderUpdate);
+
+      // Update the client's autopays_counter
+      const currentAutopayCounterResponse = await DDBB.doc(`business/${appConfig.id}/contracts/${failedOrder.contract_id}/clients/${failedOrder.client_id}`).get();
+      const currentAutopayCounter = currentAutopayCounterResponse.data().autopays_counter;
+      await DDBB.doc(`business/${appConfig.id}/contracts/${failedOrder.contract_id}/clients/${failedOrder.client_id}`).update({autopays_counter: currentAutopayCounter + 1 });
+
+      console.log('contractOrderUpdate', contractOrderUpdate);
+    } catch (error) {
+      const contractOrderUpdate = {
+        payment_status: maxRetries === ++actualRetries ? 'cancelled' : 'error',
+        payment_status_detail: JSON.stringify(error.response || error.message || error),
+        payment_attempts: [...failedOrder.payment_attempts, { error: JSON.stringify(error.response || error.message || error) }],
+      }
+
+      await DDBB.doc(`business/${appConfig.id}/orders/${failedOrder.id}`).update(contractOrderUpdate);
+      console.log('_processFailedContractOrders ERROR', error.message, contractOrderUpdate);
+    }
+  }
+}
+
+function isTodayTheContractsChargeDay(contract: IContract): boolean {
+  // TODO: Remove this mock
+  return true;
+
+  const today = moment().date();
+  let dayToCharge;
+
+  // TODO: Cover client specific charge dates (OnSaleDate | SpecificDate)
+  // Now we are looking at the IContract ClientsChargedOn date and we charge
+  // to every client on the same date. When IContract.ClientsChargedOn is
+  // OnSaleDate or SpecificDate, we should:
+  //    1 - Calculate the date for every IClient when the IContract is purchased
+  //    2 - Set it on the IClientContract (business/${businessId}/contracts/${contractId}/clients/)
+  //    3 - Iterate over every IClientContract and charge it only if today === day_to_charge
+
+  switch (contract.ClientsChargedOn) {
+    case 'FirstOfTheMonth':
+      dayToCharge = 1;
+      break;
+
+    case 'FifteenthOfTheMonth':
+      dayToCharge = 15;
+
+    case 'LastDayOfTheMonth':
+      dayToCharge = moment().endOf('month');
+
+    case 'FirstOrFifteenthOfTheMonth':
+      dayToCharge = 15;
+
+    case 'FirstOrSixteenthOfTheMonth':
+      dayToCharge = 16;
+
+    case 'FifteenthOrEndOfTheMonth':
+      dayToCharge = 15;
+
+    case 'OnSaleDate':
+      dayToCharge = 1;
+
+    case 'SpecificDate':
+      dayToCharge = 1;
+
+    default:
+      dayToCharge = 1;
+  }
+
+  console.log('isTodayTheContractsChargeDay', today, dayToCharge, today === dayToCharge);
+  return today === dayToCharge;
+}
 
 // ROUTES
 // ERRORS
@@ -1039,8 +1196,8 @@ server
   .post(refundPayment);
 
 server
-  .route('/payments/monthly/:Id')
-  .post(processMonthlyPayments);
+  .route('/payments/runautopays')
+  .post(processAllAppsAutopays);
 
 // CONTRACTS
 server

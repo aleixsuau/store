@@ -1,11 +1,12 @@
+import { UserService } from './../../../../core/services/user/user.service';
 import { ClientsService } from '../../../clients/services/clients/clients.service';
 import { NotificationService } from 'src/app/core/services/notification/notification.service';
 import { OrdersService } from '../../services/orders/orders.service';
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, TemplateRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormBuilder, FormGroup } from '@angular/forms';
-import { MatTableDataSource, MatPaginator } from '@angular/material';
-import { Subscription, of } from 'rxjs';
+import { MatTableDataSource, MatPaginator, MatDialog, MatDialogRef } from '@angular/material';
+import { Subscription, of, Observable } from 'rxjs';
 import { debounceTime, switchMap, filter, map } from 'rxjs/operators';
 import { trigger, transition, useAnimation } from '@angular/animations';
 import { fadeAnimation } from 'src/app/shared/animations/animations';
@@ -45,8 +46,12 @@ export class OrdersComponent implements OnInit, OnDestroy {
     { label: 'Error', value: 'error' },
   ];
   filterClient: IClient;
+  selectedOrder: IOrder;
+  dialogRef: MatDialogRef<TemplateRef<any>>;
+  user$: Observable<IUser>;
 
   @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
+  @ViewChild('orderDialogTemplate', {static: false}) orderDialogTemplate: TemplateRef<any>;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -54,6 +59,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
     private clientsService: ClientsService,
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
+    private matDialog: MatDialog,
+    private userService: UserService,
   ) { }
 
   ngOnInit() {
@@ -131,14 +138,21 @@ export class OrdersComponent implements OnInit, OnDestroy {
     return this.contracts.find(contract => contract.Id === contractId);
   }
 
-  refundOrder(orderId: string) {
+  refundOrder(order: IOrder) {
     // TODO: refresh and set the correct page of results
     this.ordersService
-          .refundOrder(orderId)
+          .refundOrder(order.id)
           .subscribe(() => this.getTableData(this.filterForm.value));
   }
 
   clientAutocompleteDisplayFunction(client: IClient) {
     return client ? `${client.FirstName} ${client.LastName} (${client.Email})` : null;
+  }
+
+  openOrderDetailDialog(order: IOrder) {
+    console.log('openOrderDetailDialog', order);
+    this.selectedOrder = order;
+
+    this.dialogRef = this.matDialog.open(this.orderDialogTemplate, {panelClass: 'mbDialogFull'});
   }
 }
