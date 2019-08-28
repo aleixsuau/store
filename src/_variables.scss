@@ -1,13 +1,13 @@
 // Import material theming functions
 @import '~@angular/material/theming';
 
-$portfolio-primary: mat-palette($mat-indigo);
-$portfolio-accent: mat-palette($mat-pink, A200, A100, A400);
-$portfolio-warn: mat-palette($mat-red);
+$app-primary: mat-palette($mat-indigo);
+$app-accent: mat-palette($mat-pink, A200, A100, A400);
+$app-warn: mat-palette($mat-red);
 
-$primary: mat-color($portfolio-primary);
-$accent: mat-color($portfolio-accent);
-$warn: mat-color($portfolio-warn);
+$primary: mat-color($app-primary);
+$accent: mat-color($app-accent);
+$warn: mat-color($app-warn);
 
 $white: white;
 

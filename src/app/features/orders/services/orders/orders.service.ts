@@ -26,4 +26,11 @@ export class OrdersService {
                   .post<IOrder[]>(`${environment.firebase.functions_path}/${this.basePath}/${orderId}/refund`, null)
                   .pipe(tap(response => this.notificationService.notify('Order refunded')));
   }
+
+  // TEST FUNCIONALITY
+  triggerBillingCycle() {
+    return this.httpClient
+                  .post<IOrder[]>(`${environment.firebase.functions_path}/${this.basePath}/trigger`, null)
+                  .pipe(tap(response => this.notificationService.notify('Billing Cycle Started')));
+  }
 }

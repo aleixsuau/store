@@ -3,22 +3,6 @@
       <mat-card-content fxLayout="row wrap"
                         fxLayoutAlign="center center">
         <mat-form-field fxFlex="1 1 100%">
-          <mat-icon matPrefix>insert_drive_file</mat-icon>
-
-          <mat-select placeholder="Contract"
-                      formControlName="contract">
-            <mat-option *ngFor="let contract of contracts"
-                        [value]="contract">
-              {{ contract.Name }}
-            </mat-option>
-          </mat-select>
-
-          <mat-error *ngIf="retailForm.get('contract').touched && retailForm.get('contract').invalid">
-            Please select a Contract from the list.
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field fxFlex="1 1 100%">
           <mat-icon matPrefix>search</mat-icon>
 
           <input matInput
@@ -34,19 +18,37 @@
 
         <mat-autocomplete #clientAuto="matAutocomplete"
                           [displayWith]="displayClientFn"
-                          autoActiveFirstOption>
+                          autoActiveFirstOption
+                          (optionSelected)="setSelectedClientContracts($event.option.value)">
           <mat-option *ngFor="let client of clients"
                       [value]="client">
             {{ client.FirstName + ' ' + client.LastName }}
           </mat-option>
         </mat-autocomplete>
 
-        <div fxFlex="1 1 100%"
+        <mat-form-field fxFlex="1 1 100%">
+          <mat-icon matPrefix>insert_drive_file</mat-icon>
+
+          <mat-select placeholder="Contract"
+                      formControlName="contract"
+                      [disabled]="!retailForm.get('client').value">
+            <mat-option *ngFor="let contract of clientContracts"
+                        [value]="contract">
+              {{ contract.Name }}
+            </mat-option>
+          </mat-select>
+
+          <mat-error *ngIf="retailForm.get('contract').touched && retailForm.get('contract').invalid">
+            Please select a Contract from the list.
+          </mat-error>
+        </mat-form-field>
+
+        <!-- <div fxFlex="1 1 100%"
              fxLayoutAlign="start center">
           <mat-checkbox formControlName="SendEmail">
             Send Email
           </mat-checkbox>
-        </div>
+        </div> -->
       </mat-card-content>
 
       <mat-card-actions>

@@ -43,4 +43,29 @@ export class ClientsService {
                  .patch<IClient>(`${environment.firebase.functions_path}/clients/${client.Id}`, {Client: client})
                  .pipe(tap(newClient => this.notificationService.notify('Client updated')));
   }
+
+  getClientContracts(id?: string): Observable<IMindBroContract[]> {
+    return this.httpClient
+                 .get<IMindBroContract[]>(`${environment.firebase.functions_path}/${this.basePath}/${id}/contracts`)
+                //  .pipe(map((contracts: IMindBroClient['contracts']) => Object.values(contracts)));
+  }
+
+  updateClientContract(clientId: string, contractId: string, data: any) {
+    return this.httpClient
+                  .patch<IContract>(`${environment.firebase.functions_path}/${this.basePath}/${clientId}/contracts/${contractId}`, data)
+                  .pipe(tap(newClient => this.notificationService.notify('Contract updated')));
+  }
+
+  // TEST FUNCIONALITY
+  changeClientCard(client: IClient, card: any) {
+    const {name, ...cardToSend} = card;
+    const dataToSend = {
+      credit_card: cardToSend,
+      client,
+    };
+
+    return this.httpClient
+                  .post(`${environment.firebase.functions_path}/${this.basePath}/change_card`, dataToSend)
+                  .pipe(tap(newClient => this.notificationService.notify('Client Card Updated')));
+  }
 }

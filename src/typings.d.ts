@@ -1,3 +1,28 @@
+interface IMindBroBusiness {
+  clients: IMindBroClient[];
+  config: IAppConfig;
+}
+
+interface IMindBroClient {
+  contracts: {[key: string]: IMindBroContract};
+  payments_config: IMindBroClientPaymentsConfig;
+}
+
+interface IMindBroContract {
+  status: 'active' | 'paused' | 'canceled' | 'completed';
+  date_created: string;
+  id: string;
+  autopays_counter: number;
+  client_id: string;
+}
+
+interface IMindBroClientPaymentsConfig {
+  CVV: number;
+  cardId: string;
+  cardToken: string;
+  clientId: string;
+}
+
 interface IAppConfig {
   id: string;
   token: string;
@@ -219,7 +244,8 @@ interface IContractItem {
 }
 
 interface IContractAutopaySchedule {
-  FrequencyValue: 'SetNumberOfAutopays' | 'MonthToMonth';
+  FrequencyType: 'SetNumberOfAutopays' | 'MonthToMonth';
+  FrequencyValue: number;
   FrequencyTimeUnit: 'Weekly' | 'Monthly' | 'Yearly';
 }
 
@@ -246,7 +272,7 @@ interface IOrder {
   client_id: string;
   contract_id: string;
   shopping_cart: IShoppingCart;
-  payment_status: 'rejected' | 'in_process' | 'approved' | 'error' | 'cancelled';
+  payment_status: 'rejected' | 'in_process' | 'approved' | 'error' | 'canceled';
   payment_status_detail: string;
   payment_attempts: IPayment[];
 }

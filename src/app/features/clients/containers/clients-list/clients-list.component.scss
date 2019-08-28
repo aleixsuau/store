@@ -22,14 +22,6 @@ mat-radio-group {
   height: 6.5rem;
 }
 
-mat-radio-group {
-  height: 60% !important;
-}
-
-mat-expansion-panel {
-  margin: 1rem 0rem 1rem 0rem;
-}
-
 .client_form mat-icon, .search_input mat-icon {
   font-size: 1.8rem !important;
   margin-right: 0.4rem;
@@ -42,3 +34,47 @@ label {
   color: $lighter-grey;
 }
 
+.contract_expansion_panel {
+  &__description {
+    p {
+      font-style: italic;
+      color: $lighter-grey;
+      margin: 0rem 0rem 2.4rem 0rem;
+    }
+  }
+
+  &__details {
+    mat-icon {
+      font-size: 1.8rem;
+      height: 2.4rem;
+      width: 2.4rem;
+    }
+  }
+}
+
+.client_form {
+  &__contract_buttons {
+    margin-top: 2rem;
+  }
+
+  &__details {
+    margin-top: 2rem;
+  }
+}
+
+mat-radio-group {
+  height: 60% !important;
+}
+
+mat-expansion-panel {
+  margin: 1rem 0rem 1rem 0rem;
+}
+
+.client_dialog_container {
+  &__profile_image {
+    height: 5rem;
+    width: 5rem;
+    margin: 1rem;
+    border-radius: 50%;
+  }
+}

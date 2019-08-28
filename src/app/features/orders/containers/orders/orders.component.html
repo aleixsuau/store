@@ -80,7 +80,16 @@
         </mat-form-field>
 
         <div fxFlex="1 1 auto"
-              fxLayoutAlign="end center">
+              fxLayoutAlign="end center"
+              fxLayoutGap="2rem">
+          <button mat-raised-button
+                  *ngIf="testEnvironment"
+                  color="accent"
+                  (click)="triggerBillingCycle();"
+                  fxFlex="0 0 auto">
+            TRIGGER BILLING CYCLE
+          </button>
+
           <button mat-raised-button
                   color="primary"
                   (click)="getTableData(filterForm.value);"
@@ -146,7 +155,7 @@
                 radio_button_unchecked
               </mat-icon>
 
-              <mat-icon *ngIf="order.payment_status === 'cancelled'"
+              <mat-icon *ngIf="order.payment_status === 'canceled'"
                         [ngStyle]="{'color':'red'}"
                         [matTooltip]="order.payment_status + ': ' + order.payment_status_detail + '. Too much retries.'">
                 radio_button_checked
@@ -201,14 +210,16 @@
 
 <!-- ORDER DETAILS DIALOG -->
 <ng-template #orderDialogTemplate>
+  <div mat-dialog-title>
+    <h5>
+      ORDER <span>{{ selectedOrder.id}}</span>
+    </h5>
+  </div>
+
   <div class="order_dialog">
     <mat-dialog-content>
-      <h4>
-        ORDER <span>{{ selectedOrder.id}}</span>
-      </h4>
-
       <h6 class="order_dialog__title">
-        PAYMENTS ATTEMPTS
+        PAYMENT ATTEMPTS
       </h6>
 
       <button mat-fab
@@ -288,7 +299,7 @@
                   radio_button_unchecked
                 </mat-icon>
 
-                <mat-icon *ngIf="paymentAttempt.status === 'cancelled'"
+                <mat-icon *ngIf="paymentAttempt.status === 'canceled'"
                           [ngStyle]="{'color':'red'}"
                           [matTooltip]="paymentAttempt.status + ': ' + paymentAttempt.status_detail + '. Too much retries.'">
                   radio_button_checked

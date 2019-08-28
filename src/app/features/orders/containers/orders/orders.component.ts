@@ -1,10 +1,10 @@
-import { UserService } from './../../../../core/services/user/user.service';
+import { environment } from './../../../../../environments/environment';
 import { ClientsService } from '../../../clients/services/clients/clients.service';
 import { NotificationService } from 'src/app/core/services/notification/notification.service';
 import { OrdersService } from '../../services/orders/orders.service';
 import { Component, OnInit, ViewChild, OnDestroy, TemplateRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { FormControl, FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatTableDataSource, MatPaginator, MatDialog, MatDialogRef } from '@angular/material';
 import { Subscription, of, Observable } from 'rxjs';
 import { debounceTime, switchMap, filter, map } from 'rxjs/operators';
@@ -49,6 +49,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   selectedOrder: IOrder;
   dialogRef: MatDialogRef<TemplateRef<any>>;
   user$: Observable<IUser>;
+  testEnvironment = !environment.production;
 
   @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
   @ViewChild('orderDialogTemplate', {static: false}) orderDialogTemplate: TemplateRef<any>;
@@ -60,7 +61,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
     private matDialog: MatDialog,
-    private userService: UserService,
   ) { }
 
   ngOnInit() {
@@ -154,5 +154,12 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.selectedOrder = order;
 
     this.dialogRef = this.matDialog.open(this.orderDialogTemplate, {panelClass: 'mbDialogFull'});
+  }
+
+  // TEST FUNCTIONALITY
+  triggerBillingCycle() {
+    this.ordersService
+          .triggerBillingCycle()
+          .subscribe(() => this.getTableData(this.filterForm.value));
   }
 }

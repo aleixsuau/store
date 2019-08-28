@@ -25,6 +25,7 @@ function clientValidator(control: AbstractControl): {[key: string]: any} | null 
 export class RetailComponent implements OnInit, OnDestroy {
   clients: IClient[];
   contracts: IContract[];
+  clientContracts: IContract[];
   retailForm: FormGroup;
   retailFormSubscription: Subscription;
   clientErrorMatcher = new ClientErrorMatcher();
@@ -53,9 +54,12 @@ export class RetailComponent implements OnInit, OnDestroy {
                                         .valueChanges
                                         .pipe(
                                           debounceTime(400),
-                                          switchMap(changes => this.clientsService.getClients(null, changes))
+                                          filter(changes => changes.Id == null),
+                                          switchMap(changes => this.clientsService.getClients(null, changes)),
                                         )
-                                        .subscribe(results => this.clients = results.Clients);
+                                        .subscribe(results => {
+                                          this.clients = results.Clients;
+                                        });
   }
 
   ngOnDestroy() {
@@ -68,5 +72,13 @@ export class RetailComponent implements OnInit, OnDestroy {
 
   sellContract(contract: IContract, client: IClient) {
     this.salesService.sellContract(contract, client).subscribe();
+  }
+
+  setSelectedClientContracts(client: IClient) {
+    this.clientsService
+          .getClientContracts(client.Id)
+          .subscribe(mbContracts => {
+            this.clientContracts = this.contracts.filter(contract => !mbContracts.map(mbContract => mbContract.id).includes(contract.Id));
+          });
   }
 }

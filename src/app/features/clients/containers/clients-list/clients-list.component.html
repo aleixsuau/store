@@ -95,325 +95,490 @@
 
 <!-- CLIENT FORM DIALOG TEMPLATE (OPENED ON THE DIALOG) -->
 <ng-template #clientTemplate>
-  <h4 mat-dialog-title>
-    {{
-      clientBeingEdited ?
-        'EDITING CLIENT: (' + clientBeingEdited.FirstName + ' ' + clientBeingEdited.LastName + ')':
-        'ADD CLIENT'
-    }}
-  </h4>
-
-  <mat-dialog-content class="client_form">
-    <form [formGroup]="clientForm"
-          novalidate
-          autocomplete="false"
-          fxLayout="row wrap"
-          fxLayoutAlign="center center">
-      <mat-form-field fxFlex="1 1 100%">
-        <input type="text"
-                placeholder="FirstName *"
-                matInput
-                formControlName="FirstName"
-                automcomplete="off">
-
-        <mat-error *ngIf="clientForm.get('FirstName').touched && clientForm.get('FirstName').invalid">
-          Please insert the FirstName
-        </mat-error>
-      </mat-form-field>
-
-      <mat-form-field fxFlex="1 1 100%">
-        <input type="text"
-                placeholder="LastName *"
-                matInput
-                formControlName="LastName"
-                automcomplete="off">
-
-        <mat-error *ngIf="clientForm.get('LastName').touched && clientForm.get('LastName').invalid">
-          Please insert the LastName
-        </mat-error>
-      </mat-form-field>
-
-      <div fxFlex="1 1 100%"
-           class="row">
-        <label>Gender: </label>
-
-        <mat-radio-group formControlName="Gender"
-                         fxLayoutAlign="start center">
-          <mat-radio-button value="Male"
-                            fxFlex="0 0 8rem">
-            Male
-          </mat-radio-button>
-          <mat-radio-button value="Female"
-                            fxFlex="0 0 8rem">
-            Female
-          </mat-radio-button>
-        </mat-radio-group>
+  <div class="client_dialog_container">
+    <div mat-dialog-title
+          fxLayoutAlign="start center"
+          fxLayoutGap="2rem">
+      <div fxFlex="1 1 7rem"
+           *ngIf="clientBeingEdited">
+        <div class="client_dialog_container__profile_image"
+            [ngStyle]="{ 'background-image': 'url(' + (clientBeingEdited?.PhotoUrl || '/assets/images/user_profile_icon.svg') + ')',
+                          'background-size': 'cover' }">
+        </div>
       </div>
 
-      <mat-form-field fxFlex="1 1 100%">
-        <input matInput
-              [matDatepicker]="picker"
-              formControlName="BirthDate"
-              placeholder="Birth Date *"
-              automcomplete="off">
+      <h5 fxFlex="1 1 auto">
+        {{
+          clientBeingEdited ?
+            clientBeingEdited.FirstName + ' ' + clientBeingEdited.LastName:
+            'ADD CLIENT'
+        }}
+      </h5>
+    </div>
 
-        <mat-datepicker-toggle matPrefix [for]="picker"></mat-datepicker-toggle>
+    <mat-dialog-content class="client_form">
+      <mat-tab-group>
+        <mat-tab label="DETAILS">
+          <div class="client_form__details">
+            <form [formGroup]="clientForm"
+                  novalidate
+                  autocomplete="false"
+                  fxLayout="row wrap"
+                  fxLayoutAlign="center center">
+              <mat-form-field fxFlex="1 1 100%">
+                <input type="text"
+                        placeholder="FirstName *"
+                        matInput
+                        formControlName="FirstName"
+                        automcomplete="off">
 
-        <mat-datepicker #picker></mat-datepicker>
+                <mat-error *ngIf="clientForm.get('FirstName').touched && clientForm.get('FirstName').invalid">
+                  Please insert the FirstName
+                </mat-error>
+              </mat-form-field>
 
-        <mat-error *ngIf="clientForm.get('Email').touched && clientForm.get('Email').invalid">
-          Please insert a Birth Date
-        </mat-error>
-      </mat-form-field>
+              <mat-form-field fxFlex="1 1 100%">
+                <input type="text"
+                        placeholder="LastName *"
+                        matInput
+                        formControlName="LastName"
+                        automcomplete="off">
 
-      <mat-form-field fxFlex="1 1 100%">
-        <input type="text"
-                placeholder="Email *"
-                matInput
-                formControlName="Email"
-                automcomplete="off">
+                <mat-error *ngIf="clientForm.get('LastName').touched && clientForm.get('LastName').invalid">
+                  Please insert the LastName
+                </mat-error>
+              </mat-form-field>
 
-        <mat-icon matPrefix>email</mat-icon>
+              <div fxFlex="1 1 100%"
+                  class="row">
+                <label>Gender: </label>
 
-        <mat-error *ngIf="clientForm.get('Email').touched && clientForm.get('Email').invalid">
-          Please insert a correct Email
-        </mat-error>
-      </mat-form-field>
+                <mat-radio-group formControlName="Gender"
+                                fxLayoutAlign="start center">
+                  <mat-radio-button value="Male"
+                                    fxFlex="0 0 8rem">
+                    Male
+                  </mat-radio-button>
+                  <mat-radio-button value="Female"
+                                    fxFlex="0 0 8rem">
+                    Female
+                  </mat-radio-button>
+                </mat-radio-group>
+              </div>
 
-      <mat-form-field fxFlex="1 1 100%">
-        <input type="number"
-                placeholder="MobilePhone"
-                matInput
-                formControlName="MobilePhone"
-                automcomplete="off">
+              <mat-form-field fxFlex="1 1 100%">
+                <input matInput
+                      [matDatepicker]="picker"
+                      formControlName="BirthDate"
+                      placeholder="Birth Date *"
+                      automcomplete="off">
 
-        <mat-icon matPrefix>phone_android</mat-icon>
+                <mat-datepicker-toggle matPrefix [for]="picker"></mat-datepicker-toggle>
 
-        <mat-error *ngIf="clientForm.get('MobilePhone').touched && clientForm.get('MobilePhone').invalid">
-          Please insert the MobilePhone
-        </mat-error>
-      </mat-form-field>
+                <mat-datepicker #picker></mat-datepicker>
 
-      <mat-expansion-panel fxFlex="1 1 100%"
-                           formGroupName="ClientCreditCard"
-                           class="credit_card">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon>credit_card</mat-icon>
-            Credit Card
-          </mat-panel-title>
-        </mat-expansion-panel-header>
+                <mat-error *ngIf="clientForm.get('Email').touched && clientForm.get('Email').invalid">
+                  Please insert a Birth Date
+                </mat-error>
+              </mat-form-field>
 
-        <div fxLayout="row wrap"
-             fxLayoutAlign="space-between center">
-          <mat-form-field fxFlex="1 1 100%">
-            <input [type]="clientForm.get('ClientCreditCard.CardNumber').disabled ? 'text' : 'number'"
-                    placeholder="Number"
-                    matInput
-                    formControlName="CardNumber"
-                    automcomplete="off">
+              <mat-form-field fxFlex="1 1 100%">
+                <input type="text"
+                        placeholder="Email *"
+                        matInput
+                        formControlName="Email"
+                        automcomplete="off">
 
-            <mat-error *ngIf="clientForm.get('ClientCreditCard.CardNumber').touched &&
-                              clientForm.get('ClientCreditCard.CardNumber').invalid">
-              Please insert a valid Card Number
-            </mat-error>
-          </mat-form-field>
+                <mat-icon matPrefix>email</mat-icon>
 
-          <mat-form-field fxFlex="1 1 30%">
-            <input type="number"
-                    placeholder="Expiration Month"
-                    matInput
-                    formControlName="ExpMonth"
-                    automcomplete="off">
+                <mat-error *ngIf="clientForm.get('Email').touched && clientForm.get('Email').invalid">
+                  Please insert a correct Email
+                </mat-error>
+              </mat-form-field>
 
-            <mat-error *ngIf="clientForm.get('ClientCreditCard.ExpMonth').touched &&
-                              clientForm.get('ClientCreditCard.ExpMonth').invalid">
-              Please insert a valid Expiration Month
-            </mat-error>
-          </mat-form-field>
+              <mat-form-field fxFlex="1 1 100%">
+                <input type="number"
+                        placeholder="MobilePhone"
+                        matInput
+                        formControlName="MobilePhone"
+                        automcomplete="off">
 
-          <mat-form-field fxFlex="1 1 30%">
-            <input type="number"
-                    placeholder="Expiration Year"
-                    matInput
-                    formControlName="ExpYear"
-                    automcomplete="off">
+                <mat-icon matPrefix>phone_android</mat-icon>
 
-            <mat-error *ngIf="clientForm.get('ClientCreditCard.ExpYear').touched &&
-                              clientForm.get('ClientCreditCard.ExpYear').invalid">
-              Please insert a valid Expiration Year
-            </mat-error>
-          </mat-form-field>
+                <mat-error *ngIf="clientForm.get('MobilePhone').touched && clientForm.get('MobilePhone').invalid">
+                  Please insert the MobilePhone
+                </mat-error>
+              </mat-form-field>
 
-          <mat-form-field fxFlex="1 1 30%">
-            <input [type]="clientForm.get('ClientCreditCard.CVV').disabled ? 'text' : 'number'"
-                    placeholder="CVV"
-                    matInput
-                    formControlName="CVV"
-                    automcomplete="off">
+              <mat-expansion-panel fxFlex="1 1 100%"
+                                  formGroupName="ClientCreditCard"
+                                  class="credit_card">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    <mat-icon>credit_card</mat-icon>
+                    Credit Card
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
 
-            <mat-error *ngIf="clientForm.get('ClientCreditCard.CVV').touched &&
-                              clientForm.get('ClientCreditCard.CVV').invalid">
-              Please insert a valid CVV
-            </mat-error>
-          </mat-form-field>
+                <div fxLayout="row wrap"
+                    fxLayoutAlign="space-between center">
+                  <mat-form-field fxFlex="1 1 100%">
+                    <input [type]="clientForm.get('ClientCreditCard.CardNumber').disabled ? 'text' : 'number'"
+                            placeholder="Number"
+                            matInput
+                            formControlName="CardNumber"
+                            automcomplete="off">
 
-          <div fxFlex="1 1 100%"
-               fxLayoutAlign="end center">
-            <button fxFlex="1 1 25rem"
-                    mat-raised-button
-                    color="warn"
-                    type="button"
-                    (click)="resetCreditCard();"
-                    [disabled]="!clientBeingEdited?.ClientCreditCard">
-              <mat-icon>delete</mat-icon>
-              Remove Credit Card
-            </button>
+                    <mat-error *ngIf="clientForm.get('ClientCreditCard.CardNumber').touched &&
+                                      clientForm.get('ClientCreditCard.CardNumber').invalid">
+                      Please insert a valid Card Number
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="1 1 30%">
+                    <input type="number"
+                            placeholder="Expiration Month"
+                            matInput
+                            formControlName="ExpMonth"
+                            automcomplete="off">
+
+                    <mat-error *ngIf="clientForm.get('ClientCreditCard.ExpMonth').touched &&
+                                      clientForm.get('ClientCreditCard.ExpMonth').invalid">
+                      Please insert a valid Expiration Month
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="1 1 30%">
+                    <input type="number"
+                            placeholder="Expiration Year"
+                            matInput
+                            formControlName="ExpYear"
+                            automcomplete="off">
+
+                    <mat-error *ngIf="clientForm.get('ClientCreditCard.ExpYear').touched &&
+                                      clientForm.get('ClientCreditCard.ExpYear').invalid">
+                      Please insert a valid Expiration Year
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="1 1 30%">
+                    <input [type]="clientForm.get('ClientCreditCard.CVV').disabled ? 'text' : 'number'"
+                            placeholder="CVV"
+                            matInput
+                            formControlName="CVV"
+                            automcomplete="off">
+
+                    <mat-error *ngIf="clientForm.get('ClientCreditCard.CVV').touched &&
+                                      clientForm.get('ClientCreditCard.CVV').invalid">
+                      Please insert a valid CVV
+                    </mat-error>
+                  </mat-form-field>
+
+                  <div fxFlex="1 1 100%"
+                      fxLayoutAlign="end center">
+                    <button fxFlex="1 1 25rem"
+                            mat-raised-button
+                            color="warn"
+                            type="button"
+                            (click)="resetCreditCard();"
+                            [disabled]="!clientBeingEdited?.ClientCreditCard">
+                      <mat-icon>delete</mat-icon>
+                      Remove Credit Card
+                    </button>
+                  </div>
+
+                </div>
+              </mat-expansion-panel>
+
+              <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    <mat-icon>location_on</mat-icon>
+                    Address
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <div fxLayout="row wrap">
+                  <mat-form-field fxFlex="1 1 100%">
+                    <input type="text"
+                            placeholder="AddressLine1"
+                            matInput
+                            formControlName="AddressLine1"
+                            automcomplete="off">
+
+                    <mat-error *ngIf="clientForm.get('AddressLine1').touched && clientForm.get('AddressLine1').invalid">
+                      Please insert the AddressLine1
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="1 1 100%">
+                    <input type="text"
+                            placeholder="AddressLine2"
+                            matInput
+                            formControlName="AddressLine2"
+                            automcomplete="off">
+
+                    <mat-error *ngIf="clientForm.get('AddressLine2').touched && clientForm.get('AddressLine2').invalid">
+                      Please insert the AddressLine2
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="1 1 100%">
+                    <input type="text"
+                            placeholder="City"
+                            matInput
+                            formControlName="City"
+                            automcomplete="off">
+
+                    <mat-error *ngIf="clientForm.get('City').touched && clientForm.get('City').invalid">
+                      Please insert the City
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="1 1 100%">
+                    <input type="text"
+                            placeholder="PostalCode"
+                            matInput
+                            formControlName="PostalCode"
+                            automcomplete="off">
+
+                    <mat-error *ngIf="clientForm.get('PostalCode').touched && clientForm.get('PostalCode').invalid">
+                      Please insert the Postal Code
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="1 1 100%">
+                    <input type="text"
+                            placeholder="Country"
+                            matInput
+                            formControlName="Country"
+                            automcomplete="off">
+
+                    <mat-error *ngIf="clientForm.get('Country').touched && clientForm.get('Country').invalid">
+                      Please insert the Country
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </mat-expansion-panel>
+
+              <div fxFlex="1 1 100%"
+                  class="row" style="margin-top: 1rem;">
+                <label>Is Prospect: </label>
+
+                <mat-radio-group formControlName="IsProspect"
+                                fxLayoutAlign="start center"
+                                automcomplete="off">
+                  <mat-radio-button [value]="true"
+                                    fxFlex="0 0 8rem">
+                    Yes
+                  </mat-radio-button>
+                  <mat-radio-button [value]="false"
+                                    fxFlex="0 0 8rem">
+                    No
+                  </mat-radio-button>
+                </mat-radio-group>
+              </div>
+
+              <div fxFlex="1 1 100%"
+                  class="row">
+                <label>Send Schedule Emails: </label>
+
+                <mat-radio-group formControlName="SendScheduleEmails"
+                                fxLayoutAlign="start center"
+                                automcomplete="off">
+                  <mat-radio-button [value]="true"
+                                    fxFlex="0 0 8rem">
+                    Yes
+                  </mat-radio-button>
+                  <mat-radio-button [value]="false"
+                                    fxFlex="0 0 8rem">
+                    No
+                  </mat-radio-button>
+                </mat-radio-group>
+              </div>
+
+              <div fxFlex="1 1 100%"
+                  class="row">
+                <label>Send Account Emails:</label>
+
+                <mat-radio-group formControlName="SendAccountEmails"
+                                fxLayoutAlign="start center"
+                                automcomplete="off">
+                  <mat-radio-button [value]="true"
+                                    fxFlex="0 0 8rem">
+                    Yes
+                  </mat-radio-button>
+                  <mat-radio-button [value]="false"
+                                    fxFlex="0 0 8rem">
+                    No
+                  </mat-radio-button>
+                </mat-radio-group>
+              </div>
+            </form>
           </div>
+        </mat-tab>
 
-        </div>
-      </mat-expansion-panel>
+        <mat-tab label="CONTRACTS"
+                *ngIf="clientBeingEdited"
+                [disabled]="!clientBeingEditedContracts?.length"
+                class="client_form__contracts">
+          <div *ngFor="let contract of clientBeingEditedContracts">
+            <mat-expansion-panel fxFlex="1 1 100%"
+                                class="contract_expansion_panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title fxLayoutAlign="space-between center">
+                  <div fxFlex="1 1 10%">
+                    <mat-icon>insert_drive_file</mat-icon>
+                  </div>
 
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon>location_on</mat-icon>
-            Address
-          </mat-panel-title>
-        </mat-expansion-panel-header>
+                  <div fxFlex="1 1 70%">
+                    <p>{{ contract.Name }}</p>
+                  </div>
 
-        <div fxLayout="row wrap">
-          <mat-form-field fxFlex="1 1 100%">
-            <input type="text"
-                    placeholder="AddressLine1"
-                    matInput
-                    formControlName="AddressLine1"
-                    automcomplete="off">
+                  <div fxFlex="1 1 20%">
+                    <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'active'"
+                              [ngStyle]="{'color':'green'}"
+                              [matTooltip]="getContractConfig(contract.Id)?.status">
+                      timelapse
+                    </mat-icon>
 
-            <mat-error *ngIf="clientForm.get('AddressLine1').touched && clientForm.get('AddressLine1').invalid">
-              Please insert the AddressLine1
-            </mat-error>
+                    <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'paused'"
+                              [ngStyle]="{'color':'orange'}"
+                              [matTooltip]="getContractConfig(contract.Id)?.status">
+                      timelapse
+                    </mat-icon>
+
+                    <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'completed'"
+                              [ngStyle]="{'color':'green'}"
+                              [matTooltip]="getContractConfig(contract.Id)?.status">
+                      radio_button_checked
+                    </mat-icon>
+
+                    <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'canceled'"
+                              [ngStyle]="{'color':'red'}"
+                              [matTooltip]="getContractConfig(contract.Id)?.status">
+                      cancel
+                    </mat-icon>
+                  </div>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+
+              <div class="contract_expansion_panel__details">
+                <div class="contract_expansion_panel__description">
+                  <p>
+                    <strong>Date created:</strong> {{ getContractConfig(contract.Id)?.date_created | date }}<br>
+                    <strong>Remaining autopays:</strong> {{ getContractConfig(contract.Id)?.autopays_counter }}<br>
+                    <strong>Status:</strong> {{ getContractConfig(contract.Id)?.status }}<br>
+                    <strong>Description:</strong> {{ contract.Description }}
+                  </p>
+                </div>
+
+                <div>
+                  <p>CONTRACT ITEMS</p>
+                </div>
+
+                <mat-list dense>
+                  <div fxLayout>
+                    <div fxFlex="1 1 15%"> Id </div>
+                    <div fxFlex="1 1 40%"> Name </div>
+                    <div fxFlex="1 1 15%"> Type </div>
+                    <div fxFlex="1 1 10%"> Price </div>
+                    <div fxFlex="1 1 10%"> Quantity </div>
+                    <div fxFlex="0 0 10%"></div>
+                  </div>
+
+                  <mat-list-item *ngFor="let item of contract.ContractItems"
+                                fxLayout>
+                    <div fxFlex="1 1 15%">{{ item.Id }}</div>
+                    <div fxFlex="1 1 40%">{{ item.Name }}</div>
+                    <div fxFlex="1 1 15%">{{ item.Type }}</div>
+                    <div fxFlex="1 1 10%">{{ item.Price }}</div>
+                    <div fxFlex="1 1 10%">{{ item.Quantity }}</div>
+                    <div fxFlex="0 0 10%"
+                        [matTooltip]="item.Description"
+                        fxLayoutAlign="end center">
+                      <mat-icon>assignment</mat-icon>
+                    </div>
+                  </mat-list-item>
+                </mat-list>
+
+                <div fxLayoutAlign="end center"
+                    fxLayoutGap="1rem"
+                    class="client_form__contract_buttons">
+                  <button mat-stroked-button
+                          (click)="updateClientContractStatus(clientBeingEdited.Id, contract.Id, 'paused')"
+                          *ngIf="getContractConfig(contract.Id)?.status === 'active'"
+                          color="accent">
+                    <mat-icon>pause_circle_filled</mat-icon>
+                    PAUSE
+                  </button>
+
+                  <button mat-stroked-button
+                          (click)="updateClientContractStatus(clientBeingEdited.Id, contract.Id, 'active')"
+                          *ngIf="getContractConfig(contract.Id)?.status === 'paused'"
+                          color="accent">
+                    <mat-icon>pause_circle_filled</mat-icon>
+                    RESUME
+                  </button>
+
+                  <button mat-stroked-button
+                          (click)="updateClientContractStatus(clientBeingEdited.Id, contract.Id, 'canceled')"
+                          *ngIf="getContractConfig(contract.Id)?.status === 'active' || getContractConfig(contract.Id)?.status === 'paused'"
+                          color="accent">
+                    <mat-icon>cancel</mat-icon>
+                    CANCEL
+                  </button>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="TEST SETTINGS"
+                *ngIf="testEnvironment && clientBeingEdited">
+
+          <p>Select Card Status for this client:</p>
+
+          <mat-form-field fxFlex="1 1 25rem">
+            <mat-icon matPrefix>timelapse</mat-icon>
+
+            <mat-label>Card Status</mat-label>
+
+            <mat-select placeholder="card status"
+                        (selectionChange)="changeClientCard(clientBeingEdited, $event.value)">
+              <mat-option *ngFor="let status of cardStatuses"
+                          [value]="status">
+                {{ status.name }}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-dialog-content>
 
-          <mat-form-field fxFlex="1 1 100%">
-            <input type="text"
-                    placeholder="AddressLine2"
-                    matInput
-                    formControlName="AddressLine2"
-                    automcomplete="off">
+    <mat-dialog-actions>
+      <button mat-raised-button
+              [disabled]="clientForm.invalid || clientForm.pristine"
+              (click)="saveClient(clientForm.value)"
+              color="primary">
+        <mat-icon>save</mat-icon>
+        SAVE
+      </button>
 
-            <mat-error *ngIf="clientForm.get('AddressLine2').touched && clientForm.get('AddressLine2').invalid">
-              Please insert the AddressLine2
-            </mat-error>
-          </mat-form-field>
+      <button mat-raised-button
+              mat-dialog-close>
+        <mat-icon>close</mat-icon>
+        CLOSE
+      </button>
 
-          <mat-form-field fxFlex="1 1 100%">
-            <input type="text"
-                    placeholder="City"
-                    matInput
-                    formControlName="City"
-                    automcomplete="off">
-
-            <mat-error *ngIf="clientForm.get('City').touched && clientForm.get('City').invalid">
-              Please insert the City
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field fxFlex="1 1 100%">
-            <input type="text"
-                    placeholder="PostalCode"
-                    matInput
-                    formControlName="PostalCode"
-                    automcomplete="off">
-
-            <mat-error *ngIf="clientForm.get('PostalCode').touched && clientForm.get('PostalCode').invalid">
-              Please insert the Postal Code
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field fxFlex="1 1 100%">
-            <input type="text"
-                    placeholder="Country"
-                    matInput
-                    formControlName="Country"
-                    automcomplete="off">
-
-            <mat-error *ngIf="clientForm.get('Country').touched && clientForm.get('Country').invalid">
-              Please insert the Country
-            </mat-error>
-          </mat-form-field>
-        </div>
-      </mat-expansion-panel>
-
-      <div fxFlex="1 1 100%"
-           class="row" style="margin-top: 1rem;">
-        <label>Is Prospect: </label>
-
-        <mat-radio-group formControlName="IsProspect"
-                         fxLayoutAlign="start center"
-                         automcomplete="off">
-          <mat-radio-button [value]="true"
-                             fxFlex="0 0 8rem">
-            Yes
-          </mat-radio-button>
-          <mat-radio-button [value]="false"
-                            fxFlex="0 0 8rem">
-            No
-          </mat-radio-button>
-        </mat-radio-group>
-      </div>
-
-      <div fxFlex="1 1 100%"
-           class="row">
-        <label>Send Schedule Emails: </label>
-
-        <mat-radio-group formControlName="SendScheduleEmails"
-                         fxLayoutAlign="start center"
-                         automcomplete="off">
-          <mat-radio-button [value]="true"
-                             fxFlex="0 0 8rem">
-            Yes
-          </mat-radio-button>
-          <mat-radio-button [value]="false"
-                            fxFlex="0 0 8rem">
-            No
-          </mat-radio-button>
-        </mat-radio-group>
-      </div>
-
-      <div fxFlex="1 1 100%"
-           class="row">
-        <label>Send Account Emails:</label>
-
-        <mat-radio-group formControlName="SendAccountEmails"
-                         fxLayoutAlign="start center"
-                         automcomplete="off">
-          <mat-radio-button [value]="true"
-                             fxFlex="0 0 8rem">
-            Yes
-          </mat-radio-button>
-          <mat-radio-button [value]="false"
-                            fxFlex="0 0 8rem">
-            No
-          </mat-radio-button>
-        </mat-radio-group>
-      </div>
-    </form>
-  </mat-dialog-content>
-
-  <mat-dialog-actions>
-    <button mat-raised-button
-            [disabled]="clientForm.invalid || !clientFormChanged"
-            (click)="saveClient(clientForm.value)"
-            color="primary">
-      <mat-icon>save</mat-icon>
-      SAVE
-    </button>
-    <button mat-raised-button
-            mat-dialog-close>
-      <mat-icon>close</mat-icon>
-      CLOSE
-    </button>
-  </mat-dialog-actions>
+      <!-- TEST FUNCTIONALITY -->
+      <button mat-raised-button
+              color="accent"
+              (click)="generateRandomClient()"
+              *ngIf="testEnvironment && !clientBeingEdited">
+        Generate Client
+      </button>
+    </mat-dialog-actions>
+  </div>
 </ng-template>
 

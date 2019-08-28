@@ -12,12 +12,20 @@ interface IMindBroBusiness {
 }
 
 interface IMindBroClient {
-  contracts: IContract[];
-  payments: IMindBroPaymentsConfig;
+  contracts: {[key: string]: IMindBroContract};
+  payments_config: IMindBroClientPaymentsConfig;
 }
 
-interface IMindBroPaymentsConfig {
-  CVV: string;
+interface IMindBroContract {
+  status: 'active' | 'paused' | 'canceled' | 'completed';
+  date_created: string;
+  id: string;
+  autopays_counter: number;
+  client_id: string;
+}
+
+interface IMindBroClientPaymentsConfig {
+  CVV: number;
   cardId: string;
   cardToken: string;
   clientId: string;
@@ -137,13 +145,6 @@ interface IClientCreditCard {
   paymentMethod?: string;
 }
 
-interface IClientPaymentsConfig {
-  CVV: number;
-  clientId: string;
-  cardId: string;
-  cardToken: string;
-}
-
 // MINDBODY
 interface IMindbodyError {
   Error: {
@@ -231,7 +232,7 @@ interface IOrder {
   client_id: string;
   contract_id: string;
   shopping_cart: IShoppingCart;
-  payment_status: 'rejected' | 'in_process' | 'approved' | 'error' | 'cancelled';
+  payment_status: 'rejected' | 'in_process' | 'approved' | 'error' | 'canceled';
   payment_status_detail: string;
   payment_attempts: IPayment [];
 }
