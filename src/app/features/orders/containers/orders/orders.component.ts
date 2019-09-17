@@ -68,6 +68,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.orders = this.activatedRoute.snapshot.data.orders;
+    this.paginatorLength = this.orders.length;
     this.contracts = this.activatedRoute.snapshot.data.contracts;
     this.testEnvironment = this.configService.config.test;
     this.filterForm = this.formBuilder.group({
@@ -103,7 +104,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
                                             }
                                           });
 
-    this.dataSource = new MatTableDataSource(this.orders);
+    // this.dataSource = new MatTableDataSource(this.orders);
+    this.setTablePage(this.orders, 0, this.paginatorPageSize);
   }
 
   ngOnDestroy() {
@@ -114,25 +116,44 @@ export class OrdersComponent implements OnInit, OnDestroy {
     return row && row._id;
   }
 
-  paginatorChange(orders: IOrder[], page) {
-    console.log('paginatorChange', page.pageIndex, page.pageSize, page.previousPageIndex);
+  paginatorChange(clients, page) {
+    this.paginatorPageSize = page.pageSize;
+    this.setTablePage(clients, page.pageIndex, page.pageSize, page.previousPageIndex);
   }
 
-  getTableData(filters) {
-    const params = {
-      ...filters.client && { client: filters.client.Id },
-      ...filters.contract && { contract: filters.contract.Id },
-      ...filters.dateFrom && { dateFrom: filters.dateFrom },
-      ...filters.dateTo && { dateTo: filters.dateTo },
-      ...filters.status && { status: filters.status },
-    };
+  setTablePage(orders: IOrder[], pageIndex: number, pageSize: number, previousPageIndex = 0) {
+    const firstItem = pageIndex * pageSize;
+    const lastItem = (pageIndex + 1) * pageSize;
 
-    this.ordersService
-          .getOrders(params)
-          .subscribe(orders => {
-            this.orders = orders;
-            this.dataSource = new MatTableDataSource(this.orders);
-          });
+    if (this.paginator) {
+      this.paginator.pageIndex = pageIndex;
+    }
+
+    if (!orders || firstItem >= orders.length) {
+      this.paginatorDisabled = true;
+      const filters = this.filterForm.value;
+      const params = {
+        ...firstItem && { offset: firstItem - 1 },
+        ...filters.client && { client: filters.client.Id },
+        ...filters.contract && { contract: filters.contract.Id },
+        ...filters.dateFrom && { dateFrom: filters.dateFrom },
+        ...filters.dateTo && { dateTo: filters.dateTo },
+        ...filters.status && { status: filters.status },
+      };
+
+      this.ordersService
+            .getOrders(params)
+            .subscribe(response => {
+              this.orders = orders ? [...orders, ...response] : response;
+              this.paginatorLength = this.orders.length;
+              const ordersPage = this.orders.slice(firstItem, lastItem);
+              this.dataSource = new MatTableDataSource(ordersPage);
+              this.paginatorDisabled = false;
+            });
+    } else {
+      const clientsPage = orders.slice(firstItem, lastItem);
+      this.dataSource = new MatTableDataSource(clientsPage);
+    }
   }
 
   getContractData(contractId: string) {
@@ -143,7 +164,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     // TODO: refresh and set the correct page of results
     this.ordersService
           .refundOrder(order.id)
-          .subscribe(() => this.getTableData(this.filterForm.value));
+          .subscribe(() => this.setTablePage(null, 0, this.paginatorPageSize));
   }
 
   clientAutocompleteDisplayFunction(client: IClient) {
@@ -160,6 +181,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
   triggerBillingCycle() {
     this.ordersService
           .triggerBillingCycle()
-          .subscribe(() => this.getTableData(this.filterForm.value));
+          .subscribe(() => this.setTablePage(null, 0, this.paginatorPageSize));
   }
 }

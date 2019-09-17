@@ -90,7 +90,7 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
                                             }
                                           });
 
-    this.setClientsPage(this.clients, 0, this.paginatorPageSize);
+    this.setTablePage(this.clients, 0, this.paginatorPageSize);
   }
 
   ngAfterViewInit(): void {
@@ -110,20 +110,25 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   paginatorChange(clients, page) {
-    this.setClientsPage(this.clients, page.pageIndex, page.pageSize, page.previousPageIndex);
+    this.paginatorPageSize = page.pageSize;
+    this.setTablePage(clients, page.pageIndex, page.pageSize, page.previousPageIndex);
   }
 
-  setClientsPage(clients: IClient[], pageIndex: number, pageSize: number, previousPageIndex = 0) {
+  setTablePage(clients: IClient[], pageIndex: number, pageSize: number, previousPageIndex = 0) {
     const firstItem = pageIndex * pageSize;
     const lastItem = (pageIndex + 1) * pageSize;
 
-    if (firstItem >= clients.length) {
+    if (this.paginator) {
+      this.paginator.pageIndex = pageIndex;
+    }
+
+    if (!clients || firstItem >= clients.length) {
       this.paginatorDisabled = true;
 
       this.clientsService
             .getClients(firstItem - 1)
             .subscribe(response => {
-              this.clients = [...clients, ...response.Clients];
+              this.clients = clients ? [...clients , ...response.Clients] : response.Clients;
               const clientsPage = this.clients.slice(firstItem, lastItem);
               this.dataSource = new MatTableDataSource(clientsPage);
               this.paginatorDisabled = false;
@@ -206,7 +211,7 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   resetClientsAndFlags(clients: IClientsResponse) {
     this.clients = clients.Clients;
     this.clientForm.markAsPristine();
-    this.setClientsPage(this.clients, 0, this.paginatorPageSize);
+    this.setTablePage(this.clients, 0, this.paginatorPageSize);
 
     if (this.clientForm.get('ClientCreditCard.CardNumber').value) {
       this.clientForm.get('ClientCreditCard').disable();

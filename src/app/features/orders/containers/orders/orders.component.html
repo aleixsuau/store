@@ -92,7 +92,7 @@
 
           <button mat-raised-button
                   color="primary"
-                  (click)="getTableData(filterForm.value);"
+                  (click)="setTablePage(null, 0, this.paginatorPageSize);"
                   fxFlex="0 0 20rem">
             FILTER
           </button>
@@ -196,10 +196,10 @@
             fxLayoutAlign="end end">
           <mat-paginator [pageSize]="paginatorPageSize"
                           [pageSizeOptions]="paginatorPageSizeOptions"
+                          [showFirstLastButtons]="false"
                           [length]="paginatorLength"
                           [disabled]="paginatorDisabled"
-                          (page)="paginatorChange(orders, $event);"
-                          showFirstLastButtons="true">
+                          (page)="paginatorChange(orders, $event);">
           </mat-paginator>
         </div>
       </mat-card-content>

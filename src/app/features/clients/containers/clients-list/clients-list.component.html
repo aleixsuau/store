@@ -80,10 +80,10 @@
             fxLayoutAlign="end end">
           <mat-paginator [pageSize]="paginatorPageSize"
                          [pageSizeOptions]="paginatorPageSizeOptions"
+                         [showFirstLastButtons]="false"
                          [length]="paginatorLength"
                          [disabled]="paginatorDisabled"
-                         (page)="paginatorChange(clients, $event);"
-                         showFirstLastButtons="true">
+                         (page)="paginatorChange(clients, $event);">
           </mat-paginator>
         </div>
       </mat-card-content>
