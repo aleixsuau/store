@@ -11,7 +11,10 @@
 
     * IContracts can only be created/updated/deleted on MindBody
     * We use IContracts to show/search all the contracts available and their details throught their Id
-    * We use IMindBroContracts (on our Firebase DDBB) to keep track of orders, billing and autopays related to the
+    * A IMindBroContract represent a collection of IOrders to be done in the future. autopays_count
+      (if IContractAutopaySchedule.FrequencyType === 'SetNumberOfAutopays') determines wether there are
+      remaining autopays to be done.
+    * We use IMindBroContracts (on our Firebase DDBB) to keep track of orders, billing and autopays related to a
       IContract Id.
 
   - IClient:
@@ -34,7 +37,7 @@ After the purchase, the server runs an automatic task every day to:
   1 - Charge the Autopays that are due this day:
       1 - Iterates over all the IContract (business/${businessId}/contracts)
       2 - Checks IContract.AutopaySchedule and if:
-          - isTodayTheContractsChargeDay(contract)
+          - isTodayTheAutopayDay(contract)
           Continues
       3 - Iterates over all IContract.clients and if
           1 - IContract.status is active for the client
@@ -145,14 +148,14 @@ const contractsMock: IContract[] = [
     SoldOnline: true,
     AutopaySchedule: {
       FrequencyType: 'SetNumberOfAutopays',
-      FrequencyValue: 2,
-      FrequencyTimeUnit: 'Weekly',
+      FrequencyValue: 1,
+      FrequencyTimeUnit: 'Monthly',
     },
     IntroOffer: 'None',
-    NumberOfAutopays: 12,
+    NumberOfAutopays: 6,
     AutopayTriggerType: 'OnSetSchedule',
     ActionUponCompletionOfAutopays: 'ContractExpires',
-    ClientsChargedOn: 'FirstOfTheMonth',
+    ClientsChargedOn: 'OnSaleDate',
     ClientsChargedOnSpecificDate: null,
     DiscountAmount: 0,
     DepositAmount: 0,
@@ -181,7 +184,7 @@ const contractsMock: IContract[] = [
         Description: 'Six Week Bootcamp ContractItem 1 Description',
         Type: 'Service',
         Price: 200,
-        Quantity: 2,
+        Quantity: 1,
         OneTimeItem: false,
       },
       {
@@ -349,6 +352,25 @@ function _handleServerErrors(error: any, res: express.Response) {
   }
 }
 
+async function _checkMindbodyAuth(apiKey: string, siteId: string, token: string) {
+  console.log('_checkMindbodyAuth', apiKey, siteId, token);
+  const config = {
+    headers: {
+    'Api-Key': apiKey,
+    'SiteId': siteId,
+    'Authorization': token,
+    }
+  };
+  const url = `${baseUrl}/sale/giftcards`;
+  // Make a call just to validate that the user is authenticated on Mindbody
+  try {
+    await httpClient.get(url, config);
+    return true;
+  } catch (error) {
+    throw new CustomError('Unauthenticated user', 401);
+  }
+}
+
 
 // ROUTE HANDLERS
 function getConfig(req: express.Request, res: express.Response) {
@@ -393,6 +415,8 @@ async function login(req: express.Request, res: express.Response) {
     _handleServerErrors(error, res);
   }
 }
+
+// CLIENTS
 
 async function getAllClients(req: express.Request, res: express.Response) {
   if (req.method === 'OPTIONS') { res.status(200).json() };
@@ -510,7 +534,8 @@ async function updateClient(req: express.Request, res: express.Response) {
   try {
     const appConfig = await _getAppConfig(siteId);
     const isSavingANewCreditCard = client.ClientCreditCard && client.ClientCreditCard.CVV;
-    let paymentsConfig;
+    const isDeletingCard = client.ClientCreditCard && !client.ClientCreditCard.CardNumber;
+    let paymentsConfig: IMindBroClientPaymentsConfig = null;
 
     if (isSavingANewCreditCard) {
       paymentsConfig = await _createPaymentsConfig(appConfig, client);
@@ -540,9 +565,28 @@ async function updateClient(req: express.Request, res: express.Response) {
               .doc(`business/${appConfig.id}/clients/${updatedClientResponse.data.Client.UniqueId}`)
               .update({ payments_config: paymentsConfig });
     }
-      res
-        .status(updatedClientResponse.status)
-        .json(updatedClientResponse.data.Client || updatedClientResponse.statusText);
+
+    if (isDeletingCard) {
+      if (appConfig.payments.gateaway.name === 'mercadopago') {
+        const clientSnapshop = await DDBB.doc(`business/${appConfig.id}/clients/${clientId}`).get();
+        const clientPaymentsConfig = clientSnapshop.data() && clientSnapshop.data().payments_config || null as IMindBroClientPaymentsConfig | null;
+        const apiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
+
+        await httpClient.delete(`${appConfig.payments.gateaway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
+      }
+
+      await DDBB
+              .doc(`business/${appConfig.id}/clients/${updatedClientResponse.data.Client.UniqueId}`)
+              .update({
+                'payments_config.CVV': null,
+                'payments_config.cardId': null,
+                'payments_config.cardToken': null,
+              });
+    }
+
+    res
+      .status(updatedClientResponse.status)
+      .json(updatedClientResponse.data.Client || updatedClientResponse.statusText);
   } catch (error) {
     _handleServerErrors(error, res);
   }
@@ -666,7 +710,7 @@ async function _createMercadopagoPaymentsConfig(
 
     // If the user already had a Credit Card, remove it after
     // saving the new one (we only allow one credit card per client)
-    if (clientPaymentsConfig && clientPaymentsConfig.clientId) {
+    if (clientPaymentsConfig && clientPaymentsConfig.cardId) {
       await httpClient.delete(`${appConfig.payments.gateaway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
     }
 
@@ -717,38 +761,7 @@ async function _makePaymentWithMercadopago(contract: IContract, appConfig: IAppC
   return paymentResponse.data as IPayment;
 }
 
-/* function _getAutopayDates(contract: IContract, date_created: string) {
-  if (contract.AutopaySchedule.FrequencyType === 'MonthToMonth') { return []; }
-
-  const autopays = contract.NumberOfAutopays;
-  let autopaysCounter = contract.NumberOfAutopays;
-  const firstAutopay = moment(date_created).startOf('day');
-  let autopayDates = [firstAutopay];
-  const FrequencyTimeUnit = contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
-                              'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
-                              'months' : 'years';
-
-  while(autopaysCounter--) {
-    const previousAutopayDate = autopayDates[autopays - autopaysCounter - 1];
-    const nextAutopayDate = previousAutopayDate.clone().add(contract.AutopaySchedule.FrequencyValue, FrequencyTimeUnit);
-
-    autopayDates = [...autopayDates, nextAutopayDate];
-  }
-
-  const autopayDateStrings = autopayDates.map(autopayDate => autopayDate.toISOString());
-  const autopayDatesFormatted: IAutopay[] = autopayDateStrings.map(autopayDate => {
-                                const autopayDateFormatted: IAutopay = {
-                                  status: null,
-                                  payment_attempts: [],
-                                };
-
-                                return autopayDateFormatted;
-                              })
-  console.log('autopayDateStrings', autopayDateStrings);
-
-  return autopayDatesFormatted;
-} */
-
+// ORDERS
 async function getOrders(req: express.Request, res: express.Response) {
   if (req.method === 'OPTIONS') { res.status(200).json() };
 
@@ -808,25 +821,6 @@ async function getOrders(req: express.Request, res: express.Response) {
   }
 };
 
-async function _checkMindbodyAuth(apiKey: string, siteId: string, token: string) {
-  console.log('_checkMindbodyAuth', apiKey, siteId, token);
-  const config = {
-    headers: {
-    'Api-Key': apiKey,
-    'SiteId': siteId,
-    'Authorization': token,
-    }
-  };
-  const url = `${baseUrl}/sale/giftcards`;
-  // Make a call just to validate that the user is authenticated on Mindbody
-  try {
-    await httpClient.get(url, config);
-    return true;
-  } catch (error) {
-    throw new CustomError('Unauthenticated user', 401);
-  }
-}
-
 async function refundPayment(req: express.Request, res: express.Response) {
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
@@ -868,6 +862,7 @@ async function _saveOrderToDDBB(order: IOrder, contractId: string, clientId: str
   }
 }
 
+// CONTRACTS
 async function addContract(req: express.Request, res: express.Response) {
   if (req.method === 'OPTIONS') { res.status(200).json() };
 
@@ -892,10 +887,12 @@ async function addContract(req: express.Request, res: express.Response) {
       const contractClientInfo: IMindBroContract = {
         status: 'active',
         date_created: contractOrder.date_created_timestamp.toISOString(),
+        date_created_timestamp: new Date(),
         id: contract.Id,
         // TODO: Check if the contract already starts minus the firsy autopay (ie: 1 year = 11 autopays)
         autopays_counter: contract.NumberOfAutopays - 1,
         client_id: clientId,
+        last_autopay: _getFirstAutopayDate(contract),
       };
 
       // Save the IClient id into the IContract
@@ -1002,6 +999,7 @@ async function updateContract(req: express.Request, res: express.Response) {
   res.status(200).json('Ole');
 } */
 
+// BILLING
 async function _processOneAppAutopays(appConfig: IAppConfig) {
   // TODO: Replace this test Auth call with the admin client account data (username and password)
   // created for us to manage autopays
@@ -1027,13 +1025,11 @@ async function _processOneAppAutopays(appConfig: IAppConfig) {
     const contract = appContracts[i];
     console.log('contract', contract)
 
-    if (isTodayTheContractsChargeDay(contract)) {
-      try {
-        await _processAllContractOrders(contract, appConfig, token);
-      } catch (error) {
-        console.log('_processOneAppAutopays error', error);
-        throw new CustomError(`_processOneAppAutopays error: ${JSON.stringify(error)} - ${error}`, 500);
-      }
+    try {
+      await _processAllContractOrders(contract, appConfig, token);
+    } catch (error) {
+      console.log('_processOneAppAutopays error', error);
+      throw new CustomError(`_processOneAppAutopays error: ${JSON.stringify(error)} - ${error}`, 500);
     }
   }
 
@@ -1046,6 +1042,26 @@ async function _processOneAppAutopays(appConfig: IAppConfig) {
 }
 
 async function _processAllContractOrders(contract: IContract, appConfig: IAppConfig, token: string) {
+  // TODO: When IContract.ClientsChargedOn is related to the client ('OnSaleDate' || 'FirstOrFifteenthOfTheMonth' ||
+  // 'FirstOrSixteenthOfTheMonth' || 'FifteenthOrEndOfTheMonth') we'll need to check isTodayTheAutopayDay
+  // for every IClient when the IContract is purchased
+  // NOW: waiting for Mindbody response about if ClientsChargedOn: the "ClientsChargedOn" states the date of the first charge,
+  // then the next charge will follow the AutopaySchedule specifications (FrequencyType, FrequencyValue, and FrequencyTimeUnit)
+  // calculated from this date of the first charge. Is this correct?
+
+  // TODO: Cover IContract.AutopayTriggerType === 'PricingOptionRunsOutOrExpires'
+  // TODO: Cover IContract.ActionUponCompletionOfAutopays
+
+  // Check isTodayTheAutopayDay for every IClient when the have specific autopay date
+  const checkAutopayDayForEveryClient = contract.ClientsChargedOn === 'OnSaleDate' ||
+                                        contract.ClientsChargedOn === 'FirstOrFifteenthOfTheMonth' ||
+                                        contract.ClientsChargedOn === 'FirstOrSixteenthOfTheMonth' ||
+                                        contract.ClientsChargedOn === 'FifteenthOrEndOfTheMonth';
+
+  if (!checkAutopayDayForEveryClient && !isTodayTheAutopayDay(contract)) {
+    return;
+  }
+
   console.log('_processAllContractOrders', contract, appConfig);
   const contractClientContractsResponse = await DDBB.collection(`business/${appConfig.id}/contracts/${contract.Id}/clients`).get();
   const contractActiveClientContracts = contractClientContractsResponse.docs
@@ -1056,27 +1072,23 @@ async function _processAllContractOrders(contract: IContract, appConfig: IAppCon
   for (let i = 0; i < contractActiveClientContracts.length; i++) {
     const currentClientContract = contractActiveClientContracts[i];
     console.log('CURRENT CLIENT: ', i, currentClientContract);
+    const currentClientContractDate = currentClientContract.last_autopay || currentClientContract.date_created;
+
+    if (checkAutopayDayForEveryClient && !isTodayTheAutopayDay(contract, currentClientContractDate)) {
+      continue;
+    }
 
     try {
       // Order the contract
       const contractOrder: IOrder = await _processOneContractOrder(contract, currentClientContract.client_id, appConfig, token);
       console.log('CONTRACT ORDER', i, contractOrder)
 
-      if (contractOrder.payment_status === 'approved') {
-        // Update the IMindBroContract (autopays_counter, status...)
-        const currentContractClientResponse = await DDBB.doc(`business/${appConfig.id}/contracts/${contract.Id}/clients/${currentClientContract.client_id}`).get();
-        const currentContractClient = currentContractClientResponse.data() as IMindBroContract;
-        const updatedContractClient = {
-          ...currentContractClient,
-          autopays_counter: currentContractClient.autopays_counter - 1,
-        };
+      if (contract.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays' &&
+          contractOrder.payment_status === 'approved') {
+        await _updateClientAutopaysCounter(appConfig, contract, currentClientContract.client_id, currentClientContract);
+      }
 
-        if (updatedContractClient.autopays_counter === 0) {
-          updatedContractClient.status = 'completed';
-        }
-
-        await DDBB.doc(`business/${appConfig.id}/contracts/${contract.Id}/clients/${currentClientContract.client_id}`).set(updatedContractClient);
-      } else {
+      if (contractOrder.payment_status !== 'approved') {
         // Update the IMindBroContract with pause status when the payment fails to
         // avoid duplicated billing process (_processAllContractOrders and _processFailedContractOrders)
         await DDBB
@@ -1111,6 +1123,30 @@ async function _processAllContractOrders(contract: IContract, appConfig: IAppCon
               .update({ status: 'paused' });
     }
   }
+}
+
+async function _updateClientAutopaysCounter(appConfig: IAppConfig, contract: IContract, clientId: string, clientContract?: IMindBroContract) {
+  console.log('updateClientAutopayCounter', appConfig, contract, clientId);
+  if (!clientContract) {
+    const clientContractResponse = await DDBB.doc(`business/${appConfig.id}/contracts/${contract.Id}/clients/${clientId}`).get();
+    // tslint:disable-next-line:no-parameter-reassignment
+    clientContract = clientContractResponse.data() as IMindBroContract;
+  }
+
+  const updatedContractClient = {
+    ...clientContract,
+    autopays_counter: clientContract.autopays_counter - 1,
+  };
+
+  if (updatedContractClient.autopays_counter === 0) {
+    if (contract.ActionUponCompletionOfAutopays === 'ContractAutomaticallyRenews') {
+      updatedContractClient.autopays_counter = contract.NumberOfAutopays;
+    } else {
+      updatedContractClient.status = 'terminated';
+    }
+  }
+
+  await DDBB.doc(`business/${appConfig.id}/contracts/${contract.Id}/clients/${clientId}`).set(updatedContractClient);
 }
 
 async function _processOneContractOrder(contract: IContract, clientId: string, appConfig: IAppConfig, token: string): Promise<IOrder> {
@@ -1152,7 +1188,7 @@ async function _processOneContractOrder(contract: IContract, clientId: string, a
     payment_attempts: [],
   }
 
-  if (clientPaymentConfig) {
+  if (clientPaymentConfig && clientPaymentConfig.cardId) {
     const mindBodyCartOrder = {
       ClientId: clientId,
       Test: appConfig.test,
@@ -1190,7 +1226,7 @@ async function _processOneContractOrder(contract: IContract, clientId: string, a
 
       return order;
     } else {
-      throw new CustomError('This site does not have a Orders Gateaway associated', 400);
+      throw new CustomError('This site does not have a Gateaway associated', 400);
     }
   } else {
     throw new CustomError('This client does not have a Credit Card associated', 400);
@@ -1236,17 +1272,14 @@ async function _processFailedContractOrders(contractsCatalog: IContract[], appCo
         await DDBB
               .doc(`business/${appConfig.id}/contracts/${failedOrder.contract_id}/clients/${failedOrder.client_id}`)
               .update({ status: 'active' });
+
+        await _updateClientAutopaysCounter(appConfig, failedContract, failedOrder.client_id);
       } else if (contractOrderUpdate.payment_status === 'canceled') {
-        // Cancel the IContract when the payment retries exceed the appConfig.payments.number_of_retries
+        // Pause the IContract when the payment retries exceed the appConfig.payments.number_of_retries
         await DDBB
               .doc(`business/${appConfig.id}/contracts/${failedOrder.contract_id}/clients/${failedOrder.client_id}`)
               .update({ status: 'paused' });
       }
-
-      // Update the client's autopays_counter
-      const currentAutopayCounterResponse = await DDBB.doc(`business/${appConfig.id}/contracts/${failedOrder.contract_id}/clients/${failedOrder.client_id}`).get();
-      const currentAutopayCounter = currentAutopayCounterResponse.data().autopays_counter;
-      await DDBB.doc(`business/${appConfig.id}/contracts/${failedOrder.contract_id}/clients/${failedOrder.client_id}`).update({autopays_counter: currentAutopayCounter - 1 });
 
       console.log('contractOrderUpdate', contractOrderUpdate);
     } catch (error) {
@@ -1262,55 +1295,118 @@ async function _processFailedContractOrders(contractsCatalog: IContract[], appCo
   }
 }
 
-function isTodayTheContractsChargeDay(contract: IContract): boolean {
+function isTodayTheAutopayDay(contract: IContract, date?: string): boolean {
   // TODO: Remove this mock
   return true;
 
-  const today = moment().date();
+  /* const today = moment().date();
   let dayToCharge;
+  console.log('isTodayTheAutopayDay', today, dayToCharge, today === dayToCharge);
+  return today === dayToCharge; */
+}
 
-  // TODO: Cover client specific charge dates (OnSaleDate | SpecificDate)
-  // Now we are looking at the IContract ClientsChargedOn date and we charge
-  // to every client on the same date. When IContract.ClientsChargedOn is
-  // OnSaleDate or SpecificDate, we should:
-  //    1 - Calculate the date for every IClient when the IContract is purchased
-  //    2 - Set it on the IClientContract (business/${businessId}/contracts/${contractId}/clients/)
-  //    3 - Iterate over every IClientContract and charge it only if today === day_to_charge
+// Mindbody calculates the first autopay date based on the IContract.ClientsChargedOn
+// Once it is all the rest autopays will be calculated based on it (ie: 2 weeks from it)
+function _getFirstAutopayDate (contract: IContract) {
+  let firstAutopayDate;
+  const first = moment().startOf('month');
+  const last = moment().endOf('month');
+  const fifteen =  moment().date(15);
+  const sixteen =  moment().date(16);
+  const today = moment();
 
   switch (contract.ClientsChargedOn) {
     case 'FirstOfTheMonth':
-      dayToCharge = 1;
+      firstAutopayDate = first;
       break;
 
     case 'FifteenthOfTheMonth':
-      dayToCharge = 15;
+      firstAutopayDate = fifteen
+      break;
 
     case 'LastDayOfTheMonth':
-      dayToCharge = moment().endOf('month');
+      firstAutopayDate = last;
+      break;
 
+    // TODO: Cover this case
     case 'FirstOrFifteenthOfTheMonth':
-      dayToCharge = 15;
+      firstAutopayDate = today.diff(first, 'days') < today.diff(fifteen, 'days') ?
+                          first :
+                          fifteen;
+      break;
 
     case 'FirstOrSixteenthOfTheMonth':
-      dayToCharge = 16;
+      firstAutopayDate = today.diff(first, 'days') < today.diff(sixteen, 'days') ?
+                          first :
+                          sixteen;
+      break;
 
     case 'FifteenthOrEndOfTheMonth':
-      dayToCharge = 15;
-
-    case 'OnSaleDate':
-      dayToCharge = 1;
+      firstAutopayDate = today.diff(fifteen, 'days') < today.diff(last, 'days') ?
+                          fifteen :
+                          last;
+      break;
 
     case 'SpecificDate':
-      dayToCharge = 1;
+      firstAutopayDate = moment(contract.ClientsChargedOnSpecificDate);
+      break;
+
+    case 'OnSaleDate':
+      firstAutopayDate = today;
+      break;
 
     default:
-      dayToCharge = 1;
+      firstAutopayDate = today;
   }
 
-  console.log('isTodayTheContractsChargeDay', today, dayToCharge, today === dayToCharge);
-  return today === dayToCharge;
+  return firstAutopayDate.toISOString();
 }
 
+// We use the IMindBroContract.last_autopay to calculate the next one
+/* function _getNextAutopayDate(contract: IContract, startDate: string) {
+  const lastAutopay = moment(startDate).startOf('day');
+  const FrequencyTimeUnit = contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                              'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                                'months' :
+                                'years';
+
+  const nextAutopayDate = lastAutopay.clone().add(contract.AutopaySchedule.FrequencyValue, FrequencyTimeUnit);
+
+  console.log('nextAutopayDate', nextAutopayDate);
+  return nextAutopayDate;
+} */
+
+/* function _getAutopayDates(contract: IContract, date_created: string) {
+  if (contract.AutopaySchedule.FrequencyType === 'MonthToMonth') { return []; }
+
+  const autopays = contract.NumberOfAutopays;
+  let autopaysCounter = contract.NumberOfAutopays;
+  const firstAutopay = moment(date_created).startOf('day');
+  let autopayDates = [firstAutopay];
+  const FrequencyTimeUnit = contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                              'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                              'months' : 'years';
+
+  while(autopaysCounter--) {
+    const previousAutopayDate = autopayDates[autopays - autopaysCounter - 1];
+    const nextAutopayDate = previousAutopayDate.clone().add(contract.AutopaySchedule.FrequencyValue, FrequencyTimeUnit);
+
+    autopayDates = [...autopayDates, nextAutopayDate];
+  }
+
+  const autopayDateStrings = autopayDates.map(autopayDate => autopayDate.toISOString());
+  const autopayDatesFormatted: IAutopay[] = autopayDateStrings.map(autopayDate => {
+                                const autopayDateFormatted: IAutopay = {
+                                  status: null,
+                                  payment_attempts: [],
+                                };
+
+                                return autopayDateFormatted;
+                              })
+  console.log('autopayDateStrings', autopayDateStrings);
+
+  return autopayDatesFormatted;
+} */
 
 // TEST FUNCTIONALITY
 async function changeClientCreditCard(req: express.Request, res: express.Response) {

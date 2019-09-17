@@ -223,7 +223,7 @@
                 <div fxLayout="row wrap"
                     fxLayoutAlign="space-between center">
                   <mat-form-field fxFlex="1 1 100%">
-                    <input [type]="clientForm.get('ClientCreditCard.CardNumber').disabled ? 'text' : 'number'"
+                    <input [type]="clientBeingEdited?.ClientCreditCard?.CardNumber ? 'text' : 'number'"
                             placeholder="Number"
                             matInput
                             formControlName="CardNumber"
@@ -236,11 +236,13 @@
                   </mat-form-field>
 
                   <mat-form-field fxFlex="1 1 30%">
-                    <input type="number"
-                            placeholder="Expiration Month"
-                            matInput
-                            formControlName="ExpMonth"
-                            automcomplete="off">
+                    <mat-select placeholder="Expiration Month"
+                                formControlName="ExpMonth">
+                      <mat-option *ngFor="let month of months"
+                                  [value]="month">
+                        {{ month }}
+                      </mat-option>
+                    </mat-select>
 
                     <mat-error *ngIf="clientForm.get('ClientCreditCard.ExpMonth').touched &&
                                       clientForm.get('ClientCreditCard.ExpMonth').invalid">
@@ -249,20 +251,22 @@
                   </mat-form-field>
 
                   <mat-form-field fxFlex="1 1 30%">
-                    <input type="number"
-                            placeholder="Expiration Year"
-                            matInput
-                            formControlName="ExpYear"
-                            automcomplete="off">
+                    <mat-select placeholder="Expiration Year"
+                                formControlName="ExpYear">
+                      <mat-option *ngFor="let year of years"
+                                  [value]="year">
+                        {{ year }}
+                      </mat-option>
+                    </mat-select>
 
                     <mat-error *ngIf="clientForm.get('ClientCreditCard.ExpYear').touched &&
                                       clientForm.get('ClientCreditCard.ExpYear').invalid">
-                      Please insert a valid Expiration Year
+                      Please insert an Expiration Year
                     </mat-error>
                   </mat-form-field>
 
                   <mat-form-field fxFlex="1 1 30%">
-                    <input [type]="clientForm.get('ClientCreditCard.CVV').disabled ? 'text' : 'number'"
+                    <input [type]="clientBeingEdited?.ClientCreditCard?.CardNumber ? 'text' : 'number'"
                             placeholder="CVV"
                             matInput
                             formControlName="CVV"
@@ -281,7 +285,7 @@
                             color="warn"
                             type="button"
                             (click)="resetCreditCard();"
-                            [disabled]="!clientBeingEdited?.ClientCreditCard">
+                            [disabled]="!clientForm.get('ClientCreditCard.CardNumber').value">
                       <mat-icon>delete</mat-icon>
                       Remove Credit Card
                     </button>
@@ -570,6 +574,9 @@
         <mat-icon>close</mat-icon>
         CLOSE
       </button>
+
+      clientForm.invalid: {{clientForm.invalid}}
+      clientForm.pristine: {{clientForm.pristine}}
 
       <!-- TEST FUNCTIONALITY -->
       <button mat-raised-button

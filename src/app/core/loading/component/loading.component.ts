@@ -27,7 +27,7 @@ export class LoadingComponent implements OnInit, OnDestroy {
                                         setTimeout(() => {
                                           this.loading = activeCalls;
                                         }, 0);
-                                      })
+                                      });
   }
 
   ngOnDestroy() {

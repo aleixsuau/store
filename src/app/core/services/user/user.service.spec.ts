@@ -19,14 +19,10 @@ describe('UserService', () => {
 
   it('should delete a user', inject([UserService], (service: UserService) => {
     const mockUser = {
-      "_id": "5aa56615f7809a2150f50556",
-      "permissions": {
-        "tables_deny": ["turytech/centralita/client-fee"]
-      },
-      "username": "admin@turytech.com",
-      "extra_info": {
-        "client": ["5a4ff88cf7809a2aa42ebaed"]
-      }
+      Id: '123',
+      FirstName: 'Aleix',
+      LastName: 'Suau',
+      Type: 'Owner',
     };
 
     service.setUser(mockUser as IUser);
@@ -36,14 +32,10 @@ describe('UserService', () => {
 
   it('should set an user', inject([UserService], (service: UserService) => {
     const mockUser = {
-      "_id": "5aa56615f7809a2150f50556",
-      "permissions": {
-        "tables_deny": ["turytech/centralita/client-fee"]
-      },
-      "username": "admin@turytech.com",
-      "extra_info": {
-        "client": ["5a4ff88cf7809a2aa42ebaed"]
-      }
+      Id: '123',
+      FirstName: 'Aleix',
+      LastName: 'Suau',
+      Type: 'Owner',
     };
 
     service.setUser(mockUser as IUser);

@@ -1,3 +1,4 @@
+import { ConfigService } from 'src/app/core/config/service/config.service';
 import { environment } from './../../../../../environments/environment';
 import { NotificationService } from './../../../../core/services/notification/notification.service';
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
@@ -37,7 +38,6 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   clientForm: FormGroup;
   searchInput: FormControl;
   matDialogSubscription: Subscription;
-  clientFormSubscription: Subscription;
   searchInputSubscription: Subscription;
   clientFormChanged: boolean;
   paginatorLength: number;
@@ -48,7 +48,9 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   clientBeingEditedContracts: IContract[];
   clientBeingEditedContractsConfig: IMindBroContract[];
   // TEST FUNCTIONALITY
-  testEnvironment = !environment.production;
+  testEnvironment: boolean;
+  years: string[] = [];
+  months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 
   @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: false}) sort: MatSort;
@@ -60,11 +62,18 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
     private formBuilder: FormBuilder,
     private matDialog: MatDialog,
     private notificationService: NotificationService,
+    private configService: ConfigService,
   ) { }
 
   ngOnInit() {
+    const currentYear = new Date().getFullYear();
+    Array(30).fill(true).forEach((e, index) => {
+      this.years = [...this.years, `${currentYear + index}`];
+    });
+
     this.clients = this.activatedRoute.snapshot.data.clients.Clients;
     this.contracts = this.activatedRoute.snapshot.data.contracts;
+    this.testEnvironment = this.configService.config.test;
     this.paginatorLength =  this.activatedRoute.snapshot.data.clients.PaginationResponse.TotalResults;
     this.searchInput = new FormControl(null);
     this.searchInputSubscription = this.searchInput
@@ -89,10 +98,6 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
-    if (this.clientFormSubscription) {
-      this.clientFormSubscription.unsubscribe();
-    }
-
     if (this.matDialogSubscription) {
       this.matDialogSubscription.unsubscribe();
     }
@@ -132,11 +137,6 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   openClientFormDialog(client?: IClient) {
     this.setUpClientForm(client);
     this.clientBeingEdited = client;
-
-    this.clientFormSubscription = this.clientForm
-                                          .valueChanges
-                                          .subscribe(changes => this.clientFormChanged = true);
-
     this.dialogRef = this.matDialog.open(this.clientTemplate, {panelClass: 'mbDialog'});
 
     this.matDialogSubscription = this.dialogRef
@@ -144,8 +144,6 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
                                         .subscribe(() => {
                                           this.clientBeingEdited = null;
                                           this.clientBeingEditedContracts = null;
-                                          this.clientFormChanged = null;
-                                          this.clientFormSubscription.unsubscribe();
                                         });
 
     // Load IClient's contract full data
@@ -172,7 +170,7 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
       ...client,
     };
 
-    if (this.clientBeingEdited && this.clientFormChanged) {
+    if (this.clientBeingEdited && this.clientForm.dirty) {
       // Remove *** display credit card data (to not overwrite original data)
       if (this.clientForm.get('ClientCreditCard').pristine) {
         delete clientModelToSave.ClientCreditCard;
@@ -191,9 +189,12 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
       this.clientsService
             .addClient(clientModelToSave)
             .pipe(switchMap(savedClient => {
-              this.clientFormChanged = null;
               this.clientBeingEdited = savedClient;
-              this.clientForm.reset(savedClient);
+
+              setTimeout(() => {
+                this.clientForm.reset(savedClient);
+                this.clientForm.get('ClientCreditCard.CVV').setValue('***');
+              }, 0);
               return this.clientsService.getClients();
             }))
             .subscribe(clients => {
@@ -204,7 +205,7 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
 
   resetClientsAndFlags(clients: IClientsResponse) {
     this.clients = clients.Clients;
-    this.clientFormChanged = null;
+    this.clientForm.markAsPristine();
     this.setClientsPage(this.clients, 0, this.paginatorPageSize);
 
     if (this.clientForm.get('ClientCreditCard.CardNumber').value) {
@@ -255,14 +256,14 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
             value: client && client.ClientCreditCard && client.ClientCreditCard.CardNumber && '***' || null,
             disabled:  client && client.ClientCreditCard != null,
           },
-          [ Validators.min(1), Validators.max(999)]
+          [ Validators.pattern(/^[0-9]{3,4}$/) ]
         ],
         /* CardHolder: null,
         Address: null,
         City: null,
         PostalCode: null,
         State: null, */
-      }),
+      }, { validator: this.requiredIfAtLeastOneFieldFilled }),
       // TODO: Cover the rest of client props
       /* ApptGenderPrefMale: null,
       AppointmentGenderPreference: null,
@@ -290,6 +291,20 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
     this.clientForm = this.formBuilder.group(clientFormConfig);
   }
 
+  requiredIfAtLeastOneFieldFilled(group: FormGroup): {[s: string ]: boolean} {
+    const controls = Object.keys(group.controls).map(key => group.controls[key]);
+
+    if (controls.some(control => !!control.value)) {
+      if (controls.every(control => !!control.value) && controls.every(control => control.valid)) {
+        return null;
+      } else {
+        return {'error': true};
+      }
+    } else {
+      return null;
+    }
+  }
+
   searchOptionSelected(client: IClient) {
     this.openClientFormDialog(client);
     this.searchInput.reset();
@@ -297,7 +312,12 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
 
   resetCreditCard() {
     this.clientForm.get('ClientCreditCard').reset();
+    this.clientForm.get('ClientCreditCard').markAsDirty();
     this.clientForm.get('ClientCreditCard').enable();
+
+    if (this.clientBeingEdited && this.clientBeingEdited.ClientCreditCard) {
+      this.clientBeingEdited.ClientCreditCard = null;
+    }
   }
 
   getContractConfig(contractId: string): IMindBroContract {
@@ -341,8 +361,8 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
       'SendAccountEmails': false,
       'ClientCreditCard': {
         'CardNumber': '4168818844447115',
-        'ExpMonth': 9,
-        'ExpYear': 2020,
+        'ExpMonth': '09',
+        'ExpYear': '2020',
         'CVV': '115',
       },
     };
@@ -352,15 +372,14 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   changeClientCard(client: IClient, newCard) {
-    console.log('changeClientCard', client, newCard)
     this.clientsService.changeClientCard(client, newCard).subscribe();
   }
 
   cardStatuses = [
     {
-      'cardId': '1566900601681',
-      'cardToken': 'cd7c6631399d6ed6c2ae31fd3a86ead2',
-      'clientId': '465097961-TyorrIvZTmsYVu',
+      'cardId': '1567079956994',
+      'cardToken': '510cdbaf6473842aaa25f33e6b3b97b6',
+      'clientId': '465730941-nAH3u94mR7lBtQ',
       'CVV': '115',
       'name': 'APRO'
     },

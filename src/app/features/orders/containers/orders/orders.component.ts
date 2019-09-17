@@ -1,3 +1,4 @@
+import { ConfigService } from './../../../../core/config/service/config.service';
 import { environment } from './../../../../../environments/environment';
 import { ClientsService } from '../../../clients/services/clients/clients.service';
 import { NotificationService } from 'src/app/core/services/notification/notification.service';
@@ -44,12 +45,13 @@ export class OrdersComponent implements OnInit, OnDestroy {
     { label: 'In process', value: 'in_process' },
     { label: 'Refunded', value: 'refunded' },
     { label: 'Error', value: 'error' },
+    { label: 'Canceled', value: 'canceled' },
   ];
   filterClient: IClient;
   selectedOrder: IOrder;
   dialogRef: MatDialogRef<TemplateRef<any>>;
   user$: Observable<IUser>;
-  testEnvironment = !environment.production;
+  testEnvironment: boolean;
 
   @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
   @ViewChild('orderDialogTemplate', {static: false}) orderDialogTemplate: TemplateRef<any>;
@@ -61,11 +63,13 @@ export class OrdersComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
     private matDialog: MatDialog,
+    private configService: ConfigService,
   ) { }
 
   ngOnInit() {
     this.orders = this.activatedRoute.snapshot.data.orders;
     this.contracts = this.activatedRoute.snapshot.data.contracts;
+    this.testEnvironment = this.configService.config.test;
     this.filterForm = this.formBuilder.group({
       client: null,
       contract: null,
@@ -79,7 +83,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
                                           .pipe(
                                             debounceTime(400),
                                             switchMap(changes => {
-                                              console.log('changes', changes);
                                               // If changes is an object, then the change is
                                               // the selected option/client of the select and
                                               // we skip calling to the server to get more client
@@ -99,8 +102,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
                                               this.notificationService.notify('No results', null, {panelClass: 'error'});
                                             }
                                           });
-
-    console.log('this.orders', this.orders);
 
     this.dataSource = new MatTableDataSource(this.orders);
   }
@@ -125,7 +126,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       ...filters.dateTo && { dateTo: filters.dateTo },
       ...filters.status && { status: filters.status },
     };
-    console.log('getTableData', params);
+
     this.ordersService
           .getOrders(params)
           .subscribe(orders => {
@@ -150,7 +151,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
 
   openOrderDetailDialog(order: IOrder) {
-    console.log('openOrderDetailDialog', order);
     this.selectedOrder = order;
 
     this.dialogRef = this.matDialog.open(this.orderDialogTemplate, {panelClass: 'mbDialogFull'});

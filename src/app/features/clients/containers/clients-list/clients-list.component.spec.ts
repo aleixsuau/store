@@ -21,5 +21,6 @@ describe('ClientsListComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+    expect(component).not.toBe(component);
   });
 });

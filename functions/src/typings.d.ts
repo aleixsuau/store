@@ -17,18 +17,20 @@ interface IMindBroClient {
 }
 
 interface IMindBroContract {
-  status: 'active' | 'paused' | 'canceled' | 'completed';
-  date_created: string;
   id: string;
-  autopays_counter: number;
+  date_created: string;
+  date_created_timestamp: Date | IFirebaseTimestamp;
+  status: 'active' | 'paused' | 'canceled' | 'terminated';
   client_id: string;
+  autopays_counter: number;
+  last_autopay: string;
 }
 
 interface IMindBroClientPaymentsConfig {
   CVV: number;
   cardId: string;
   cardToken: string;
-  clientId: string;
+  clientId?: string;
 }
 
 interface IAppConfig {
@@ -232,7 +234,7 @@ interface IOrder {
   client_id: string;
   contract_id: string;
   shopping_cart: IShoppingCart;
-  payment_status: 'rejected' | 'in_process' | 'approved' | 'error' | 'canceled';
+  payment_status: 'rejected' | 'in_process' | 'approved' | 'error' | 'canceled' | 'refunded';
   payment_status_detail: string;
   payment_attempts: IPayment [];
 }
