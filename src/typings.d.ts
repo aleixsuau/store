@@ -4,15 +4,16 @@ interface IMindBroBusiness {
 }
 
 interface IMindBroClient {
-  contracts: {[key: string]: IMindBroContract};
+  contracts: {[key: string]: IMindBroClientContract};
   payments_config: IMindBroClientPaymentsConfig;
 }
 
-interface IMindBroContract {
+interface IMindBroClientContract {
   id: string;
   date_created: string;
   date_created_timestamp: Date | IFirebaseTimestamp;
-  status: 'active' | 'paused' | 'canceled' | 'terminated';
+  start_date: string;
+  status: 'active' | 'paused' | 'canceled' | 'terminated' | 'payment_pending' | 'activation_pending' | 'paused_no_payment';
   client_id: string;
   autopays_counter: number;
   last_autopay: string;
@@ -30,6 +31,7 @@ interface IAppConfig {
   token: string;
   apiKey: string;
   test: boolean;
+  today_test_mock: string;
   customization: {
     language: string;
     country: string;
@@ -121,7 +123,7 @@ interface IClient {
   State?: string;
   Test?: string;
   WorkExtension?: string;
-  WorkPhone?: string;
+  WorkPhone?: string
   SendScheduleEmails?: boolean;
   SendAccountEmails?: boolean;
 }
@@ -273,6 +275,7 @@ interface IOrder {
   date_created_timestamp: Date;
   client_id: string;
   contract_id: string;
+  delivered: boolean;
   shopping_cart: IShoppingCart;
   payment_status: 'rejected' | 'in_process' | 'approved' | 'error' | 'canceled' | 'refunded';
   payment_status_detail: string;

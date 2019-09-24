@@ -15,9 +15,15 @@ export class SalesService {
     private notificationService: NotificationService,
   ) { }
 
-  sellContract(contract: IContract, client: IClient) {
+  sellContract(contract: IContract, client: IClient, instantPayment: boolean, startDate?: string) {
+    const dataToSend = {
+      contract,
+      instantPayment,
+      startDate,
+    };
+
     return this.httpClient
-                  .post<IClient>(`${environment.firebase.functions_path}/clients/${client.UniqueId}/contracts`, contract)
+                  .post<IClient>(`${environment.firebase.functions_path}/clients/${client.UniqueId}/contracts`, dataToSend)
                   .pipe(tap(response => this.notificationService.notify('Contract Sold')));
   }
 }

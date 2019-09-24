@@ -4,6 +4,26 @@
     <h3>MINDBRO</h3>
   </div>
 
+  <!-- TEST FUNCTIONALITY -->
+  <div fxFlex="0 0 auto"
+       *ngIf="testEnvironment">
+    <mat-form-field fxFlex="1 1 100%">
+      <input matInput
+            [matDatepicker]="picker"
+            (dateChange)="updateConfigTodayMock($event.value);"
+            (click)="picker.open();"
+            placeholder="Today Test Mock"
+            automcomplete="off">
+
+      <mat-datepicker-toggle matPrefix
+                             [for]="picker"
+                             color="accent">
+      </mat-datepicker-toggle>
+
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+  </div>
+
   <div fxFlex="0 0 auto"
        fxLayoutAlign="space-between center"
        fxLayoutGap="10px"

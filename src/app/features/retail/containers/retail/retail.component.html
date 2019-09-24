@@ -43,19 +43,39 @@
           </mat-error>
         </mat-form-field>
 
-        <!-- <div fxFlex="1 1 100%"
-             fxLayoutAlign="start center">
-          <mat-checkbox formControlName="SendEmail">
-            Send Email
+        <mat-form-field fxFlex="1 1 100%">
+          <input matInput
+                readonly
+                [matDatepicker]="picker"
+                [matDatepickerFilter]="dateFilter"
+                formControlName="contractStart"
+                (click)="picker.open();"
+                [disabled]="!retailForm.get('contract').value"
+                placeholder="Contract Start Date"
+                automcomplete="off">
+
+          <mat-datepicker-toggle matPrefix [for]="picker"></mat-datepicker-toggle>
+
+          <mat-datepicker #picker></mat-datepicker>
+
+          <mat-error *ngIf="retailForm.get('contractStart').touched && retailForm.get('contractStart').invalid">
+            Please insert a correct contract start date
+          </mat-error>
+        </mat-form-field>
+
+        <div fxFlex="1 1 100%"
+              fxLayoutAlign="start center">
+          <mat-checkbox formControlName="instantPayment">
+            Pay Now
           </mat-checkbox>
-        </div> -->
+        </div>
       </mat-card-content>
 
       <mat-card-actions>
         <button mat-raised-button
                 color="primary"
                 [disabled]="retailForm.invalid"
-                (click)="sellContract(retailForm.get('contract').value, retailForm.get('client').value)">
+                (click)="sellContract(retailForm.get('contract').value, retailForm.get('client').value, retailForm.get('instantPayment').value, retailForm.get('contractStart').value)">
           Sell Contract
         </button>
       </mat-card-actions>

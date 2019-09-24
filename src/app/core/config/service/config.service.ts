@@ -1,8 +1,10 @@
+import { MomentService } from './../../services/moment/moment.service';
+import { NotificationService } from 'src/app/core/services/notification/notification.service';
 import { environment } from './../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, of } from 'rxjs';
-import { publishReplay, refCount, map } from 'rxjs/operators';
+import { publishReplay, refCount, map, tap } from 'rxjs/operators';
 
 /** CONFIG SERVICE EXPLANATION
  * Before loading any route, the app resolves the app's config (see app-routing.module)
@@ -38,6 +40,8 @@ export class ConfigService {
 
   constructor(
     private httpClient: HttpClient,
+    private notificationService: NotificationService,
+    private momentService: MomentService,
   ) {}
 
   getConfig(siteId: string) {
@@ -70,5 +74,14 @@ export class ConfigService {
   removeConfig() {
     localStorage.removeItem('mbConfig');
     this._config.next(null);
+  }
+
+  // TEST FUNCTIONAITY
+  setTodayMock(date: Date) {
+    const dateToSet = this.momentService.moment(date).endOf('day').toISOString();
+
+    return this.httpClient
+                  .post(`${environment.firebase.functions_path}/${this.endPoint}/${this.siteId}`, dateToSet)
+                  .pipe(tap(response => this.notificationService.notify('Mocked date setted')));
   }
 }

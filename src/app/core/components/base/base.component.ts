@@ -1,3 +1,4 @@
+import { ConfigService } from 'src/app/core/config/service/config.service';
 import { AuthService } from './../../auth/auth-service/auth.service';
 import { UserService } from '../../services/user/user.service';
 import { Observable } from 'rxjs';
@@ -16,17 +17,25 @@ export class BaseComponent implements OnInit {
     { path: 'retail', label: 'retail', icon: 'shopping_basket' },
     { path: 'orders', label: 'orders', icon: 'monetization_on' },
   ];
+  // TEST FUNCTIONALITY
+  testEnvironment: boolean;
 
   constructor(
     private userService: UserService,
     private authService: AuthService,
+    private configService: ConfigService,
   ) { }
 
   ngOnInit() {
     this.user$ = this.userService.user$;
+    this.testEnvironment = this.configService.config.test;
   }
 
   logOut() {
     this.authService.logout();
+  }
+
+  updateConfigTodayMock(date) {
+    this.configService.setTodayMock(date).subscribe();
   }
 }

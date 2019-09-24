@@ -46,7 +46,7 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   showCreditCardForm: boolean;
   dialogRef: MatDialogRef<TemplateRef<any>>;
   clientBeingEditedContracts: IContract[];
-  clientBeingEditedContractsConfig: IMindBroContract[];
+  clientBeingEditedContractsConfig: IMindBroClientContract[];
   // TEST FUNCTIONALITY
   testEnvironment: boolean;
   years: string[] = [];
@@ -325,7 +325,7 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  getContractConfig(contractId: string): IMindBroContract {
+  getContractConfig(contractId: string): IMindBroClientContract {
     return this.clientBeingEditedContractsConfig.find(contractConfig => contractConfig.id === contractId);
   }
 
@@ -342,7 +342,7 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   // TODO: Delete this test functionality
   generateRandomClient() {
     const today = new Date().getDay();
-    const dayOfWeekAsString = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const dayOfWeekAsString = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const randomString = Math.random().toString().replace(/\./g, '-').replace(/1/g, 'a')
                             .replace(/2/g, 'b').replace(/3/g, 'c').replace(/4/g, 'd')
                             .replace(/5/g, 'e').replace(/6/g, 'f').replace(/7/g, 'g')

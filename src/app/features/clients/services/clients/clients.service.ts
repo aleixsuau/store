@@ -44,9 +44,9 @@ export class ClientsService {
                  .pipe(tap(newClient => this.notificationService.notify('Client updated')));
   }
 
-  getClientContracts(id?: string): Observable<IMindBroContract[]> {
+  getClientContracts(id?: string): Observable<IMindBroClientContract[]> {
     return this.httpClient
-                 .get<IMindBroContract[]>(`${environment.firebase.functions_path}/${this.basePath}/${id}/contracts`)
+                 .get<IMindBroClientContract[]>(`${environment.firebase.functions_path}/${this.basePath}/${id}/contracts`)
                 //  .pipe(map((contracts: IMindBroClient['contracts']) => Object.values(contracts)));
   }
 

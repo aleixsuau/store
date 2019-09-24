@@ -1,3 +1,4 @@
+import { MomentService } from './../../../../core/services/moment/moment.service';
 import { SalesService } from './../../services/sales/sales.service';
 import { ClientsService } from './../../../clients/services/clients/clients.service';
 import { FormGroup, FormBuilder, Validators, FormControl, FormGroupDirective, NgForm, ValidatorFn, AbstractControl } from '@angular/forms';
@@ -38,6 +39,7 @@ export class RetailComponent implements OnInit, OnDestroy {
     private formBuilder: FormBuilder,
     private clientsService: ClientsService,
     private salesService: SalesService,
+    private momentService: MomentService,
   ) { }
 
   ngOnInit() {
@@ -45,7 +47,8 @@ export class RetailComponent implements OnInit, OnDestroy {
     this.retailForm = this.formBuilder.group({
       client: [null, [Validators.required, clientValidator]],
       contract: [null, Validators.required],
-      SendEmail: false,
+      instantPayment: [ true ],
+      contractStart: [null],
     });
 
     // TODO: Avoid call to server when the client is selected
@@ -70,8 +73,10 @@ export class RetailComponent implements OnInit, OnDestroy {
     return client ? client.FirstName + ' ' + client.LastName : null;
   }
 
-  sellContract(contract: IContract, client: IClient) {
-    this.salesService.sellContract(contract, client).subscribe();
+  sellContract(contract: IContract, client: IClient, instantPayment: boolean) {
+    this.salesService
+          .sellContract(contract, client, instantPayment)
+          .subscribe(res => this.setSelectedClientContracts(client));
   }
 
   setSelectedClientContracts(client: IClient) {
@@ -80,5 +85,71 @@ export class RetailComponent implements OnInit, OnDestroy {
           .subscribe(mbContracts => {
             this.clientContracts = this.contracts.filter(contract => !mbContracts.map(mbContract => mbContract.id).includes(contract.Id));
           });
+  }
+
+  dateFilter = (date: Date) => {
+    const selectedContract = this.retailForm.get('contract').value;
+
+    return this.enableDate(selectedContract, date);
+  }
+
+  enableDate(contract: IContract, date: Date) {
+    const dateToCheck = this.momentService.moment(date);
+    const first = this.momentService.moment(date).startOf('month');
+    const last = this.momentService.moment(date).endOf('month');
+    const fifteen =  this.momentService.moment(date).date(15);
+    const sixteen =  this.momentService.moment(date).date(16);
+    const today = this.momentService.moment();
+    let dateToCompare;
+
+    if (dateToCheck.isBefore(today)) {
+      return false;
+    }
+
+    switch (contract.ClientsChargedOn) {
+      case 'FirstOfTheMonth':
+        dateToCompare = first;
+        break;
+
+      case 'FifteenthOfTheMonth':
+        dateToCompare = fifteen;
+        break;
+
+      case 'LastDayOfTheMonth':
+        dateToCompare = last;
+        break;
+
+      // TODO: Cover this case
+      case 'FirstOrFifteenthOfTheMonth':
+        dateToCompare = today.diff(first, 'days') < today.diff(fifteen, 'days') ?
+                          first :
+                          fifteen;
+        break;
+
+      case 'FirstOrSixteenthOfTheMonth':
+        dateToCompare = today.diff(first, 'days') < today.diff(sixteen, 'days') ?
+                          first :
+                          sixteen;
+        break;
+
+      case 'FifteenthOrEndOfTheMonth':
+        dateToCompare = today.diff(fifteen, 'days') < today.diff(last, 'days') ?
+                          fifteen :
+                          last;
+        break;
+
+      case 'SpecificDate':
+        dateToCompare = this.momentService.moment(contract.ClientsChargedOnSpecificDate);
+        return dateToCheck.isSame(dateToCompare);
+
+      case 'OnSaleDate':
+        dateToCompare = today;
+        return dateToCheck.isSame(dateToCompare);
+
+      default:
+        return true;
+    }
+
+    return dateToCheck.date() === dateToCompare.date();
   }
 }
