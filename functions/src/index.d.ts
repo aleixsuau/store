@@ -149,6 +149,13 @@ interface IClientCreditCard {
   paymentMethod?: string;
 }
 
+interface IUser {
+  Id: string;
+  FirstName: string;
+  LastName: string;
+  Type: 'Staff' | 'Owner' | 'Admin';
+}
+
 // MINDBODY
 interface IMindbodyError {
   Error: {
@@ -240,6 +247,7 @@ interface IOrder {
   payment_status: 'rejected' | 'in_process' | 'approved' | 'error' | 'canceled' | 'refunded';
   payment_status_detail: string;
   payment_attempts: IPayment [];
+  seller: IUser;
 }
 
 interface IShoppingCart {

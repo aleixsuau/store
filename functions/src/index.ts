@@ -1010,6 +1010,7 @@ async function addContract(req: express.Request, res: express.Response) {
   const contract: IContract = req.body.contract;
   let instantPayment = req.body.instantPayment;
   const startDate = req.body.startDate;
+  const seller = req.body.seller;
 
   console.log('addContract', siteId, token, clientId, contract);
   try {
@@ -1041,17 +1042,23 @@ async function addContract(req: express.Request, res: express.Response) {
     if (isTodayTheAutopayDay || instantPayment) {
       const skipDeliver = !isTodayTheAutopayDay;
       // Order the contract
-      const contractOrder = await _processOneContractOrder(contract, clientId, appConfig, token, skipPayment, skipDeliver);
+      const contractOrder = {
+        ...await _processOneContractOrder(contract, clientId, appConfig, token, skipPayment, skipDeliver),
+        seller,
+      }
 
       if (contractOrder.payment_status === 'approved') {
         clientContract = {
           ...clientContract,
           autopays_counter: contract.NumberOfAutopays - 1,
           last_autopay: isTodayTheAutopayDay ?
-                          appConfig.test ?
+                          appConfig.test && appConfig.today_test_mock?
                             appConfig.today_test_mock :
                             moment().toISOString() :
-                          _getFirstAutopayDate(contract).toISOString(),
+                          // Because the first payment is made in advance (instantPayment)
+                          // we set the last_payment to the first autopay date to calculate
+                          // the next autopay dates from it.
+                          _getFirstAutopayDate(contract, appConfig).toISOString(),
           status: contractOrder.delivered ? 'active' : 'activation_pending',
         };
 
@@ -1239,13 +1246,17 @@ async function _processAllContractOrders(contract: IContract, appConfig: IAppCon
   for (let i = 0; i < contractActiveAndPendingClientContracts.length; i++) {
     const currentClientContract: IMindBroClientContract = contractActiveAndPendingClientContracts[i];
     console.log('CURRENT CLIENT: ', i, currentClientContract);
-    const currentClientContractDate = currentClientContract.last_autopay ?
-                                        moment(currentClientContract.last_autopay) :
-                                        null;
+    // When the IContract.status is 'activation_pending' the payment was done in advance so
+    // we don't need to calculate the next autopay from the 'last_autopay', we just need to
+    // check if today is === the firstAutopayDate to set the IContract.status to
+    // deliver the IContract items and set its status to 'active'
+    const currentClientContractDateFrom = currentClientContract.status !== 'activation_pending' && currentClientContract.last_autopay ?
+                                            moment(currentClientContract.last_autopay) :
+                                            null;
     const startDate = currentClientContract.start_date && moment(new Date(currentClientContract.start_date));
     console.log('startDate', startDate);
 
-    if (!_isTodayTheAutopayDay(contract, startDate, currentClientContractDate, appConfig)) {
+    if (!_isTodayTheAutopayDay(contract, startDate, currentClientContractDateFrom, appConfig)) {
       continue;
     }
 
@@ -1255,18 +1266,45 @@ async function _processAllContractOrders(contract: IContract, appConfig: IAppCon
       const contractOrder: IOrder = await _processOneContractOrder(contract, currentClientContract.client_id, appConfig, token, skipPayment);
       console.log('CONTRACT ORDER', i, contractOrder)
 
-      if (contractOrder.payment_status === 'approved' && contractOrder.delivered) {
+      if (contractOrder.payment_status === 'approved') {
         // If IContract status is 'payment_pending' or 'activation_pending'
         // we have to set it to 'active' once it is payed
-        if (currentClientContract.status !== 'active') {
-          await DDBB
-                  .doc(`business/${appConfig.id}/contracts/${contract.Id}/clients/${currentClientContract.client_id}`)
-                  .update({ status: 'active' });
+        let currentClientContractUpdate: {[key: string]: any} = {
+          shopping_cart: contractOrder.shopping_cart,
+          ...contractOrder.delivered && { status: 'active' },
         }
 
-        if (contract.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays') {
-          await _updateClientAutopaysCounter(appConfig, contract, currentClientContract.client_id, currentClientContract);
+        if (!skipPayment) {
+          currentClientContractUpdate = {
+            ...currentClientContractUpdate,
+            // TEST FUNCTIONALITY
+            last_autopay: appConfig.test && appConfig.today_test_mock ?
+                              appConfig.today_test_mock :
+                              contractOrder.date_created,
+          };
+
+          console.log('currentClientContractUpdate', currentClientContractUpdate);
+
+          if (contract.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays') {
+            await _updateClientAutopaysCounter(appConfig, contract, currentClientContract.client_id, currentClientContract);
+          }
+
+          // Save the order to the DDBB
+          await _saveOrderToDDBB(contractOrder, contract.Id, currentClientContract.client_id, appConfig.id);
+        } else {
+          // 'activation_pending' (skipPayment) IContracts have being already paid, so the autopays_counter
+          // and last_autopay have been already updated but we need to update the related IOrder delivered
+          // status
+          const activationPendingOrder = await _getActivationPendingOrder(appConfig, currentClientContract);
+
+          await DDBB
+                  .doc(`business/${appConfig.id}/orders/${activationPendingOrder.id}`)
+                  .update({ delivered: true });
         }
+
+        await DDBB
+                .doc(`business/${appConfig.id}/contracts/${contract.Id}/clients/${currentClientContract.client_id}`)
+                .update(currentClientContractUpdate);
       }
 
       if (contractOrder.payment_status !== 'approved') {
@@ -1277,28 +1315,34 @@ async function _processAllContractOrders(contract: IContract, appConfig: IAppCon
               .doc(`business/${appConfig.id}/contracts/${contract.Id}/clients/${currentClientContract.client_id}`)
               .update({ status: 'paused' }); */
       }
-
-    // Save the order to the DDBB
-    await _saveOrderToDDBB(contractOrder, contract.Id, currentClientContract.client_id, appConfig.id);
-
     } catch (error) {
-      const order: IOrder = {
-        id: UUID(),
-        date_created: new Date().toISOString(),
-        date_created_timestamp: new Date(),
-        client_id: currentClientContract.client_id,
-        contract_id: contract.Id,
-        shopping_cart: null,
-        delivered: false,
-        payment_status: 'error',
-        payment_status_detail: JSON.stringify(error.response || error.message || error),
-        payment_attempts: [{ error: JSON.stringify(error.response || error.message || error) }],
+      const skipPayment = currentClientContract.status === 'activation_pending';
+
+      if (!skipPayment) {
+        const order: IOrder = {
+          id: UUID(),
+          date_created: new Date().toISOString(),
+          date_created_timestamp: new Date(),
+          client_id: currentClientContract.client_id,
+          contract_id: contract.Id,
+          shopping_cart: null,
+          delivered: false,
+          payment_status: 'error',
+          payment_status_detail: JSON.stringify(error.response || error.message || error),
+          payment_attempts: [{ error: JSON.stringify(error.response || error.message || error) }],
+          seller: null,
+        }
+
+        console.log('_processAllContractOrders ERROR', error.message, order);
+
+        await _saveOrderToDDBB(order, contract.Id, currentClientContract.client_id, appConfig.id);
+      } else {
+        const activationPendingOrder = await _getActivationPendingOrder(appConfig, currentClientContract);
+
+        await DDBB
+                .doc(`business/${appConfig.id}/orders/${activationPendingOrder.id}`)
+                .update({ payment_attempts: admin.firestore.FieldValue.arrayUnion(error.toString()) });
       }
-
-      console.log('_processAllContractOrders ERROR', error.message, order);
-
-      await _saveOrderToDDBB(order, contract.Id, currentClientContract.client_id, appConfig.id);
-
       // TODO: Check if this is correct
       // Update the IMindBroClientContract with pause status when the payment fails to
       // avoid duplicated billing process (_processAllContractOrders and _processFailedContractOrders)
@@ -1307,6 +1351,22 @@ async function _processAllContractOrders(contract: IContract, appConfig: IAppCon
               .update({ status: 'paused' }); */
     }
   }
+}
+
+async function _getActivationPendingOrder(appConfig: IAppConfig, contract: IMindBroClientContract) {
+  const ordersRef = await DDBB
+                            .collection(`business/${appConfig.id}/orders`)
+                            .orderBy('date_created_timestamp')
+                            .where('date_created_timestamp', '>=', contract.date_created_timestamp)
+                            .where('contract_id', '==', contract.id)
+                            .where('client_id', '==', contract.client_id)
+                            .where('payment_status', '==', 'approved')
+                            .where('delivered', '==', false);
+
+  const ordersSnapshot = await ordersRef.get();
+  const orderToUpdate = ordersSnapshot.docs.map(snapshot => snapshot.data())[0] as IOrder;
+  console.log('orderToUpdate', orderToUpdate);
+  return orderToUpdate;
 }
 
 async function _processOneContractOrder(contract: IContract, clientId: string, appConfig: IAppConfig, token: string, skipPayment?: boolean, skipDeliver?: boolean): Promise<IOrder> {
@@ -1344,8 +1404,9 @@ async function _processOneContractOrder(contract: IContract, clientId: string, a
     delivered: false,
     shopping_cart: null,
     payment_status: skipPayment ? 'approved' : null,
-    payment_status_detail: skipPayment ? 'Free_payment' : null,
+    payment_status_detail: null,
     payment_attempts: [],
+    seller: null,
   }
 
   // If the IContract has not been paid beforehand ('activation_pending')
@@ -1493,8 +1554,7 @@ async function _updateClientAutopaysCounter(appConfig: IAppConfig, contract: ICo
     clientContract = clientContractResponse.data() as IMindBroClientContract;
   }
 
-  const updatedContractClient = {
-    ...clientContract,
+  const updatedContractClient: {[key: string]: any} = {
     autopays_counter: clientContract.autopays_counter - 1,
   };
 
@@ -1506,15 +1566,19 @@ async function _updateClientAutopaysCounter(appConfig: IAppConfig, contract: ICo
     }
   }
 
-  await DDBB.doc(`business/${appConfig.id}/contracts/${contract.Id}/clients/${clientId}`).set(updatedContractClient);
+  await DDBB
+          .doc(`business/${appConfig.id}/contracts/${contract.Id}/clients/${clientId}`)
+          .update(updatedContractClient);
 }
 
 export function _isTodayTheAutopayDay(contract: IContract, startDate?: moment.Moment, dateFrom?: moment.Moment, appConfig?: IAppConfig, todayMock?: moment.Moment ): boolean {
   console.log('_isTodayTheAutopayDay', contract, startDate, dateFrom, appConfig, todayMock)
   // Test functionality
-  const today = appConfig.test ? moment(appConfig.today_test_mock) : moment();
+  const today = appConfig.test && appConfig.today_test_mock ?
+                  moment(appConfig.today_test_mock) :
+                  moment();
 
-  if (startDate) {
+  if (startDate && startDate.isSameOrAfter(today)) {
     return today.isSame(startDate);
   }
 
@@ -1542,7 +1606,9 @@ function _getNextAutopayDate(contract: IContract, dateFrom?: moment.Moment, appC
 
 function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig): moment.Moment {
   let firstAutopayDate;
-  const today = appConfig.test ? moment(appConfig.today_test_mock) : moment();
+  const today = appConfig.test && appConfig.today_test_mock ?
+                  moment(appConfig.today_test_mock).startOf('day') :
+                  moment().startOf('day');
   const first = today.date() === 1 ? today : moment().add(1, 'months').startOf('month');
   const last = today.date() === moment().endOf('month').date() ? today : moment().endOf('month');
   const fifteen = today.date() <= 15 ? moment().date(15) : moment().add(1, 'months').date(15);

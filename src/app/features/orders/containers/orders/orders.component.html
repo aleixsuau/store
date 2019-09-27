@@ -134,6 +134,14 @@
             <mat-cell *matCellDef="let order" fxLayoutAlign="center center">{{ order?.shopping_cart?.GrandTotal }}</mat-cell>
           </ng-container>
 
+          <ng-container matColumnDef="Delivered">
+            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center">DELIVERED</mat-header-cell>
+            <mat-cell *matCellDef="let order" fxLayoutAlign="center center">
+              <mat-icon *ngIf="order.delivered">done</mat-icon>
+              <mat-icon *ngIf="!order.delivered">clear</mat-icon>
+            </mat-cell>
+          </ng-container>
+
           <ng-container matColumnDef="Status">
             <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center">STATUS</mat-header-cell>
             <mat-cell *matCellDef="let order" fxLayoutAlign="center center">
@@ -143,7 +151,7 @@
                 radio_button_checked
               </mat-icon>
 
-              <mat-icon *ngIf="order.payment_status === 'pending'"
+              <mat-icon *ngIf="order.payment_status === 'in_process'"
                         [ngStyle]="{'color':'orange'}"
                         [matTooltip]="order.payment_status + ': ' + order.payment_status_detail">
                 timelapse
@@ -158,6 +166,12 @@
               <mat-icon *ngIf="order.payment_status === 'canceled'"
                         [ngStyle]="{'color':'red'}"
                         [matTooltip]="order.payment_status + ': ' + order.payment_status_detail + '. Too much retries.'">
+                radio_button_checked
+              </mat-icon>
+
+              <mat-icon *ngIf="order.payment_status === 'error'"
+                        [ngStyle]="{'color':'red'}"
+                        [matTooltip]="order.payment_status + ': ' + order.payment_status_detail">
                 radio_button_checked
               </mat-icon>
 

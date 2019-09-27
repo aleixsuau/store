@@ -429,7 +429,7 @@
           <div *ngFor="let contract of clientBeingEditedContracts">
             <mat-expansion-panel fxFlex="1 1 100%"
                                 class="contract_expansion_panel">
-              <mat-expansion-panel-header>
+              <mat-expansion-panel-header class="contract_expansion_panel_header">
                 <mat-panel-title fxLayoutAlign="space-between center">
                   <div fxFlex="1 1 10%">
                     <mat-icon>insert_drive_file</mat-icon>
@@ -443,17 +443,35 @@
                     <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'active'"
                               [ngStyle]="{'color':'green'}"
                               [matTooltip]="getContractConfig(contract.Id)?.status">
-                      timelapse
+                      radio_button_checked
                     </mat-icon>
 
                     <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'paused'"
                               [ngStyle]="{'color':'orange'}"
                               [matTooltip]="getContractConfig(contract.Id)?.status">
+                      pause_circle_outline
+                    </mat-icon>
+
+                    <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'payment_pending'"
+                              [ngStyle]="{'color':'orange'}"
+                              [matTooltip]="getContractConfig(contract.Id)?.status">
                       timelapse
                     </mat-icon>
 
-                    <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'completed'"
+                    <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'activation_pending'"
                               [ngStyle]="{'color':'green'}"
+                              [matTooltip]="getContractConfig(contract.Id)?.status">
+                      timelapse
+                    </mat-icon>
+
+                    <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'paused_no_payment'"
+                              [ngStyle]="{'color':'red'}"
+                              [matTooltip]="getContractConfig(contract.Id)?.status">
+                      pause_circle_outline
+                    </mat-icon>
+
+                    <mat-icon *ngIf="getContractConfig(contract.Id)?.status === 'terminated'"
+                              [ngStyle]="{'color':'red'}"
                               [matTooltip]="getContractConfig(contract.Id)?.status">
                       radio_button_checked
                     </mat-icon>
@@ -509,7 +527,7 @@
                 <div fxLayoutAlign="end center"
                     fxLayoutGap="1rem"
                     class="client_form__contract_buttons">
-                  <button mat-stroked-button
+                  <button mat-raised-button
                           (click)="updateClientContractStatus(clientBeingEdited.Id, contract.Id, 'paused')"
                           *ngIf="getContractConfig(contract.Id)?.status === 'active'"
                           color="accent">
@@ -517,7 +535,7 @@
                     PAUSE
                   </button>
 
-                  <button mat-stroked-button
+                  <button mat-raised-button
                           (click)="updateClientContractStatus(clientBeingEdited.Id, contract.Id, 'active')"
                           *ngIf="getContractConfig(contract.Id)?.status === 'paused'"
                           color="accent">
@@ -525,7 +543,7 @@
                     RESUME
                   </button>
 
-                  <button mat-stroked-button
+                  <button mat-raised-button
                           (click)="updateClientContractStatus(clientBeingEdited.Id, contract.Id, 'canceled')"
                           *ngIf="getContractConfig(contract.Id)?.status === 'active' || getContractConfig(contract.Id)?.status === 'paused'"
                           color="accent">

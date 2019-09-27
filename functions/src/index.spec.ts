@@ -6,15 +6,84 @@ import { _isTodayTheAutopayDay } from './index';
 import * as moment from 'moment';
 
 
-  // ClientsChargedOn: 'OnSaleDate' | 'FirstOfTheMonth' | 'FifteenthOfTheMonth' |
-                    // 'LastDayOfTheMonth' | 'FirstOrFifteenthOfTheMonth' | 'FirstOrSixteenthOfTheMonth' |
-                    // 'FifteenthOrEndOfTheMonth' | 'SpecificDate';
-
-  // interface IContractAutopaySchedule {
-    // FrequencyType: 'SetNumberOfAutopays' | 'MonthToMonth';
-    // FrequencyValue: number;
-    // FrequencyTimeUnit: 'Weekly' | 'Monthly' | 'Yearly';
-  // }
+/**
+ * MANUAL/UI TESTS
+ *
+ * RETAIL:
+ * - Default:
+ *   - TodayTestMock: match IContract.ClientsChargeOn
+ *       Should:
+ *       IMindBroClientContract.status === active
+ *       IMindBroClientContract.autopays_counter === IMindBroClientContract.autopays_counter - 1
+ *       IMindBroClientContract.last_autopay === TodayTestMock
+ *
+ *       IOrder.delivered === true
+ *       IOrder.payment_status === 'approved'
+ *
+ *   - TodayTestMock: no match IContract.ClientsChargeOm
+ *     Should:
+ *     IMindBroClientContract.status === 'payment_pending';
+ *     IMindBroClientContract.autopays_counter === IMindBroClientContract.autopays_counter;
+ *     IMindBroClientContract.last_autopay === null
+ *
+ *     No new Order
+ *
+ * - StartDate
+ *    - StartDate match TodayTestMock
+ *        Should:
+ *        IMindBroClientContract.status === active
+ *        IMindBroClientContract.autopays_counter === IMindBroClientContract.autopays_counter - 1
+ *        IMindBroClientContract.last_autopay === TodayTestMock
+ *
+ *        IOrder.delivered === true
+ *        IOrder.payment_status === 'approved'
+ *
+ *    - StartDate NO match TodayTestMock
+ *      Should:
+ *      IMindBroClientContract.status === 'payment_pending';
+ *      IMindBroClientContract.autopays_counter === IMindBroClientContract.autopays_counter;
+ *      IMindBroClientContract.last_autopay === null
+ *
+ *      No new Order
+ *
+ * - Instant
+*    - TodayTestMock: match IContract.ClientsChargeOn
+ *        Should:
+ *        IMindBroClientContract.status === active
+ *        IMindBroClientContract.autopays_counter === IMindBroClientContract.autopays_counter - 1
+ *        IMindBroClientContract.last_autopay === TodayTestMock
+ *
+ *        IOrder.delivered === true
+ *        IOrder.payment_status === 'approved'
+ *
+ *   - TodayTestMock: NO match IContract.ClientsChargeOn
+ *        Should:
+ *        IMindBroClientContract.status === 'activation_pending'
+ *        IMindBroClientContract.autopays_counter === IMindBroClientContract.autopays_counter - 1
+ *        IMindBroClientContract.last_autopay === TodayTestMock
+ *
+ *        IOrder.delivered === false
+ *        IOrder.payment_status === 'approved'
+ *
+ *     Billing Cycle:
+ *     TodayTestMock === IContract.ClientsChargeOn && IMindBroClientContract.status === 'activation_pending'
+ *        Should:
+ *        IMindBroClientContract.status === 'active'
+ *
+ *        No New IOrder:
+ *        IOrder.delivered === true
+ *
+ *     TodayTestMock: NO match IContract.ClientsChargeOn
+ *        Should:
+ *        IMindBroClientContract.autopays_counter === IMindBroClientContract.autopays_counter
+ *        IMindBroClientContract.last_autopay === IMindBroClientContract.last_autopay
+ *
+ *        No new IOrder
+ *
+ *
+ *
+ * TEST AUTOPAYS_COUNTER WHEN FINISH
+ */
 
 
 describe('_isTodayTheAutopayDay', () => {
@@ -507,4 +576,6 @@ describe('_isTodayTheAutopayDay', () => {
       expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.false;
     })
   })
-})
+  })
+
+

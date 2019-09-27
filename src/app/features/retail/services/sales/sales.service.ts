@@ -1,3 +1,4 @@
+import { UserService } from './../../../../core/services/user/user.service';
 import { environment } from 'src/environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -13,6 +14,7 @@ export class SalesService {
   constructor(
     private httpClient: HttpClient,
     private notificationService: NotificationService,
+    private userService: UserService,
   ) { }
 
   sellContract(contract: IContract, client: IClient, instantPayment: boolean, startDate?: string) {
@@ -20,6 +22,7 @@ export class SalesService {
       contract,
       instantPayment,
       startDate,
+      seller: this.userService.getUser(),
     };
 
     return this.httpClient

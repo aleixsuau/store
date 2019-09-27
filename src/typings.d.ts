@@ -280,6 +280,7 @@ interface IOrder {
   payment_status: 'rejected' | 'in_process' | 'approved' | 'error' | 'canceled' | 'refunded';
   payment_status_detail: string;
   payment_attempts: IPayment[];
+  seller: IUser;
 }
 
 interface IShoppingCart {

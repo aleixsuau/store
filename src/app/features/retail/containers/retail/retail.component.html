@@ -30,8 +30,7 @@
           <mat-icon matPrefix>insert_drive_file</mat-icon>
 
           <mat-select placeholder="Contract"
-                      formControlName="contract"
-                      [disabled]="!retailForm.get('client').value">
+                      formControlName="contract">
             <mat-option *ngFor="let contract of clientContracts"
                         [value]="contract">
               {{ contract.Name }}
@@ -50,7 +49,6 @@
                 [matDatepickerFilter]="dateFilter"
                 formControlName="contractStart"
                 (click)="picker.open();"
-                [disabled]="!retailForm.get('contract').value"
                 placeholder="Contract Start Date"
                 automcomplete="off">
 

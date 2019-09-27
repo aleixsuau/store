@@ -31,7 +31,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   orders: IOrder[];
   contracts: IContract[];
   dataSource: MatTableDataSource<IOrder>;
-  columns = ['Date', 'Client', 'Contract', 'Total', 'Status', 'Actions'];
+  columns = ['Date', 'Client', 'Contract', 'Total', 'Status', 'Delivered', 'Actions'];
   filterForm: FormGroup;
   paginatorPageSize = 10;
   paginatorPageSizeOptions = [5, 10, 20];

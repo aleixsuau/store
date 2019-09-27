@@ -4,7 +4,7 @@ import { ClientsService } from './../../../clients/services/clients/clients.serv
 import { FormGroup, FormBuilder, Validators, FormControl, FormGroupDirective, NgForm, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { debounceTime, filter, switchMap } from 'rxjs/operators';
+import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material';
 
@@ -29,6 +29,7 @@ export class RetailComponent implements OnInit, OnDestroy {
   clientContracts: IContract[];
   retailForm: FormGroup;
   retailFormSubscription: Subscription;
+  clientSearchSubscription: Subscription;
   clientErrorMatcher = new ClientErrorMatcher();
 
   @ViewChild('clientInput', {static: true})
@@ -46,18 +47,36 @@ export class RetailComponent implements OnInit, OnDestroy {
     this.contracts = this.activatedRoute.snapshot.data.contracts;
     this.retailForm = this.formBuilder.group({
       client: [null, [Validators.required, clientValidator]],
-      contract: [null, Validators.required],
+      contract: [{ value: null, disabled: true }, Validators.required],
       instantPayment: [ true ],
-      contractStart: [null],
+      contractStart: [{ value: null, disabled: true }, null],
     });
 
     // TODO: Avoid call to server when the client is selected
     this.retailFormSubscription = this.retailForm
+                                        .valueChanges
+                                        .pipe(
+                                          tap(() => {
+                                            const clientControl = this.retailForm.get('client');
+                                            const contractControl = this.retailForm.get('contract');
+                                            const contractStartControl = this.retailForm.get('contractStart');
+
+                                            !clientControl.value ?
+                                              contractControl.disable({emitEvent: false}) :
+                                              contractControl.enable({emitEvent: false});
+                                            !contractControl.value ?
+                                              contractStartControl.disable({emitEvent: false}) :
+                                              contractStartControl.enable({emitEvent: false});
+                                          })
+                                        )
+                                        .subscribe();
+
+    this.clientSearchSubscription = this.retailForm
                                         .get('client')
                                         .valueChanges
                                         .pipe(
                                           debounceTime(400),
-                                          filter(changes => changes.Id == null),
+                                          filter(changes => changes && !changes.Id),
                                           switchMap(changes => this.clientsService.getClients(null, changes)),
                                         )
                                         .subscribe(results => {
@@ -67,16 +86,20 @@ export class RetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.retailFormSubscription.unsubscribe();
+    this.clientSearchSubscription.unsubscribe();
   }
 
   displayClientFn(client: IClient) {
     return client ? client.FirstName + ' ' + client.LastName : null;
   }
 
-  sellContract(contract: IContract, client: IClient, instantPayment: boolean) {
+  sellContract(contract: IContract, client: IClient, instantPayment: boolean, startDate?: string) {
     this.salesService
-          .sellContract(contract, client, instantPayment)
-          .subscribe(res => this.setSelectedClientContracts(client));
+          .sellContract(contract, client, instantPayment, startDate)
+          .subscribe(() => {
+            this.setSelectedClientContracts(client);
+            this.retailForm.reset();
+          });
   }
 
   setSelectedClientContracts(client: IClient) {
@@ -99,7 +122,7 @@ export class RetailComponent implements OnInit, OnDestroy {
     const last = this.momentService.moment(date).endOf('month');
     const fifteen =  this.momentService.moment(date).date(15);
     const sixteen =  this.momentService.moment(date).date(16);
-    const today = this.momentService.moment();
+    const today = this.momentService.moment().startOf('day');
     let dateToCompare;
 
     if (dateToCheck.isBefore(today)) {
@@ -144,6 +167,7 @@ export class RetailComponent implements OnInit, OnDestroy {
 
       case 'OnSaleDate':
         dateToCompare = today;
+        console.log('dateToCompare', dateToCheck, dateToCompare)
         return dateToCheck.isSame(dateToCompare);
 
       default:
