@@ -1,3 +1,4 @@
+import { UserService } from './../../../../core/services/user/user.service';
 import { ConfigService } from './../../../../core/config/service/config.service';
 import { environment } from './../../../../../environments/environment';
 import { ClientsService } from '../../../clients/services/clients/clients.service';
@@ -64,6 +65,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     private formBuilder: FormBuilder,
     private matDialog: MatDialog,
     private configService: ConfigService,
+    private userService: UserService,
   ) { }
 
   ngOnInit() {
@@ -78,6 +80,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       dateTo: null,
       status: null,
     });
+    this.user$ = this.userService.user$;
     this.clientInputSubscription = this.filterForm
                                           .get('client')
                                           .valueChanges

@@ -48,12 +48,13 @@ export class ConfigService {
     const appConfig: IAppConfig = JSON.parse(localStorage.getItem('mbConfig'));
     this.siteId = siteId;
 
-    if (appConfig) {
+    if (appConfig && appConfig.id === siteId) {
       this._config.next(appConfig);
       this.refreshConfig(siteId).subscribe();
 
       return of(appConfig);
     } else {
+      this.removeConfig();
       return this.refreshConfig(siteId);
     }
   }

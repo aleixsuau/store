@@ -427,7 +427,7 @@ export async function _getAppConfig(siteId: string): Promise<IAppConfig> {
 
   const businessData = await DDBB.collection('business').doc(siteId).get();
 
-  console.log('businessDataaaaa', businessData.data(), businessData.data().config);
+  console.log('businessDataaaaa', businessData.data());
 
   if (!businessData.exists || !businessData.data() || !businessData.data().config){
     console.log('No App with this ID');
@@ -502,9 +502,12 @@ function getConfig(req: express.Request, res: express.Response) {
 
   _getAppConfig(siteId)
     .then(appConfig => {
+      if (!appConfig) {
+        res.status(404).json('No app with this id');
+      }
       // Keep apiKey private
-      const {apiKey, ...appConfigCopy} = appConfig;
-      res.status(200).json(appConfigCopy);
+      const {customization, id, queryLimit, test} = appConfig;
+      res.status(200).json({customization, id, queryLimit, test});
     })
     .catch(error => res.status(500).json(error));
 }

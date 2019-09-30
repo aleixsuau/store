@@ -6,12 +6,14 @@ import { ErrorsComponent } from './errors-component/errors.component';
 import { ErrorsHandler } from './errors-handler/errors-handler';
 import { ErrorsService } from './errors-service/errors.service';
 import { ServerErrorsInterceptor } from './server-errors-interceptor/server-errors.interceptor';
+import { ErrorsRoutingModule } from './errors-routing.module';
 
 
 @NgModule({
   imports: [
     CommonModule,
     SharedModule,
+    ErrorsRoutingModule,
   ],
   declarations: [
     ErrorsComponent

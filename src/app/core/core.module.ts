@@ -11,6 +11,7 @@ import { LoadingModule } from './loading/loading.module';
 import { ErrorsModule } from './errors';
 import { NotificationService } from './services/notification/notification.service';
 import { HttpClientModule } from '@angular/common/http';
+import { ConfigGuard } from './guards/config-guard/config.guard';
 
 @NgModule({
   declarations: [BaseComponent],
@@ -26,6 +27,7 @@ import { HttpClientModule } from '@angular/common/http';
   ],
   providers: [
     ConfigService,
+    ConfigGuard,
     UserService,
     NotificationService,
   ],

@@ -5,13 +5,13 @@ import { Routes, RouterModule } from '@angular/router';
 import { LoginComponent } from './features/login/containers/login/login.component';
 import { AuthGuard } from './core/auth/auth-guard/auth.guard';
 import { BaseComponent } from './core/components/base/base.component';
+import { ConfigGuard } from './core/guards/config-guard/config.guard';
 
 const routes: Routes = [
   {
     path: ':siteId',
-    resolve: {
-      config: ConfigResolverService,
-    },
+    canActivate: [ConfigGuard],
+    canActivateChild: [ConfigGuard],
     children: [
       {
         path: 'login',
@@ -48,7 +48,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes, {enableTracing: true})],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

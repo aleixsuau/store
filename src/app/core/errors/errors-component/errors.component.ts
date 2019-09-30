@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 
 @Component({
-  selector: 'wk-error',
+  selector: 'app-error',
   templateUrl: './errors.component.html',
   styleUrls: ['./errors.component.scss']
 })

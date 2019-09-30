@@ -1,5 +1,4 @@
-<div class="error-container">
-
+<div class="error-container" *ngIf="data || routeParams">
   <div *ngIf="data?.error">
     <h1>ERROR {{ data?.error}}</h1>
     <h5 *ngIf="data?.error === 404">{{ 'Not found' }} :(</h5>
