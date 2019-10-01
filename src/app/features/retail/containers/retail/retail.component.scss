@@ -7,3 +7,9 @@ mat-icon {
   vertical-align: sub;
   color: $lighter-grey;
 }
+
+.mat-form-field-disabled {
+  mat-icon {
+    color: $disabled-grey;
+  }
+}

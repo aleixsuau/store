@@ -11,8 +11,12 @@
                 type="text"
                 placeholder="Client">
 
-          <mat-error>
-            Please select a Client from the list.
+          <mat-error *ngIf="retailForm.get('client').hasError('clientError')">
+            This client doesn't have an ID associated.
+          </mat-error>
+
+          <mat-error *ngIf="retailForm.get('client').hasError('clientCreditCardError')">
+            This client doesn't have a credit card associated, please add one to purchase a contract.
           </mat-error>
         </mat-form-field>
 

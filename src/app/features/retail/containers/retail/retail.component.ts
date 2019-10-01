@@ -18,6 +18,10 @@ function clientValidator(control: AbstractControl): {[key: string]: any} | null 
     return control.value && !control.value.Id ? { 'clientError': true } : null;
 }
 
+function clientCreditCardValidator(control: AbstractControl): {[key: string]: any} | null {
+  return control.value && !control.value.ClientCreditCard ? { 'clientCreditCardError': true } : null;
+}
+
 @Component({
   selector: 'app-retail',
   templateUrl: './retail.component.html',
@@ -46,7 +50,7 @@ export class RetailComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.contracts = this.activatedRoute.snapshot.data.contracts;
     this.retailForm = this.formBuilder.group({
-      client: [null, [Validators.required, clientValidator]],
+      client: [null, [Validators.required, clientValidator, clientCreditCardValidator]],
       contract: [{ value: null, disabled: true }, Validators.required],
       instantPayment: [ true ],
       contractStart: [{ value: null, disabled: true }, null],
@@ -61,10 +65,10 @@ export class RetailComponent implements OnInit, OnDestroy {
                                             const contractControl = this.retailForm.get('contract');
                                             const contractStartControl = this.retailForm.get('contractStart');
 
-                                            !clientControl.value ?
+                                            !clientControl.value || clientControl.invalid ?
                                               contractControl.disable({emitEvent: false}) :
                                               contractControl.enable({emitEvent: false});
-                                            !contractControl.value ?
+                                            !contractControl.value || contractControl.invalid ?
                                               contractStartControl.disable({emitEvent: false}) :
                                               contractStartControl.enable({emitEvent: false});
                                           })
