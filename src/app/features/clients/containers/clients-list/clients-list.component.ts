@@ -194,12 +194,26 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
       this.clientsService
             .addClient(clientModelToSave)
             .pipe(switchMap(savedClient => {
+              console.log('savedClient', savedClient)
               this.clientBeingEdited = savedClient;
 
-              setTimeout(() => {
-                this.clientForm.reset(savedClient);
-                this.clientForm.get('ClientCreditCard.CVV').setValue('***');
-              }, 0);
+              if (!savedClient.ClientCreditCard) {
+                savedClient.ClientCreditCard = {
+                  CardNumber: null,
+                  ExpYear: null,
+                  ExpMonth: null,
+                  CVV: null,
+                };
+              } else {
+                savedClient.ClientCreditCard.CVV = '***';
+              }
+
+              if (this.clientForm.get('ClientCreditCard.CardNumber').value) {
+                this.clientForm.get('ClientCreditCard').disable();
+              }
+
+              this.clientForm.reset(savedClient);
+
               return this.clientsService.getClients();
             }))
             .subscribe(clients => {
@@ -212,10 +226,6 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
     this.clients = clients.Clients;
     this.clientForm.markAsPristine();
     this.setTablePage(this.clients, 0, this.paginatorPageSize);
-
-    if (this.clientForm.get('ClientCreditCard.CardNumber').value) {
-      this.clientForm.get('ClientCreditCard').disable();
-    }
   }
 
   setUpClientForm(client?: IClient) {

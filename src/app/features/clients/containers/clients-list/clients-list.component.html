@@ -222,8 +222,9 @@
 
                 <div fxLayout="row wrap"
                     fxLayoutAlign="space-between center">
-                  <mat-form-field fxFlex="1 1 100%">
-                    <input [type]="clientBeingEdited?.ClientCreditCard?.CardNumber ? 'text' : 'number'"
+                  <mat-form-field fxFlex="1 1 100%"
+                                  *ngIf="clientForm.get('ClientCreditCard').enabled">
+                    <input  type="number"
                             placeholder="Number"
                             matInput
                             formControlName="CardNumber"
@@ -233,6 +234,15 @@
                                       clientForm.get('ClientCreditCard.CardNumber').invalid">
                       Please insert a valid Card Number
                     </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="1 1 100%"
+                                  *ngIf="clientForm.get('ClientCreditCard').disabled">
+                    <input  type="text"
+                            placeholder="Number"
+                            matInput
+                            formControlName="CardNumber"
+                            automcomplete="off">
                   </mat-form-field>
 
                   <mat-form-field fxFlex="1 1 30%">
@@ -265,8 +275,9 @@
                     </mat-error>
                   </mat-form-field>
 
-                  <mat-form-field fxFlex="1 1 30%">
-                    <input [type]="clientBeingEdited?.ClientCreditCard?.CardNumber ? 'text' : 'number'"
+                  <mat-form-field fxFlex="1 1 30%"
+                                  *ngIf="clientForm.get('ClientCreditCard').enabled">
+                    <input  type="number"
                             placeholder="CVV"
                             matInput
                             formControlName="CVV"
@@ -276,6 +287,15 @@
                                       clientForm.get('ClientCreditCard.CVV').invalid">
                       Please insert a valid CVV
                     </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field fxFlex="1 1 30%"
+                                  *ngIf="clientForm.get('ClientCreditCard').disabled">
+                    <input  type="text"
+                            placeholder="CVV"
+                            formControlName="CVV"
+                            matInput
+                            automcomplete="off">
                   </mat-form-field>
 
                   <div fxFlex="1 1 100%"

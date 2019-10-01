@@ -145,7 +145,7 @@ interface IClientCreditCard {
   City?: string;
   PostalCode?: string;
   State?: string;
-  CVV?: number;
+  CVV?: number | string;
   paymentMethod?: string;
 }
 
