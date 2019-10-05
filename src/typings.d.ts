@@ -137,7 +137,7 @@ interface IClientCreditCard {
   City?: string;
   PostalCode?: string;
   State?: string;
-  CVV?: number | string;
+  CVV?: number;
   paymentMethod?: string;
 }
 
@@ -276,6 +276,7 @@ interface IOrder {
   client_id: string;
   contract_id: string;
   delivered: boolean;
+  delivery_attempts: any[];
   shopping_cart: IShoppingCart;
   payment_status: 'rejected' | 'in_process' | 'approved' | 'error' | 'canceled' | 'refunded';
   payment_status_detail: string;
@@ -395,26 +396,6 @@ interface IPayment {
 interface IFirebaseTimestamp {
   _seconds: number;
   _nanoseconds: number;
-}
-
-interface IClientContract {
-  Id: string;
-  date_created: Date;
-  autopays: IAutopay[];
-  remaining_autopays?: number;
-  day_to_charge: number;
-}
-
-interface IAutopay {
-  shopping_cart_order_id: string;
-  status: 'rejected' | 'in_process' | 'approved';
-  payment_attemps: IAutopayAttempt[];
-}
-
-interface IAutopayAttempt {
-  date: string;
-  status: 'rejected' | 'in_process' | 'approved';
-  status_detail: string;
 }
 
 // MERCADOPAGO

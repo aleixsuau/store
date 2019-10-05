@@ -98,8 +98,10 @@ export class RetailComponent implements OnInit, OnDestroy {
   }
 
   sellContract(contract: IContract, client: IClient, instantPayment: boolean, startDate?: string) {
+    const startDateToSend = startDate && new Date(startDate).toString();
+
     this.salesService
-          .sellContract(contract, client, instantPayment, startDate)
+          .sellContract(contract, client, instantPayment, startDateToSend)
           .subscribe(() => {
             this.setSelectedClientContracts(client);
             this.retailForm.reset();
@@ -110,7 +112,7 @@ export class RetailComponent implements OnInit, OnDestroy {
     this.clientsService
           .getClientContracts(client.Id)
           .subscribe(mbContracts => {
-            this.clientContracts = this.contracts.filter(contract => !mbContracts.map(mbContract => mbContract.id).includes(contract.Id));
+            this.clientContracts = this.contracts.filter(contract => !mbContracts.filter(mbContract => mbContract.status === 'active').map(mbContract => mbContract.id).includes(contract.Id));
           });
   }
 

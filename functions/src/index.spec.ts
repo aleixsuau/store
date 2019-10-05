@@ -83,6 +83,30 @@ import * as moment from 'moment';
  *
  *
  * TEST AUTOPAYS_COUNTER WHEN FINISH
+ *
+ *
+ * TESTING ICONTRACT PAUSE/RESUME
+ *
+ * - When pause, the IClientMindBroContract.status = 'paused', the client/id/contracts/id.status = 'paused'
+ * - When resume:
+ *    - If the previous IOrder has expired it process a new IOrder +
+ *        - if (_isTodayTheAutopayDate) { IClientMindBroContract.status = 'active', the client/id/contracts/id.status = 'active' }
+ *        - else { IClientMindBroContract.status = 'activation_pending', the client/id/contracts/id.status = 'activation_pending' }
+ *          - Triggering billingCycle on the clientsChargedOn date should:
+ *              - IOrder.delivered = true
+ *              - IClientMindBroContract.status = 'active', the client/id/contracts/id.status = 'active'
+ *
+ *    - If previous IOrder is still active, it set the IContracts.status = active &&
+ *      start_date = to the next autopay first date (excluding today to avoid the case
+ *      that the IClientMindBroContract is resumed on the clientChargeOnDay of the current IOrder)
+*          - Triggering billingCycle on the clientsChargedOn date should:
+ *              - IOrder.delivered = true
+ *              - IClientMindBroContract.status = 'active', the client/id/contracts/id.status = 'active'
+ *
+ * TESTING ICONTRACT PAUSE_NO_PAYMENT/RESUME
+ *
+ *
+ *
  */
 
 
@@ -97,10 +121,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`9-1-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.true;
+      const appConfig = {
+        today_test_mock: '9-1-2019',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.true;
     });
 
     it('Yearly: It should do the next autopay the 9-1-2020', () => {
@@ -112,11 +139,14 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`9-1-2020`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.true;
+      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '9-1-2020',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.true;
     });
 
     it('Yearly: It should not do the next autopay the 12-1-2010', () => {
@@ -128,11 +158,14 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`12-1-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.false;
+      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '12-1-2019',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.false;
     });
 
     it('Monthly: It should do the first autopay the 9-1-2019', () => {
@@ -144,10 +177,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`9-1-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.true;
+      const appConfig = {
+        today_test_mock: '9-1-2019',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.true;
     });
 
     it('Monthly: It should not do the first autopay the 9-1-2019 (because today is 9-5-2019)', () => {
@@ -159,10 +195,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`9-5-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.false;
+      const appConfig = {
+        today_test_mock: '9-5-2019',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.false;
     });
 
     it('Monthly: It should do the next autopay the 10-1-2019', () => {
@@ -174,11 +213,14 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`10-1-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.true;
+      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '10-1-2019',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.true;
     })
 
     it('Monthly: It should not do the next autopay the 9-30-2019 (because lastAutopay was 9-1-2019)', () => {
@@ -190,11 +232,14 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`9-30-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.false;
+      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '9-30-2019',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.false;
     })
 
     it('Weekly: It should do the next autopay the 9-8-2019', () => {
@@ -206,11 +251,14 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Weekly',
         }
       } as IContract;
-      const todayMock = moment(`9-8-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.true;
+      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '9-8-2019',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.true;
     })
 
     it('Weekly: It should not do the next autopay the 9-7-2019 (because lastAutopay was 9-1-2019)', () => {
@@ -222,11 +270,14 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Weekly',
         }
       } as IContract;
-      const todayMock = moment(`9-7-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.false;
+      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '9-7-2019',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.false;
     })
   })
 
@@ -240,10 +291,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`9-15-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.true;
+      const appConfig = {
+        today_test_mock: '9-15-2019',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.true;
     });
 
     it('Yearly: It should not do the first autopay the 9-10-2019', () => {
@@ -255,10 +309,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`9-10-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.false;
+      const appConfig = {
+        today_test_mock: '9-10-2019',
+        test: true
+      } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.false;
     });
 
     it('Yearly: It should do the next autopay the 9-15-2020', () => {
@@ -270,11 +327,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`9-15-2020`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-15-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.true;
+      const lastAutopay = moment(`9-15-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '9-15-2020',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.true;
     });
 
     it('Yearly: It should not do the next autopay the 12-15-2010', () => {
@@ -286,11 +345,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`12-15-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.false;
+      const lastAutopay = moment(`9-1-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '12-15-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.false;
     });
 
     it('Monthly: It should do the first autopay the 9-15-2019', () => {
@@ -302,10 +363,12 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`9-15-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.true;
+      const appConfig = {
+        today_test_mock: '9-15-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.true;
     });
 
     it('Monthly: It should not do the first autopay the 9-5-2019 (because today is 9-5-2019)', () => {
@@ -317,10 +380,12 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`9-5-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.false;
+      const appConfig = {
+        today_test_mock: '9-5-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.false;
     });
 
     it('Monthly: It should do the next autopay the 10-15-2019', () => {
@@ -332,11 +397,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`10-15-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-15-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.true;
+      const lastAutopay = moment(`9-15-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '10-15-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.true;
     })
 
     it('Monthly: It should not do the next autopay the 9-16-2019 (because lastAutopay was 9-15-2019)', () => {
@@ -348,11 +415,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`9-16-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-15-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.false;
+      const lastAutopay = moment(`9-15-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '9-16-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.false;
     })
 
     it('Weekly: It should do the next autopay the 9-22-2019', () => {
@@ -364,11 +433,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Weekly',
         }
       } as IContract;
-      const todayMock = moment(`9-22-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-15-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.true;
+      const lastAutopay = moment(`9-15-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '9-22-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.true;
     })
 
     it('Weekly: It should not do the next autopay the 9-21-2019 (because lastAutopay was 9-1-2019)', () => {
@@ -380,11 +451,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Weekly',
         }
       } as IContract;
-      const todayMock = moment(`9-21-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-15-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.false;
+      const lastAutopay = moment(`9-15-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '9-21-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.false;
     })
   })
 
@@ -398,10 +471,12 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`9-30-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.true;
+      const appConfig = {
+        today_test_mock: '9-30-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.true;
     });
 
     it('Yearly: It should not do the first autopay the 9-29-2019', () => {
@@ -413,10 +488,12 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`9-29-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.false;
+      const appConfig = {
+        today_test_mock: '9-29-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.false;
     });
 
     it('Yearly: It should not do the first autopay the 10-30-2019', () => {
@@ -428,10 +505,12 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`10-30-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.false;
+      const appConfig = {
+        today_test_mock: '10-30-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.false;
     });
 
     it('Yearly: It should do the next autopay the 9-30-2020', () => {
@@ -443,11 +522,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`9-30-2020`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.true;
+      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '9-30-2020',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.true;
     });
 
     it('Yearly: It should do the next autopay the 10-31-2020', () => {
@@ -459,11 +540,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`10-31-2020`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`10-31-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.true;
+      const lastAutopay = moment(`10-31-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '10-31-2020',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.true;
     });
 
     it('Yearly: It should not do the next autopay the 12-30-2010', () => {
@@ -475,11 +558,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Yearly',
         }
       } as IContract;
-      const todayMock = moment(`12-30-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.false;
+      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '12-30-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.false;
     });
 
     it('Monthly: It should do the first autopay the 9-30-2019', () => {
@@ -491,10 +576,12 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`9-30-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.true;
+      const appConfig = {
+        today_test_mock: '9-30-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.true;
     });
 
     it('Monthly: It should not do the first autopay the 9-5-2019', () => {
@@ -506,10 +593,12 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`9-5-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, null, appConfig, todayMock)).to.be.false;
+      const appConfig = {
+        today_test_mock: '9-5-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, null, appConfig)).to.be.false;
     });
 
     it('Monthly: It should do the next autopay the 10-30-2019', () => {
@@ -521,11 +610,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`10-30-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.true;
+      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '10-30-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.true;
     })
 
     it('Monthly: It should not do the next autopay the 9-29-2019 (because lastAutopay was 9-15-2019)', () => {
@@ -537,11 +628,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Monthly',
         }
       } as IContract;
-      const todayMock = moment(`9-29-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.false;
+      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '9-29-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.false;
     })
 
     it('Weekly: It should do the next autopay the 10-7-2019', () => {
@@ -553,11 +646,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Weekly',
         }
       } as IContract;
-      const todayMock = moment(`10-7-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.true;
+      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '10-7-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.true;
     })
 
     it('Weekly: It should not do the next autopay the 10-6-2019', () => {
@@ -569,11 +664,13 @@ describe('_isTodayTheAutopayDay', () => {
           FrequencyTimeUnit: 'Weekly',
         }
       } as IContract;
-      const todayMock = moment(`10-6-2019`, `MM-DD-YYYY`);
-      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
-      const appConfig = { test: true } as IAppConfig;
 
-      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig, todayMock)).to.be.false;
+      const lastAutopay = moment(`9-30-2019`, `MM-DD-YYYY`);
+      const appConfig = {
+        today_test_mock: '10-6-2019',
+        test: true } as IAppConfig;
+
+      expect(_isTodayTheAutopayDay(contract, null, lastAutopay, appConfig)).to.be.false;
     })
   })
   })
