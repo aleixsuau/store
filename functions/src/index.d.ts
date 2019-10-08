@@ -12,10 +12,15 @@ interface IMindBroBusiness {
 }
 
 interface IMindBroClient {
-  contracts: {[key: string]: IMindBroClientContract};
+  contracts: {[key: string]: IMindBroClientContractTracking};
   payments_config: IMindBroClientPaymentsConfig;
 }
 
+interface IMindBroClientContractTracking {
+  Id: string;
+  date_created: string;
+  status: IMindBroClientContract['status'];
+}
 interface IMindBroClientContract {
   id: string;
   date_created: string;
