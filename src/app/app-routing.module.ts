@@ -6,6 +6,7 @@ import { LoginComponent } from './features/login/containers/login/login.componen
 import { AuthGuard } from './core/auth/auth-guard/auth.guard';
 import { BaseComponent } from './core/components/base/base.component';
 import { ConfigGuard } from './core/guards/config-guard/config.guard';
+import { ContractsResolverService } from './features/retail/resolvers/contracts/contracts.resolver';
 
 const routes: Routes = [
   {
@@ -16,6 +17,13 @@ const routes: Routes = [
       {
         path: 'login',
         component: LoginComponent,
+      },
+      {
+        path: 'iframe',
+        resolve: {
+          contracts: ContractsResolverService,
+        },
+        loadChildren: () => import('./features/iframe/iframe.module').then(m => m.IframeModule),
       },
       {
         path: '',

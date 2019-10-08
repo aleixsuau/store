@@ -146,7 +146,7 @@ const contractsMock: IContract[] = [
   {
     Id: '1',
     Name: 'Contract 1: Every 1 Month | FirstOfTheMonth',
-    Description: 'Contract 1 Description',
+    Description: 'Contract 1 Description Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     AssignsMembershipId: null,
     AssignsMembershipName: null,
     SoldOnline: true,
@@ -205,7 +205,7 @@ const contractsMock: IContract[] = [
   {
     Id: '2',
     Name: 'Contract 2: Every 1 Week | FifteenthOfTheMonth',
-    Description: 'Contract 2 Description',
+    Description: 'Contract 2 Description Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     AssignsMembershipId: null,
     AssignsMembershipName: null,
     SoldOnline: true,
@@ -264,7 +264,7 @@ const contractsMock: IContract[] = [
   {
     Id: '3',
     Name: 'Contract 3: Every 1 Year | LastDayOfTheMonth',
-    Description: 'Contract 3 Description',
+    Description: 'Contract 3 Description Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     AssignsMembershipId: null,
     AssignsMembershipName: null,
     SoldOnline: true,
@@ -323,7 +323,7 @@ const contractsMock: IContract[] = [
   {
     Id: '4',
     Name: 'Contract 4: Every 1 Week | OnSaleDate',
-    Description: 'Contract 4 Description',
+    Description: 'Contract 4 Description Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     AssignsMembershipId: null,
     AssignsMembershipName: null,
     SoldOnline: true,

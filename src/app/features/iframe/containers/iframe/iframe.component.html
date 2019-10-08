@@ -1,0 +1,148 @@
+<div class="iframe_container">
+  <mat-vertical-stepper #stepper>
+    <mat-step [formGroup]="iframeForm.get('contract')">
+      <ng-template matStepLabel>
+        <div *ngIf="!iframeForm.get('contract').value">
+          <h4>SELECT CONTRACT</h4>
+        </div>
+
+        <div class="step1_header"
+             fxLayoutAlign="start center"
+             fxLayoutGap="1rem"
+             *ngIf="iframeForm.get('contract').value">
+          <div fxFlex="0 0 20%"
+              class="step1_header_image"
+              [ngStyle]="{ 'background-image': 'url(' + 'https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500' + ')',
+              'background-size': 'cover'}">
+          </div>
+
+          <div class="step1_header_name"
+               fxFlex="0 0 80%"
+               fxLayout="row wrap"
+               fxLayoutAlign="start center">
+            <p fxFlex="0 0 100%">{{ iframeForm.get('contract').value?.Name | truncate:50  }}</p>
+
+            <div class="step1_header_tags"
+                  fxFlex="0 0 100%"
+                  fxLayoutAlign="start center"
+                  fxLayoutGap="1rem">
+              <div fxFlex="0 0 auto"
+                  fxLayoutAlign="start center"
+                  *ngIf="iframeForm.get('contract').value?.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays'"
+                  matTooltip="Duration"
+                  matTooltipPosition="left">
+                <mat-icon>calendar_today</mat-icon>
+
+                {{ iframeForm.get('contract').value?.NumberOfAutopays }} x
+                {{ iframeForm.get('contract').value?.AutopaySchedule.FrequencyValue }}
+                {{
+                  iframeForm.get('contract').value?.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                    'weeks' : iframeForm.get('contract').value?.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                      'months' :
+                      'years'
+                }}
+              </div>
+
+              <div fxFlex="0 0 auto"
+                  fxLayoutAlign="start center"
+                  matTooltip="Price per period"
+                  matTooltipPosition="left">
+                <mat-icon>attach_money</mat-icon>
+
+                {{ iframeForm.get('contract').value?.RecurringPaymentAmountTotal }}
+              </div>
+
+              <div fxFlex="0 0 auto"
+                  fxLayoutAlign="start center"
+                  matTooltip="Start"
+                  matTooltipPosition="left">
+                <mat-icon>timer</mat-icon>
+
+                <span *ngIf="iframeForm.get('contract').value.ClientsChargedOn === 'OnSaleDate'">
+                  {{ getContractStart(iframeForm.get('contract').value) | date }}
+                </span>
+
+                <span *ngIf="iframeForm.get('contract').value.ClientsChargedOn !== 'OnSaleDate'">
+                  {{ getContractStart(iframeForm.get('contract').value, true) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </ng-template>
+
+      <div fxLayout="row wrap"
+            fxLayoutAlign="space-around start"
+            fxLayoutGap="0.3rem"
+            class="step1">
+        <mat-card class="contract-card"
+                  *ngFor="let contract of contracts"
+                  fxFlex="1 1 30rem"
+                  [ngClass]="{ selected_contract: iframeForm.get('contract')?.value?.Id === contract.Id }">
+          <img mat-card-image src="https://material.angular.io/assets/img/examples/shiba2.jpg" alt="Photo of a Shiba Inu">
+          <mat-card-content>
+            <mat-card-title>{{ contract.Name }}</mat-card-title>
+
+            <p>{{ contract.Description }}</p>
+
+            <mat-card-subtitle>
+              <div fxLayoutAlign="start center"
+                  *ngIf="contract.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays'"
+                  matTooltip="Duration"
+                  matTooltipPosition="left">
+                <mat-icon>calendar_today</mat-icon>
+
+                {{ contract.NumberOfAutopays }} periods of
+                {{ contract.AutopaySchedule.FrequencyValue }}
+                {{
+                  contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                    'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                      'months' :
+                      'years'
+                }}
+              </div>
+
+              <div fxLayoutAlign="start center"
+                  matTooltip="Start"
+                  matTooltipPosition="left">
+                <mat-icon>attach_money</mat-icon>
+
+                {{ contract.RecurringPaymentAmountTotal }} every
+                {{ contract.AutopaySchedule.FrequencyValue }}
+                {{
+                  contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                    'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                      'months' :
+                      'years'
+                }}
+              </div>
+
+              <div fxLayoutAlign="start center"
+                  matTooltip="Start"
+                  matTooltipPosition="left">
+                <mat-icon>timer</mat-icon>
+
+                {{ getContractStart(contract) }}
+              </div>
+            </mat-card-subtitle>
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <button mat-stroked-button
+                    (click)="iframeForm.get('contract').setValue(contract);
+                             stepper.next()">
+              <mat-icon>shopping_cart</mat-icon>
+              PURCHASE
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <mat-step>
+      Step 2
+      <button mat-button matStepperPrevious>Back</button>
+      <button mat-button (click)="stepper.reset()">Reset</button>
+    </mat-step>
+  </mat-vertical-stepper>
+</div>
