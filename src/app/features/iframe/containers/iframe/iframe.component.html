@@ -3,7 +3,7 @@
     <mat-step [formGroup]="iframeForm.get('contract')">
       <ng-template matStepLabel>
         <div *ngIf="!iframeForm.get('contract').value">
-          <h4>SELECT CONTRACT</h4>
+          <h5>SELECT CONTRACT</h5>
         </div>
 
         <div class="step1_header"
@@ -20,7 +20,9 @@
                fxFlex="0 0 80%"
                fxLayout="row wrap"
                fxLayoutAlign="start center">
-            <p fxFlex="0 0 100%">{{ iframeForm.get('contract').value?.Name | truncate:50  }}</p>
+            <p fxFlex="0 0 100%">
+              <strong>{{ iframeForm.get('contract').value?.Name | uppercase | truncate:35 }}</strong>
+            </p>
 
             <div class="step1_header_tags"
                   fxFlex="0 0 100%"
@@ -140,7 +142,7 @@
     </mat-step>
 
     <mat-step>
-      Step 2
+
       <button mat-button matStepperPrevious>Back</button>
       <button mat-button (click)="stepper.reset()">Reset</button>
     </mat-step>
