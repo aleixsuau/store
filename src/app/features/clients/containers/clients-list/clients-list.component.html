@@ -293,7 +293,7 @@
                                   *ngIf="clientForm.get('ClientCreditCard').disabled">
                     <input  type="text"
                             placeholder="CVV"
-                            formControlName="CVV"
+                            value="***"
                             matInput
                             automcomplete="off">
                   </mat-form-field>
@@ -557,10 +557,14 @@
 
                   <button mat-raised-button
                           (click)="updateClientContractStatus(clientBeingEdited.Id, contract.Id, 'active')"
-                          *ngIf="getContractConfig(contract.Id)?.status === 'paused'"
+                          *ngIf="getContractConfig(contract.Id)?.status === 'paused' ||
+                                 getContractConfig(contract.Id)?.status === 'paused_no_payment'"
                           color="accent">
-                    <mat-icon>pause_circle_filled</mat-icon>
+                    <mat-icon>play_circle_outline</mat-icon>
                     RESUME
+                    <span *ngIf="getContractConfig(contract.Id)?.status === 'paused_no_payment'">
+                      CHARGING DEBT
+                    </span>
                   </button>
 
                   <button mat-raised-button

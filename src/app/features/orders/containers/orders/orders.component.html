@@ -131,7 +131,7 @@
 
           <ng-container matColumnDef="Total">
             <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center">TOTAL</mat-header-cell>
-            <mat-cell *matCellDef="let order" fxLayoutAlign="center center">{{ order?.shopping_cart?.GrandTotal }}</mat-cell>
+            <mat-cell *matCellDef="let order" fxLayoutAlign="center center">{{ order?.payment_attempts[order?.payment_attempts?.length - 1]?.transaction_amount }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="Delivered">

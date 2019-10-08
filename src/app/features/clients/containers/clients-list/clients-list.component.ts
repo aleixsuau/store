@@ -204,8 +204,6 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
                   ExpMonth: null,
                   CVV: null,
                 };
-              } else {
-                savedClient.ClientCreditCard.CVV = '***';
               }
 
               if (this.clientForm.get('ClientCreditCard.CardNumber').value) {
