@@ -1,3 +1,4 @@
+import { IframeService } from './../../services/iframe/iframe.service';
 import { ActivatedRoute } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
@@ -14,6 +15,7 @@ export class IframeComponent implements OnInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private formBuilder: FormBuilder,
+    private iframeService: IframeService,
   ) { }
 
   ngOnInit() {
@@ -50,5 +52,17 @@ export class IframeComponent implements OnInit {
       case 'SpecificDate':
         return contract.ClientsChargedOnSpecificDate;
     }
+  }
+
+  validateLogin(username: string, password: string) {
+    this.iframeService
+          .validateLogin(username, password)
+          .subscribe(response => console.log('sendSoapMessage response: ', response));
+  }
+
+  sendResetPasswordEmail(userEmail: string, userFirstName: string, userLastName: string) {
+    this.iframeService
+            .sendResetPasswordEmail(userEmail, userFirstName, userLastName)
+            .subscribe(response => console.log('sendResetPasswordEmail response: ', response));
   }
 }

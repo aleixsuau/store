@@ -119,6 +119,7 @@ import * as bodyParser from 'body-parser';
 import axios from 'axios';
 import * as UUID from 'uuid/v4';
 import * as moment from 'moment';
+import * as parser from 'fast-xml-parser';
 
 export class CustomError extends Error {
   code: number;
@@ -1925,6 +1926,93 @@ function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig, skip
   return autopayDatesFormatted;
 } */
 
+// IFRAME
+async function validateLogin(req: express.Request, res: express.Response) {
+  const siteId = req.header('siteId');
+  const token = req.header('Authorization');
+  const appConfig = await _getAppConfig(siteId);
+  const username = req.body.username;
+  const password = req.body.password;
+  console.log('validateLogin', siteId, token, username, password);
+
+  const message = `<?xml version="1.0" encoding="utf-8"?>
+                    <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                      <soap:Body>
+                        <ValidateLogin xmlns="http://clients.mindbodyonline.com/api/0_5_1">
+                          <Request>
+                            <Username>${username}</Username>
+                            <Password>${password}</Password>
+                          </Request>
+                        </ValidateLogin>
+                      </soap:Body>
+                    </soap:Envelope>`;
+
+  const config = {
+    headers: {
+    'API-key': appConfig.apiKey,
+    'SiteId': siteId,
+    'Content-Type': 'text/xml;charset=UTF-8',
+    'SOAPAction': 'http://clients.mindbodyonline.com/api/0_5_1/ValidateLogin',
+    }
+  };
+
+  try {
+    const validateLoginSoap = await httpClient.post('https://api.mindbodyonline.com/0_5_1/ClientService.asmx', message, config);
+    console.log('soapResponse', Object.keys(validateLoginSoap), validateLoginSoap.data, validateLoginSoap)
+
+    const validateLoginJSON = parser.parse(validateLoginSoap.data);
+    const validateLoginResponse = validateLoginJSON &&
+                                    validateLoginJSON['soap:Envelope']['soap:Body'].ValidateLoginResponse.ValidateLoginResult;
+    console.log('validateLoginResponse', validateLoginResponse, validateLoginJSON['soap:Envelope']['soap:Body'].ValidateLoginResponse);
+
+    const finalResponse = {
+      status: validateLoginResponse.Status,
+      code: validateLoginResponse.ErrorCode,
+      message: validateLoginResponse.Message,
+      client: validateLoginResponse.Client,
+    }
+
+    res.status(200).json(finalResponse);
+  } catch (error) {
+    console.log('validateLogin error', error)
+    res.status(500).json(error);
+  }
+}
+
+async function sendResetPasswordEmail(req: express.Request, res: express.Response) {
+  const siteId = req.header('siteId');
+  const token = req.header('Authorization');
+  const appConfig = await _getAppConfig(siteId);
+  const UserEmail = req.body.UserEmail;
+  const UserFirstName = req.body.UserFirstName;
+  const UserLastName = req.body.UserLastName;
+  console.log('sendResetPasswordEmail', UserEmail, UserFirstName, UserLastName);
+
+  try {
+    const config = {
+      headers: {
+      'Api-Key': appConfig.apiKey,
+      'SiteId': siteId,
+      'Authorization': token,
+      }
+    };
+
+    const data = {
+      UserEmail,
+      UserFirstName,
+      UserLastName,
+    };
+
+    await httpClient.post(`https://api.mindbodyonline.com/public/v6/client/sendpasswordresetemail`, data, config);
+
+    res.status(200).json('Reset password email sent');
+  } catch (error) {
+    console.log('sendResetPasswordEmail error', error)
+    res.status(500).json(error);
+  }
+}
+
+// TEST FUNCTIONALITY
 // Mindbody calculates the first autopay date based on the IContract.ClientsChargedOn
 // Once it is all the rest autopays will be calculated based on it (ie: 2 weeks from it)
 // according to the IContract.AutopaySchedule
@@ -2014,6 +2102,15 @@ server
 server
   .route('/contracts')
   .get(getContracts);
+
+// IFRAME
+server
+  .route('/validateLogin')
+  .post(validateLogin);
+
+server
+  .route('/sendResetPasswordEmail')
+  .post(sendResetPasswordEmail);
 
 // TEST ROUTES
 server
