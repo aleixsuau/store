@@ -26,7 +26,7 @@ interface IMindBroClientContract {
 }
 
 interface IMindBroClientPaymentsConfig {
-  CVV: number;
+  CVV: string;
   cardId: string;
   cardToken: string;
   clientId?: string;
@@ -129,7 +129,7 @@ interface IClient {
   State?: string;
   Test?: string;
   WorkExtension?: string;
-  WorkPhone?: string
+  WorkPhone?: string;
   SendScheduleEmails?: boolean;
   SendAccountEmails?: boolean;
 }
@@ -143,7 +143,7 @@ interface IClientCreditCard {
   City?: string;
   PostalCode?: string;
   State?: string;
-  CVV?: number;
+  CVV?: string;
   paymentMethod?: string;
 }
 

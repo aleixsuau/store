@@ -31,4 +31,9 @@ export class IframeService {
                   .post(`${environment.firebase.functions_path}/sendResetPasswordEmail`, data)
                   .pipe(tap(() => this.notificationService.notify('Reset password email sent')));
   }
+
+  getRequiredFields() {
+    return this.httpClient
+                  .get(`${environment.firebase.functions_path}/requiredClientFields`);
+  }
 }

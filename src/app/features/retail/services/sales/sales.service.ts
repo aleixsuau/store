@@ -22,7 +22,7 @@ export class SalesService {
       contract,
       instantPayment,
       startDate,
-      seller: this.userService.getUser(),
+      seller: this.userService.getUser() || null,
     };
 
     return this.httpClient

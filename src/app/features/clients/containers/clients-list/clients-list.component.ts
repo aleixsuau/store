@@ -187,14 +187,14 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
             .subscribe(clients => this.resetClientsAndFlags(clients));
     } else if (this.clientForm.valid) {
       // Remove null credit card data (MindBody throws error)
-      if (this.clientForm.get('ClientCreditCard').pristine && !this.clientForm.get('ClientCreditCard.CVV').value) {
+      if ((this.clientForm.get('ClientCreditCard').pristine && !this.clientForm.get('ClientCreditCard.CVV').value) ||
+           !this.clientForm.get('ClientCreditCard.CardNumber').value) {
         clientModelToSave.ClientCreditCard = null;
       }
 
       this.clientsService
             .addClient(clientModelToSave)
             .pipe(switchMap(savedClient => {
-              console.log('savedClient', savedClient)
               this.clientBeingEdited = savedClient;
 
               if (!savedClient.ClientCreditCard) {
@@ -204,10 +204,6 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
                   ExpMonth: null,
                   CVV: null,
                 };
-              }
-
-              if (this.clientForm.get('ClientCreditCard.CardNumber').value) {
-                this.clientForm.get('ClientCreditCard').disable();
               }
 
               this.clientForm.reset(savedClient);
@@ -223,6 +219,10 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   resetClientsAndFlags(clients: IClientsResponse) {
     this.clients = clients.Clients;
     this.clientForm.markAsPristine();
+    if (this.clientForm.get('ClientCreditCard.CardNumber').value) {
+      this.clientForm.get('ClientCreditCard').disable();
+    }
+
     this.setTablePage(this.clients, 0, this.paginatorPageSize);
   }
 

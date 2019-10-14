@@ -1,6 +1,7 @@
-<div class="iframe_container">
-  <mat-vertical-stepper #stepper>
-    <mat-step [formGroup]="iframeForm.get('contract')">
+<div class="iframe_container"
+     [formGroup]="iframeForm">
+  <mat-vertical-stepper #stepper linear>
+    <mat-step [stepControl]="iframeForm.get('contract')">
       <ng-template matStepLabel>
         <div *ngIf="!iframeForm.get('contract').value">
           <h5>SELECT CONTRACT</h5>
@@ -12,8 +13,10 @@
              *ngIf="iframeForm.get('contract').value">
           <div fxFlex="0 0 20%"
               class="step1_header_image"
-              [ngStyle]="{ 'background-image': 'url(' + 'https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500' + ')',
-              'background-size': 'cover'}">
+              [ngStyle]="{
+                'background-image': 'url(' + 'https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500' + ')',
+                'background-size': 'cover'
+              }">
           </div>
 
           <div class="step1_header_name"
@@ -78,11 +81,18 @@
             fxLayoutAlign="space-around start"
             fxLayoutGap="0.3rem"
             class="step1">
+        <button mat-button
+                matStepperNext
+                [disabled]="iframeForm.get('contract').invalid">
+          Next Step
+        </button>
+
         <mat-card class="contract-card"
                   *ngFor="let contract of contracts"
                   fxFlex="1 1 30rem"
                   [ngClass]="{ selected_contract: iframeForm.get('contract')?.value?.Id === contract.Id }">
           <img mat-card-image src="https://material.angular.io/assets/img/examples/shiba2.jpg" alt="Photo of a Shiba Inu">
+
           <mat-card-content>
             <mat-card-title>{{ contract.Name }}</mat-card-title>
 
@@ -131,8 +141,7 @@
           </mat-card-content>
           <mat-card-actions align="end">
             <button mat-stroked-button
-                    (click)="iframeForm.get('contract').setValue(contract);
-                             stepper.next()">
+                    (click)="iframeForm.get('contract').setValue(contract)">
               <mat-icon>shopping_cart</mat-icon>
               PURCHASE
             </button>
@@ -141,10 +150,291 @@
       </div>
     </mat-step>
 
-    <mat-step>
+    <mat-step [stepControl]="iframeForm.get('personalDetails')">
+      <ng-template matStepLabel>
+        {{ activeClient?.FirstName }} {{ activeClient?.LastName }}
+      </ng-template>
 
-      <button mat-button matStepperPrevious>Back</button>
-      <button mat-button (click)="stepper.reset()">Reset</button>
+      <div fxLayout="row wrap"
+           fxLayoutAlign="center center"
+           formGroupName="personalDetails">
+        <mat-form-field fxFlex="1 1 100%">
+          <input type="text"
+                  placeholder="FirstName *"
+                  matInput
+                  formControlName="FirstName">
+
+          <mat-error *ngIf="iframeForm.get('personalDetails.FirstName').touched && iframeForm.get('personalDetails.FirstName').invalid">
+            Please insert the FirstName
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="1 1 100%"
+                        *ngIf="personalDetailsFormGroup.contains('MiddleName')">
+          <input type="text"
+                  placeholder="Middle Name *"
+                  matInput
+                  formControlName="MiddleName">
+
+          <mat-error *ngIf="iframeForm.get('personalDetails.MiddleName').touched && iframeForm.get('personalDetails.MiddleName').invalid">
+            Please insert the Middle Name
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="1 1 100%">
+          <input type="text"
+                  placeholder="LastName *"
+                  matInput
+                  formControlName="LastName">
+
+          <mat-error *ngIf="iframeForm.get('personalDetails.LastName').touched && iframeForm.get('personalDetails.LastName').invalid">
+            Please insert the LastName
+          </mat-error>
+        </mat-form-field>
+
+        <div fxFlex="1 1 100%"
+            class="row"
+            *ngIf="personalDetailsFormGroup.contains('IsMale')">
+          <label>Gender: </label>
+
+          <mat-radio-group formControlName="IsMale"
+                           fxLayoutAlign="start center"
+                           *ngIf="">
+            <mat-radio-button [value]="true"
+                              fxFlex="0 0 8rem">
+              Male
+            </mat-radio-button>
+            <mat-radio-button [value]="false"
+                              fxFlex="0 0 8rem">
+              Female
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        <mat-form-field fxFlex="1 1 100%"
+                        *ngIf="personalDetailsFormGroup.contains('BirthDate')">
+          <input matInput
+                [matDatepicker]="picker"
+                formControlName="BirthDate"
+                placeholder="Birth Date *"
+                automcomplete="off">
+
+          <mat-datepicker-toggle matPrefix [for]="picker"></mat-datepicker-toggle>
+
+          <mat-datepicker #picker></mat-datepicker>
+
+          <mat-error *ngIf="iframeForm.get('personalDetails.Email').touched && iframeForm.get('personalDetails.Email').invalid">
+            Please insert a Birth Date
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="1 1 100%"
+                        *ngIf="personalDetailsFormGroup.contains('Email')">
+          <input type="text"
+                  placeholder="Email *"
+                  matInput
+                  formControlName="Email">
+
+          <mat-icon matPrefix>email</mat-icon>
+
+          <mat-error *ngIf="iframeForm.get('personalDetails.Email').touched && iframeForm.get('personalDetails.Email').invalid">
+            Please insert a correct Email
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="1 1 100%"
+                        *ngIf="personalDetailsFormGroup.contains('MobilePhone')">
+          <input type="number"
+                  placeholder="Mobile Phone*"
+                  matInput
+                  formControlName="MobilePhone">
+
+          <mat-icon matPrefix>phone_android</mat-icon>
+
+          <mat-error *ngIf="iframeForm.get('personalDetails.MobilePhone').touched && iframeForm.get('personalDetails.MobilePhone').invalid">
+            Please insert the Mobile Phone
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="1 1 100%"
+                        *ngIf="personalDetailsFormGroup.contains('EmergContact')">
+          <input type="number"
+                  placeholder="Emergency Contact*"
+                  matInput
+                  formControlName="EmergContact">
+
+          <mat-icon matPrefix>phone_android</mat-icon>
+
+          <mat-error *ngIf="iframeForm.get('personalDetails.EmergContact').touched && iframeForm.get('personalDetails.EmergContact').invalid">
+            Please insert the Emergency Contact
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="1 1 100%"
+                        *ngIf="personalDetailsFormGroup.contains('HomePhone')">
+          <input type="number"
+                  placeholder="Home Phone*"
+                  matInput
+                  formControlName="HomePhone">
+
+          <mat-icon matPrefix>phone_android</mat-icon>
+
+          <mat-error *ngIf="iframeForm.get('personalDetails.HomePhone').touched && iframeForm.get('personalDetails.HomePhone').invalid">
+            Please insert the Home Phone
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="1 1 100%"
+                        *ngIf="personalDetailsFormGroup.contains('WorkPhone')">
+          <input type="number"
+                  placeholder="Work Phone*"
+                  matInput
+                  formControlName="WorkPhone">
+
+          <mat-icon matPrefix>phone_android</mat-icon>
+
+          <mat-error *ngIf="iframeForm.get('personalDetails.WorkPhone').touched && iframeForm.get('personalDetails.WorkPhone').invalid">
+            Please insert the Work Phone
+          </mat-error>
+        </mat-form-field>
+
+        <div fxLayout="row wrap">
+          <mat-form-field fxFlex="1 1 100%"
+                          *ngIf="personalDetailsFormGroup.contains('AddressLine1')">
+            <input type="text"
+                    placeholder="AddressLine1*"
+                    matInput
+                    formControlName="AddressLine1">
+
+            <mat-error *ngIf="iframeForm.get('personalDetails.AddressLine1').touched && iframeForm.get('personalDetails.AddressLine1').invalid">
+              Please insert the AddressLine1
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 100%"
+                          *ngIf="personalDetailsFormGroup.contains('City')">
+            <input type="text"
+                    placeholder="City*"
+                    matInput
+                    formControlName="City">
+
+            <mat-error *ngIf="iframeForm.get('personalDetails.City').touched && iframeForm.get('personalDetails.City').invalid">
+              Please insert the City
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 100%"
+                          *ngIf="personalDetailsFormGroup.contains('State')">
+            <input type="text"
+                    placeholder="State*"
+                    matInput
+                    formControlName="State">
+
+            <mat-error *ngIf="iframeForm.get('personalDetails.State').touched && iframeForm.get('personalDetails.State').invalid">
+              Please insert the State
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 100%"
+                          *ngIf="personalDetailsFormGroup.contains('PostalCode')">
+            <input type="text"
+                    placeholder="PostalCode*"
+                    matInput
+                    formControlName="PostalCode">
+
+            <mat-error *ngIf="iframeForm.get('personalDetails.PostalCode').touched && iframeForm.get('personalDetails.PostalCode').invalid">
+              Please insert the Postal Code
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field fxFlex="1 1 100%"
+                        *ngIf="personalDetailsFormGroup.contains('ReferredBy')">
+          <input type="text"
+                  placeholder="Referred By*"
+                  matInput
+                  formControlName="ReferredBy">
+
+          <mat-error *ngIf="iframeForm.get('personalDetails.ReferredBy').touched && iframeForm.get('personalDetails.ReferredBy').invalid">
+            Please insert the ReferredBy
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <button mat-button
+              matStepperNext
+              [disabled]="iframeForm.get('personalDetails').invalid"
+              (click)="addClient(iframeForm.get('personalDetails').value)">
+        Next Step
+      </button>
+    </mat-step>
+
+    <mat-step [stepControl]="iframeForm.get('ClientCreditCard')">
+      <div fxLayout="row wrap"
+            fxLayoutAlign="space-between center"
+            formGroupName="ClientCreditCard">
+        <mat-form-field fxFlex="1 1 100%">
+          <input  type="number"
+                  placeholder="Number*"
+                  matInput
+                  formControlName="CardNumber">
+
+          <mat-error *ngIf="iframeForm.get('ClientCreditCard.CardNumber').touched &&
+                            iframeForm.get('ClientCreditCard.CardNumber').invalid">
+            Please insert a valid Card Number
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="1 1 30%">
+          <mat-select placeholder="Expiration Month*"
+                      formControlName="ExpMonth">
+            <mat-option *ngFor="let month of months"
+                        [value]="month">
+              {{ month }}
+            </mat-option>
+          </mat-select>
+
+          <mat-error *ngIf="iframeForm.get('ClientCreditCard.ExpMonth').touched &&
+                            iframeForm.get('ClientCreditCard.ExpMonth').invalid">
+            Please insert a valid Expiration Month
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="1 1 30%">
+          <mat-select placeholder="Expiration Year*"
+                      formControlName="ExpYear">
+            <mat-option *ngFor="let year of years"
+                        [value]="year">
+              {{ year }}
+            </mat-option>
+          </mat-select>
+
+          <mat-error *ngIf="iframeForm.get('ClientCreditCard.ExpYear').touched &&
+                            iframeForm.get('ClientCreditCard.ExpYear').invalid">
+            Please insert an Expiration Year
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="1 1 30%"
+                        *ngIf="iframeForm.get('ClientCreditCard').enabled">
+          <input  type="number"
+                  placeholder="CVV*"
+                  matInput
+                  formControlName="CVV">
+
+          <mat-error *ngIf="iframeForm.get('ClientCreditCard.CVV').touched &&
+                            iframeForm.get('ClientCreditCard.CVV').invalid">
+            Please insert a valid CVV
+          </mat-error>
+        </mat-form-field>
+
+        <button mat-button
+                matStepperNext
+                [disabled]="iframeForm.get('ClientCreditCard').invalid"
+                (click)="sellContract(iframeForm.get('contract').value, activeClient, iframeForm.get('ClientCreditCard').value)">
+          PURCHASE CONTRACT
+        </button>
+      </div>
     </mat-step>
   </mat-vertical-stepper>
 </div>

@@ -4,7 +4,18 @@ import { CommonModule } from '@angular/common';
 import { IframeRoutingModule } from './iframe-routing.module';
 import { IframeComponent } from './containers/iframe/iframe.component';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import { MatCardModule, MatIconModule, MatButtonModule, MatTooltipModule, MatStepperModule } from '@angular/material';
+import {
+        MatCardModule,
+        MatIconModule,
+        MatButtonModule,
+        MatTooltipModule,
+        MatStepperModule,
+        MatFormFieldModule,
+        MatRadioModule,
+        MatDatepickerModule,
+        MatSelectModule,
+        MatInputModule
+      } from '@angular/material';
 import { ReactiveFormsModule } from '@angular/forms';
 import { PipesModule } from 'src/app/shared/pipes/pipes.module';
 
@@ -20,7 +31,12 @@ import { PipesModule } from 'src/app/shared/pipes/pipes.module';
     MatButtonModule,
     MatTooltipModule,
     MatStepperModule,
+    MatRadioModule,
+    MatDatepickerModule,
+    MatSelectModule,
+    MatInputModule,
     PipesModule,
+    MatFormFieldModule,
   ]
 })
 export class IframeModule { }

@@ -595,12 +595,12 @@ async function getAllClients(req: express.Request, res: express.Response) {
 async function addClient(req: express.Request, res: express.Response) {
   if (req.method === 'OPTIONS') { res.status(200).json() };
 
+  const siteId = req.header('siteId');
+  const token = req.header('Authorization');
   const client: IClient = {
     ...req.body.Client,
     date_created: new Date(),
   };
-  const siteId = req.header('siteId');
-  const token = req.header('Authorization');
   console.log('_addClient', client, siteId, token);
   //   1 - _createPaymentsConfig for this client (CVV, token...)(If he is
   //      saving a credit card, we create the credit card token before
@@ -609,12 +609,19 @@ async function addClient(req: express.Request, res: express.Response) {
   //   3 - Save client paymentsConfig (token, CVV...) to firebase under the
   //      user’s MB id.
 
+  // Turn CardNumber & CVV to string
+  if (client.ClientCreditCard && client.ClientCreditCard.CVV) {
+    client.ClientCreditCard.CVV = `${client.ClientCreditCard.CVV}`;
+    client.ClientCreditCard.CardNumber = `${client.ClientCreditCard.CardNumber}`;
+  }
+
   try {
     const appConfig = await _getAppConfig(siteId);
     const isSavingANewCreditCard = client.ClientCreditCard && client.ClientCreditCard.CVV;
     let paymentsConfig;
 
     if (isSavingANewCreditCard) {
+
       paymentsConfig = await _createPaymentsConfig(appConfig, client);
       console.log('paymentsConfig', paymentsConfig)
     }
@@ -665,13 +672,18 @@ async function updateClient(req: express.Request, res: express.Response) {
   const siteId = req.header('siteId');
   const token = req.header('Authorization');
 
-  console.log('_updateClient', clientId, client, siteId, token);
+  console.log('updateClient', clientId, client, siteId, token);
   //   1 - _createPaymentsConfig for this client (CVV, token...) (If he is
   //      saving a credit card, we create the credit card token before
   //      the user to avoid saving the user with an invalid credit card).
   //   2 - Save the client to MB and get his id
   //   3 - Save client paymentsConfig (token, CVV...) to firebase under the
   //      user’s MB id.
+  // Turn CardNumber & CVV to string
+  if (client.ClientCreditCard && client.ClientCreditCard.CVV) {
+    client.ClientCreditCard.CVV = `${client.ClientCreditCard.CVV}`;
+    client.ClientCreditCard.CardNumber = `${client.ClientCreditCard.CardNumber}`;
+  }
 
   // TODO: handle remove card when the user had a credit card and updates without credit card
   try {
@@ -683,6 +695,8 @@ async function updateClient(req: express.Request, res: express.Response) {
     if (isSavingANewCreditCard) {
       paymentsConfig = await _createPaymentsConfig(appConfig, client);
     }
+
+    console.log('updateClient 1: ', paymentsConfig, isSavingANewCreditCard, isDeletingCard, client);
 
     // Update the user on MindBody
     const config = {
@@ -698,6 +712,7 @@ async function updateClient(req: express.Request, res: express.Response) {
       CrossRegionalUpdate: false,
     };
     const updatedClientResponse = await httpClient.post(`${baseUrl}/client/updateclient?ClientIds=${clientId}`, updatedClient, config);
+    console.log('updatedClientResponse', updatedClientResponse)
 
     // If there was a credit card and it was saved properly,
     // now we have the client's MindBody id, so we can save his
@@ -882,9 +897,12 @@ async function _createMercadopagoPaymentsConfig(
 }
 
 async function _makePaymentWithMercadopago(contract: IContract, appConfig: IAppConfig, clientPaymentConfig: IMindBroClientPaymentsConfig, amount: number): Promise<IPayment> {
+  console.log('_makePaymentWithMercadopago', contract, clientPaymentConfig, amount, appConfig);
   const paymentsApiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
   const paymentsApiKey = appConfig.test ? appConfig.payments.gateaway.apiKey.test : appConfig.payments.gateaway.apiKey.production;
+  console.log('paymentsApiKey', paymentsApiKey, paymentsApiToken, `${appConfig.payments.gateaway.url}/card_tokens?public_key=${paymentsApiKey}`, typeof clientPaymentConfig.cardId, clientPaymentConfig.cardId, typeof clientPaymentConfig.CVV, clientPaymentConfig.CVV)
   const cardTokenResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/card_tokens?public_key=${paymentsApiKey}`, { card_id: clientPaymentConfig.cardId, security_code: clientPaymentConfig.CVV })
+  console.log('cardTokenResponse', cardTokenResponse)
   const cardToken = cardTokenResponse.data.id;
   // TODO: Cover the cases when the order is the first or last
   const mercadopagoOrder = {
@@ -1029,7 +1047,8 @@ async function addContract(req: express.Request, res: express.Response) {
   const startDate = req.body.startDate;
   const seller = req.body.seller || null;
 
-  console.log('addContract', siteId, token, clientId, contract);
+  console.log('addContract', siteId, token, clientId, instantPayment, startDate, seller, contract);
+
   try {
     const appConfig = await _getAppConfig(siteId);
     const contractCreationDate = new Date().toISOString();
@@ -1728,6 +1747,7 @@ async function _findOrderByStatus(appConfig: IAppConfig, contractId: string, cli
 
 async function _payOrder(contract: IContract, clientId: string, appConfig: IAppConfig, amount: number) {
   const clientPaymentConfig = await _getPaymentsConfig(appConfig, clientId);
+  console.log('_payOrder', _payOrder, clientPaymentConfig)
 
   if (clientPaymentConfig && clientPaymentConfig.cardId) {
     if (appConfig.payments.gateaway.name === 'mercadopago') {
@@ -1975,7 +1995,7 @@ async function validateLogin(req: express.Request, res: express.Response) {
     res.status(200).json(finalResponse);
   } catch (error) {
     console.log('validateLogin error', error)
-    res.status(500).json(error);
+    _handleServerErrors(error, res);
   }
 }
 
@@ -2003,12 +2023,34 @@ async function sendResetPasswordEmail(req: express.Request, res: express.Respons
       UserLastName,
     };
 
-    await httpClient.post(`https://api.mindbodyonline.com/public/v6/client/sendpasswordresetemail`, data, config);
+    await httpClient.post(`${baseUrl}/client/sendpasswordresetemail`, data, config);
 
     res.status(200).json('Reset password email sent');
   } catch (error) {
     console.log('sendResetPasswordEmail error', error)
-    res.status(500).json(error);
+    _handleServerErrors(error, res);
+  }
+}
+
+async function requiredClientFields(req: express.Request, res: express.Response) {
+  const siteId = req.header('siteId');
+  const token = req.header('Authorization');
+  const appConfig = await _getAppConfig(siteId);
+  const config = {
+    headers: {
+    'Api-Key': appConfig.apiKey,
+    'SiteId': siteId,
+    'Authorization': token,
+    }
+  };
+
+  try {
+    const requiredFields = await httpClient.get(`${baseUrl}/client/requiredclientfields`, config);
+    console.log('requiredFields', Object.keys(requiredFields), requiredFields.data.RequiredClientFields)
+
+    res.status(200).json(requiredFields.data.RequiredClientFields);
+  } catch (error) {
+    _handleServerErrors(error, res);
   }
 }
 
@@ -2111,6 +2153,10 @@ server
 server
   .route('/sendResetPasswordEmail')
   .post(sendResetPasswordEmail);
+
+server
+  .route('/requiredClientFields')
+  .get(requiredClientFields);
 
 // TEST ROUTES
 server

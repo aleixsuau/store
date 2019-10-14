@@ -33,7 +33,7 @@ interface IMindBroClientContract {
 }
 
 interface IMindBroClientPaymentsConfig {
-  CVV: number;
+  CVV: string;
   cardId: string;
   cardToken: string;
   clientId?: string;
@@ -150,7 +150,7 @@ interface IClientCreditCard {
   City?: string;
   PostalCode?: string;
   State?: string;
-  CVV?: number;
+  CVV?: string;
   paymentMethod?: string;
 }
 
