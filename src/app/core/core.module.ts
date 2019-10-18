@@ -35,6 +35,7 @@ import { ConfigGuard } from './guards/config-guard/config.guard';
     AuthModule,
     LoadingModule,
     ErrorsModule,
+    BrowserAnimationsModule,
   ]
 })
 export class CoreModule { }

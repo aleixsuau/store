@@ -1,22 +1,45 @@
 @import '../../../../../variables';
 
+.iframe_container {
+  padding-top: 1.5rem;
+  height: 100vh;
+}
+
 .contract-card {
   margin-bottom: 2rem;
 }
 
 .iframe_container {
-  background-color: $background-grey;
+  background: rgb(255,255,255);
+  background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(245,240,240,1) 84%);
+}
+
+.mat-stepper-vertical {
+  background: transparent;
+}
+
+.stepper_container {
+  max-width: 80rem;
+  margin: 0 auto;
 }
 
 .step1 {
   padding-top: 2rem;
+
+  &__cards-container {
+    overflow: scroll;
+  }
+
+  mat-card {
+    margin-right: 1.5rem;
+  }
 }
 
 .step1_header {
   border-radius: 0.4rem;
-  background-color: $background-grey;
   overflow: hidden;
-  padding-right: 1rem;
+  /* background-color: $background-grey;
+  padding-right: 1rem; */
 
   &_image {
     height: 7.2rem;
@@ -28,18 +51,30 @@
     }
   }
 
-  &_tags {
+  /* &_tags {
     color: $primary;
 
     mat-icon {
       color: $primary;
     }
-  }
+  } */
+}
+
+.personal_details {
+  margin-top: 2.4rem;
+}
+
+.credit_card_container {
+  margin-top: 1rem;
+  margin-bottom: 2rem;
 }
 
 .selected_contract {
-  // border: 0.3rem solid $primary;
-  box-shadow: 0px 0px 1px 4px $primary, 0 8px 0px 0px $primary, 0 0px 0px 0 $primary
+  box-shadow: 5px 5px 0px 1px $primary, 0 0px 0px 0px $primary, 0 0px 0px 0 $primary;
+}
+
+.purchase_contract_button {
+  padding-top: 1.5rem;
 }
 
 // Material overwrites
@@ -56,4 +91,19 @@ mat-card-subtitle .material-icons, .step1_header_tags .material-icons {
 :host ::ng-deep .mat-step-label {
   width: 100% !important;
 }
+
+.personal_details mat-icon {
+  font-size: 1.8rem !important;
+  margin-right: 0.4rem;
+  margin-left: 0.4rem;
+  vertical-align: sub;
+  color: $lighter-grey;
+}
+
+:host ::ng-deep {
+  .mat-step-label-active {
+    color: $primary !important;
+  }
+}
+
 

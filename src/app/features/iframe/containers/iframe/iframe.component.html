@@ -1,440 +1,582 @@
 <div class="iframe_container"
      [formGroup]="iframeForm">
-  <mat-vertical-stepper #stepper linear>
-    <mat-step [stepControl]="iframeForm.get('contract')">
-      <ng-template matStepLabel>
-        <div *ngIf="!iframeForm.get('contract').value">
-          <h5>SELECT CONTRACT</h5>
-        </div>
+  <div class="stepper_container">
+    <mat-vertical-stepper
+        linear
+        #stepper>
+      <mat-step [stepControl]="iframeForm.get('contract')">
+        <ng-template matStepLabel>
+          <h5 *ngIf="!iframeForm.get('contract')?.value">SELECT CONTRACT</h5>
 
-        <div class="step1_header"
-             fxLayoutAlign="start center"
-             fxLayoutGap="1rem"
-             *ngIf="iframeForm.get('contract').value">
-          <div fxFlex="0 0 20%"
-              class="step1_header_image"
-              [ngStyle]="{
-                'background-image': 'url(' + 'https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500' + ')',
-                'background-size': 'cover'
-              }">
-          </div>
+          <div class="step1_header"
+              fxLayoutAlign="space-between center"
+              fxLayoutGap="1rem"
+              *ngIf="iframeForm.get('contract')?.value">
+            <div fxFlex="0 0 20%"
+                class="step1_header_image"
+                [ngStyle]="{
+                  'background-image': 'url(' + 'https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500' + ')',
+                  'background-size': 'cover'
+                }"
+                *ngIf="iframeForm.get('contract').value?.image">
+            </div>
 
-          <div class="step1_header_name"
-               fxFlex="0 0 80%"
-               fxLayout="row wrap"
-               fxLayoutAlign="start center">
-            <p fxFlex="0 0 100%">
-              <strong>{{ iframeForm.get('contract').value?.Name | uppercase | truncate:35 }}</strong>
-            </p>
+            <div class="step1_header_name"
+                fxFlex="0 0 80%"
+                fxLayout="row wrap"
+                fxLayoutAlign="start center">
+              <p fxFlex="0 0 100%">
+                <strong>CONTRACT: {{ iframeForm.get('contract').value?.Name | uppercase }}</strong>
+              </p>
 
-            <div class="step1_header_tags"
-                  fxFlex="0 0 100%"
-                  fxLayoutAlign="start center"
-                  fxLayoutGap="1rem">
-              <div fxFlex="0 0 auto"
-                  fxLayoutAlign="start center"
-                  *ngIf="iframeForm.get('contract').value?.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays'"
-                  matTooltip="Duration"
-                  matTooltipPosition="left">
-                <mat-icon>calendar_today</mat-icon>
+              <div class="step1_header_tags"
+                    fxFlex="0 0 100%"
+                    fxLayoutAlign="start center"
+                    fxLayoutGap="1rem">
+                <div fxFlex="0 0 auto"
+                    fxLayoutAlign="start center"
+                    *ngIf="iframeForm.get('contract').value?.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays'"
+                    matTooltip="Duration"
+                    matTooltipPosition="left">
+                  <mat-icon>calendar_today</mat-icon>
 
-                {{ iframeForm.get('contract').value?.NumberOfAutopays }} x
-                {{ iframeForm.get('contract').value?.AutopaySchedule.FrequencyValue }}
-                {{
-                  iframeForm.get('contract').value?.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
-                    'weeks' : iframeForm.get('contract').value?.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
-                      'months' :
-                      'years'
-                }}
-              </div>
+                  {{ iframeForm.get('contract').value?.NumberOfAutopays }} x
+                  {{ iframeForm.get('contract').value?.AutopaySchedule.FrequencyValue }}
+                  {{
+                    iframeForm.get('contract').value?.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                      'weeks' : iframeForm.get('contract').value?.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                        'months' :
+                        'years'
+                  }}
+                </div>
 
-              <div fxFlex="0 0 auto"
-                  fxLayoutAlign="start center"
-                  matTooltip="Price per period"
-                  matTooltipPosition="left">
-                <mat-icon>attach_money</mat-icon>
+                <div fxFlex="0 0 auto"
+                    fxLayoutAlign="start center"
+                    matTooltip="Price per period"
+                    matTooltipPosition="left">
+                  <mat-icon>attach_money</mat-icon>
 
-                {{ iframeForm.get('contract').value?.RecurringPaymentAmountTotal }}
-              </div>
+                  {{ iframeForm.get('contract').value?.RecurringPaymentAmountTotal }}
+                </div>
 
-              <div fxFlex="0 0 auto"
-                  fxLayoutAlign="start center"
-                  matTooltip="Start"
-                  matTooltipPosition="left">
-                <mat-icon>timer</mat-icon>
+                <div fxFlex="0 0 auto"
+                    fxLayoutAlign="start center"
+                    matTooltip="Start"
+                    matTooltipPosition="left">
+                  <mat-icon>timer</mat-icon>
 
-                <span *ngIf="iframeForm.get('contract').value.ClientsChargedOn === 'OnSaleDate'">
-                  {{ getContractStart(iframeForm.get('contract').value) | date }}
-                </span>
-
-                <span *ngIf="iframeForm.get('contract').value.ClientsChargedOn !== 'OnSaleDate'">
-                  {{ getContractStart(iframeForm.get('contract').value, true) }}
-                </span>
+                  <div>
+                    {{ getContractStart(iframeForm.get('contract').value) | date:'M/d/yy' }}
+                  </div>
+                </div>
               </div>
             </div>
+
+            <div fxFlex="0 0 auto"
+                class="step_check"
+                *ngIf="iframeForm.get('contract').valid || iframeForm.get('contract').disabled">
+              <mat-icon color="accent">check</mat-icon>
+            </div>
+          </div>
+        </ng-template>
+
+        <div class="step1">
+          <div class="step1__cards-container">
+            <mat-card class="contract-card"
+                      *ngFor="let contract of selectableContracts"
+                      fxFlex="1 1 30rem"
+                      [ngClass]="{ selected_contract: iframeForm.get('contract')?.value?.Id === contract.Id }">
+
+
+              <img mat-card-image
+                    src="iframeForm.get('contract').value?.image"
+                    alt="Photo of a Shiba Inu"
+                    *ngIf="iframeForm.get('contract').value?.image">
+
+              <mat-card-content>
+                <mat-card-title>{{ contract.Name | uppercase }}</mat-card-title>
+
+                <p>{{ contract.Description }}</p>
+
+                <mat-card-subtitle>
+                  <div fxLayoutAlign="start center"
+                      *ngIf="contract.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays'"
+                      matTooltip="Duration"
+                      matTooltipPosition="left">
+                    <mat-icon>calendar_today</mat-icon>
+
+                    {{ contract.NumberOfAutopays }} periods of
+                    {{ contract.AutopaySchedule.FrequencyValue }}
+                    {{
+                      contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                        'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                          'months' :
+                          'years'
+                    }}
+                  </div>
+
+                  <div fxLayoutAlign="start center"
+                      matTooltip="Price per period"
+                      matTooltipPosition="left">
+                    <mat-icon>attach_money</mat-icon>
+
+                    {{ contract.RecurringPaymentAmountTotal }} every
+                    {{ contract.AutopaySchedule.FrequencyValue }}
+                    {{
+                      contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                        'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                          'months' :
+                          'years'
+                    }}
+                  </div>
+
+                  <div fxLayoutAlign="start center"
+                      matTooltip="Start"
+                      matTooltipPosition="left">
+                    <mat-icon>timer</mat-icon>
+
+                    {{ getContractStart(contract) }}
+                  </div>
+                </mat-card-subtitle>
+              </mat-card-content>
+              <mat-card-actions align="end">
+                <button mat-stroked-button
+                        (click)="iframeForm.get('contract').setValue(contract); iframeForm.get('contract').disable();"
+                        [disabled]="saleFinished"
+                        color="primary"
+                        *ngIf="iframeForm.get('contract').value?.Id !== contract.Id">
+                  <mat-icon>shopping_cart</mat-icon>
+                  SELECT CONTRACT
+                </button>
+
+                <button mat-flat-button
+                        (click)="iframeForm.get('contract').setValue(contract); iframeForm.get('contract').disable();"
+                        [disabled]="saleFinished"
+                        color="primary"
+                        *ngIf="iframeForm.get('contract').value?.Id === contract.Id">
+                  <mat-icon>shopping_cart</mat-icon>
+                  SELECTED CONTRACT
+                </button>
+              </mat-card-actions>
+            </mat-card>
           </div>
 
-        </div>
-      </ng-template>
+          <div fxLayoutAlign="center center"
+              *ngIf="showNoContractsMessage">
+              <h6>Sorry {{ activeClient?.FirstName }}, no contracts available for you at this moment.</h6>
+          </div>
 
-      <div fxLayout="row wrap"
-            fxLayoutAlign="space-around start"
-            fxLayoutGap="0.3rem"
-            class="step1">
-        <button mat-button
-                matStepperNext
-                [disabled]="iframeForm.get('contract').invalid">
-          Next Step
-        </button>
-
-        <mat-card class="contract-card"
-                  *ngFor="let contract of contracts"
-                  fxFlex="1 1 30rem"
-                  [ngClass]="{ selected_contract: iframeForm.get('contract')?.value?.Id === contract.Id }">
-          <img mat-card-image src="https://material.angular.io/assets/img/examples/shiba2.jpg" alt="Photo of a Shiba Inu">
-
-          <mat-card-content>
-            <mat-card-title>{{ contract.Name }}</mat-card-title>
-
-            <p>{{ contract.Description }}</p>
-
-            <mat-card-subtitle>
-              <div fxLayoutAlign="start center"
-                  *ngIf="contract.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays'"
-                  matTooltip="Duration"
-                  matTooltipPosition="left">
-                <mat-icon>calendar_today</mat-icon>
-
-                {{ contract.NumberOfAutopays }} periods of
-                {{ contract.AutopaySchedule.FrequencyValue }}
-                {{
-                  contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
-                    'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
-                      'months' :
-                      'years'
-                }}
-              </div>
-
-              <div fxLayoutAlign="start center"
-                  matTooltip="Start"
-                  matTooltipPosition="left">
-                <mat-icon>attach_money</mat-icon>
-
-                {{ contract.RecurringPaymentAmountTotal }} every
-                {{ contract.AutopaySchedule.FrequencyValue }}
-                {{
-                  contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
-                    'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
-                      'months' :
-                      'years'
-                }}
-              </div>
-
-              <div fxLayoutAlign="start center"
-                  matTooltip="Start"
-                  matTooltipPosition="left">
-                <mat-icon>timer</mat-icon>
-
-                {{ getContractStart(contract) }}
-              </div>
-            </mat-card-subtitle>
-          </mat-card-content>
-          <mat-card-actions align="end">
-            <button mat-stroked-button
-                    (click)="iframeForm.get('contract').setValue(contract)">
-              <mat-icon>shopping_cart</mat-icon>
-              PURCHASE
+          <div fxLayoutAlign="end center">
+            <button mat-raised-button
+                    matStepperNext
+                    [disabled]="iframeForm.get('contract').invalid || saleFinished"
+                    color="accent">
+              Next Step
             </button>
-          </mat-card-actions>
-        </mat-card>
-      </div>
-    </mat-step>
+          </div>
+        </div>
+      </mat-step>
 
-    <mat-step [stepControl]="iframeForm.get('personalDetails')">
-      <ng-template matStepLabel>
-        {{ activeClient?.FirstName }} {{ activeClient?.LastName }}
-      </ng-template>
+      <mat-step [stepControl]="iframeForm.get('personalDetails')">
+        <ng-template matStepLabel>
+          <div fxLayoutAlign="space-between center">
+            <h5 fxFlex="0 0 auto">
+              PERSONAL DETAILS
+              <span *ngIf="activeClient">
+                : {{ activeClient?.FirstName | uppercase }} ({{ activeClient?.Email }})
+              </span>
+            </h5>
 
-      <div fxLayout="row wrap"
-           fxLayoutAlign="center center"
-           formGroupName="personalDetails">
-        <mat-form-field fxFlex="1 1 100%">
-          <input type="text"
-                  placeholder="FirstName *"
-                  matInput
-                  formControlName="FirstName">
+            <div fxFlex="0 0 auto"
+                class="step_check"
+                *ngIf="iframeForm.get('personalDetails').valid || iframeForm.get('personalDetails').disabled">
+              <mat-icon color="accent">check</mat-icon>
+            </div>
+          </div>
+        </ng-template>
 
-          <mat-error *ngIf="iframeForm.get('personalDetails.FirstName').touched && iframeForm.get('personalDetails.FirstName').invalid">
-            Please insert the FirstName
-          </mat-error>
-        </mat-form-field>
+        <mat-tab-group [selectedIndex]="selectedTab">
+          <mat-tab [label]="activeClient ? 'USER DETAILS' : 'REGISTER'">
+            <div fxLayout="row wrap"
+                fxLayoutAlign="center center"
+                formGroupName="personalDetails"
+                class="personal_details">
+              <mat-form-field fxFlex="1 1 100%"
+                              *ngIf="personalDetailsFormGroup.contains('FirstName') || personalDetailsFormGroup.get('FirstName')?.value">
+                <input type="text"
+                        placeholder="FirstName *"
+                        matInput
+                        formControlName="FirstName">
 
-        <mat-form-field fxFlex="1 1 100%"
-                        *ngIf="personalDetailsFormGroup.contains('MiddleName')">
-          <input type="text"
-                  placeholder="Middle Name *"
-                  matInput
-                  formControlName="MiddleName">
+                <mat-error *ngIf="iframeForm.get('personalDetails.FirstName').touched && iframeForm.get('personalDetails.FirstName').invalid">
+                  Please insert the FirstName
+                </mat-error>
+              </mat-form-field>
 
-          <mat-error *ngIf="iframeForm.get('personalDetails.MiddleName').touched && iframeForm.get('personalDetails.MiddleName').invalid">
-            Please insert the Middle Name
-          </mat-error>
-        </mat-form-field>
+              <mat-form-field fxFlex="1 1 100%"
+                              *ngIf="personalDetailsFormGroup.contains('MiddleName') || personalDetailsFormGroup.get('MiddleName')?.value">
+                <input type="text"
+                        placeholder="Middle Name *"
+                        matInput
+                        formControlName="MiddleName">
 
-        <mat-form-field fxFlex="1 1 100%">
-          <input type="text"
-                  placeholder="LastName *"
-                  matInput
-                  formControlName="LastName">
+                <mat-error *ngIf="iframeForm.get('personalDetails.MiddleName').touched && iframeForm.get('personalDetails.MiddleName').invalid">
+                  Please insert the Middle Name
+                </mat-error>
+              </mat-form-field>
 
-          <mat-error *ngIf="iframeForm.get('personalDetails.LastName').touched && iframeForm.get('personalDetails.LastName').invalid">
-            Please insert the LastName
-          </mat-error>
-        </mat-form-field>
+              <mat-form-field fxFlex="1 1 100%"
+                              *ngIf="personalDetailsFormGroup.contains('LastName') || personalDetailsFormGroup.get('LastName')?.value">
+                <input type="text"
+                        placeholder="LastName *"
+                        matInput
+                        formControlName="LastName">
 
-        <div fxFlex="1 1 100%"
-            class="row"
-            *ngIf="personalDetailsFormGroup.contains('IsMale')">
-          <label>Gender: </label>
+                <mat-error *ngIf="iframeForm.get('personalDetails.LastName').touched && iframeForm.get('personalDetails.LastName').invalid">
+                  Please insert the LastName
+                </mat-error>
+              </mat-form-field>
 
-          <mat-radio-group formControlName="IsMale"
-                           fxLayoutAlign="start center"
-                           *ngIf="">
-            <mat-radio-button [value]="true"
-                              fxFlex="0 0 8rem">
-              Male
-            </mat-radio-button>
-            <mat-radio-button [value]="false"
-                              fxFlex="0 0 8rem">
-              Female
-            </mat-radio-button>
-          </mat-radio-group>
+              <div fxFlex="1 1 100%"
+                  class="row"
+                  *ngIf="personalDetailsFormGroup.contains('IsMale') || personalDetailsFormGroup.get('IsMale')?.value">
+                <label>Gender: </label>
+
+                <mat-radio-group formControlName="IsMale"
+                                fxLayoutAlign="start center"
+                                *ngIf="">
+                  <mat-radio-button [value]="true"
+                                    fxFlex="0 0 8rem">
+                    Male
+                  </mat-radio-button>
+                  <mat-radio-button [value]="false"
+                                    fxFlex="0 0 8rem">
+                    Female
+                  </mat-radio-button>
+                </mat-radio-group>
+              </div>
+
+              <mat-form-field fxFlex="1 1 100%"
+                              *ngIf="personalDetailsFormGroup.contains('BirthDate') || personalDetailsFormGroup.get('BirthDate')?.value">
+                <input matInput
+                      [matDatepicker]="picker"
+                      formControlName="BirthDate"
+                      placeholder="Birth Date *"
+                      automcomplete="off">
+
+                <mat-datepicker-toggle matPrefix [for]="picker"></mat-datepicker-toggle>
+
+                <mat-datepicker #picker></mat-datepicker>
+
+                <mat-error *ngIf="iframeForm.get('personalDetails.BirthDate').touched && iframeForm.get('personalDetails.BirthDate').invalid">
+                  Please insert a Birth Date
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field fxFlex="1 1 100%"
+                              *ngIf="personalDetailsFormGroup.contains('Email') || personalDetailsFormGroup.get('Email')?.value">
+                <input type="text"
+                        placeholder="Email *"
+                        matInput
+                        formControlName="Email">
+
+                <mat-icon matPrefix>email</mat-icon>
+
+                <mat-error *ngIf="iframeForm.get('personalDetails.Email').touched && iframeForm.get('personalDetails.Email').invalid">
+                  Please insert a correct Email
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field fxFlex="1 1 100%"
+                              *ngIf="personalDetailsFormGroup.contains('MobilePhone') || personalDetailsFormGroup.get('MobilePhone')?.value">
+                <input type="number"
+                        placeholder="Mobile Phone*"
+                        matInput
+                        formControlName="MobilePhone">
+
+                <mat-icon matPrefix>phone_android</mat-icon>
+
+                <mat-error *ngIf="iframeForm.get('personalDetails.MobilePhone').touched && iframeForm.get('personalDetails.MobilePhone').invalid">
+                  Please insert the Mobile Phone
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field fxFlex="1 1 100%"
+                              *ngIf="personalDetailsFormGroup.contains('EmergContact') || personalDetailsFormGroup.get('EmergContact')?.value">
+                <input type="number"
+                        placeholder="Emergency Contact*"
+                        matInput
+                        formControlName="EmergContact">
+
+                <mat-icon matPrefix>phone_android</mat-icon>
+
+                <mat-error *ngIf="iframeForm.get('personalDetails.EmergContact').touched && iframeForm.get('personalDetails.EmergContact').invalid">
+                  Please insert the Emergency Contact
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field fxFlex="1 1 100%"
+                              *ngIf="personalDetailsFormGroup.contains('HomePhone') || personalDetailsFormGroup.get('HomePhone')?.value">
+                <input type="number"
+                        placeholder="Home Phone*"
+                        matInput
+                        formControlName="HomePhone">
+
+                <mat-icon matPrefix>phone_android</mat-icon>
+
+                <mat-error *ngIf="iframeForm.get('personalDetails.HomePhone').touched && iframeForm.get('personalDetails.HomePhone').invalid">
+                  Please insert the Home Phone
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field fxFlex="1 1 100%"
+                              *ngIf="personalDetailsFormGroup.contains('WorkPhone') || personalDetailsFormGroup.get('WorkPhone')?.value">
+                <input type="number"
+                        placeholder="Work Phone*"
+                        matInput
+                        formControlName="WorkPhone">
+
+                <mat-icon matPrefix>phone_android</mat-icon>
+
+                <mat-error *ngIf="iframeForm.get('personalDetails.WorkPhone').touched && iframeForm.get('personalDetails.WorkPhone').invalid">
+                  Please insert the Work Phone
+                </mat-error>
+              </mat-form-field>
+
+              <div fxLayout="row wrap">
+                <mat-form-field fxFlex="1 1 100%"
+                                *ngIf="personalDetailsFormGroup.contains('AddressLine1') || personalDetailsFormGroup.get('AddressLine1')?.value">
+                  <input type="text"
+                          placeholder="AddressLine1*"
+                          matInput
+                          formControlName="AddressLine1">
+
+                  <mat-error *ngIf="iframeForm.get('personalDetails.AddressLine1').touched && iframeForm.get('personalDetails.AddressLine1').invalid">
+                    Please insert the AddressLine1
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field fxFlex="1 1 100%"
+                                *ngIf="personalDetailsFormGroup.contains('City') || personalDetailsFormGroup.get('City')?.value">
+                  <input type="text"
+                          placeholder="City*"
+                          matInput
+                          formControlName="City">
+
+                  <mat-error *ngIf="iframeForm.get('personalDetails.City').touched && iframeForm.get('personalDetails.City').invalid">
+                    Please insert the City
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field fxFlex="1 1 100%"
+                                *ngIf="personalDetailsFormGroup.contains('State') || personalDetailsFormGroup.get('State')?.value">
+                  <input type="text"
+                          placeholder="State*"
+                          matInput
+                          formControlName="State">
+
+                  <mat-error *ngIf="iframeForm.get('personalDetails.State').touched && iframeForm.get('personalDetails.State').invalid">
+                    Please insert the State
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field fxFlex="1 1 100%"
+                                *ngIf="personalDetailsFormGroup.contains('PostalCode') || personalDetailsFormGroup.get('PostalCode')?.value">
+                  <input type="text"
+                          placeholder="PostalCode*"
+                          matInput
+                          formControlName="PostalCode">
+
+                  <mat-error *ngIf="iframeForm.get('personalDetails.PostalCode').touched && iframeForm.get('personalDetails.PostalCode').invalid">
+                    Please insert the Postal Code
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <mat-form-field fxFlex="1 1 100%"
+                              *ngIf="personalDetailsFormGroup.contains('ReferredBy') || personalDetailsFormGroup.get('ReferredBy')?.value">
+                <input type="text"
+                        placeholder="Referred By*"
+                        matInput
+                        formControlName="ReferredBy">
+
+                <mat-error *ngIf="iframeForm.get('personalDetails.ReferredBy').touched && iframeForm.get('personalDetails.ReferredBy').invalid">
+                  Please insert the ReferredBy
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div fxLayoutAlign="end center">
+              <button mat-raised-button
+                      [disabled]="iframeForm.get('personalDetails').invalid || saleFinished"
+                      (click)="activeClient ? stepper.next() : addClient(iframeForm.get('personalDetails').value)"
+                      color="accent">
+                Next Step
+              </button>
+            </div>
+          </mat-tab>
+
+          <mat-tab label="LOGIN"
+                  *ngIf="!activeClient">
+            <app-login-widget mode="iframe"
+                              (loggedIn)="onLoggedIn($event)">
+            </app-login-widget>
+          </mat-tab>
+        </mat-tab-group>
+      </mat-step>
+
+      <mat-step [stepControl]="iframeForm.get('ClientCreditCard')">
+        <ng-template matStepLabel>
+          <div fxLayoutAlign="space-between center">
+            <h5 fxFlex="0 0 auto">
+              PAYMENT DETAILS
+              <span *ngIf="iframeForm.get('ClientCreditCard').disabled">
+              : {{ iframeForm.get('ClientCreditCard.CardNumber').value }}
+              </span>
+            </h5>
+
+            <div fxFlex="0 0 auto"
+                class="step_check"
+                *ngIf="iframeForm.get('ClientCreditCard')?.value?.CVV === '***' ?
+                          true :
+                          activeClient?.ClientCreditCard?.CVV ?
+                            true :
+                            false;">
+              <mat-icon color="accent">check</mat-icon>
+            </div>
+          </div>
+        </ng-template>
+
+        <div fxLayout="row wrap"
+              fxLayoutAlign="space-between center"
+              formGroupName="ClientCreditCard"
+              class="credit_card_container">
+
+          <mat-form-field fxFlex="1 1 100%"
+                          *ngIf="!iframeForm.get('ClientCreditCard').disabled">
+            <input  type="number"
+                    placeholder="Number*"
+                    matInput
+                    formControlName="CardNumber">
+
+            <mat-error *ngIf="iframeForm.get('ClientCreditCard.CardNumber').touched &&
+                              iframeForm.get('ClientCreditCard.CardNumber').invalid">
+              Please insert a valid Card Number
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 100%"
+                          *ngIf="iframeForm.get('ClientCreditCard').disabled">
+            <input  type="text"
+                    placeholder="Number"
+                    matInput
+                    formControlName="CardNumber"
+                    automcomplete="off">
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 30%">
+            <mat-select placeholder="Expiration Month*"
+                        formControlName="ExpMonth">
+              <mat-option *ngFor="let month of months"
+                          [value]="month">
+                {{ month }}
+              </mat-option>
+            </mat-select>
+
+            <mat-error *ngIf="iframeForm.get('ClientCreditCard.ExpMonth').touched &&
+                              iframeForm.get('ClientCreditCard.ExpMonth').invalid">
+              Please insert a valid Expiration Month
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 30%">
+            <mat-select placeholder="Expiration Year*"
+                        formControlName="ExpYear">
+              <mat-option *ngFor="let year of years"
+                          [value]="year">
+                {{ year }}
+              </mat-option>
+            </mat-select>
+
+            <mat-error *ngIf="iframeForm.get('ClientCreditCard.ExpYear').touched &&
+                              iframeForm.get('ClientCreditCard.ExpYear').invalid">
+              Please insert an Expiration Year
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 30%"
+                          *ngIf="iframeForm.get('ClientCreditCard').enabled">
+            <input  type="number"
+                    placeholder="CVV*"
+                    matInput
+                    formControlName="CVV">
+
+            <mat-error *ngIf="iframeForm.get('ClientCreditCard.CVV').touched &&
+                              iframeForm.get('ClientCreditCard.CVV').invalid">
+              Please insert a valid CVV
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field fxFlex="1 1 30%"
+                          *ngIf="iframeForm.get('ClientCreditCard').disabled">
+            <input  type="text"
+                    placeholder="CVV"
+                    value="***"
+                    matInput
+                    automcomplete="off"
+                    disabled>
+          </mat-form-field>
         </div>
 
-        <mat-form-field fxFlex="1 1 100%"
-                        *ngIf="personalDetailsFormGroup.contains('BirthDate')">
-          <input matInput
-                [matDatepicker]="picker"
-                formControlName="BirthDate"
-                placeholder="Birth Date *"
-                automcomplete="off">
+        <div fxLayoutAlign="end center">
+          <button mat-raised-button
+                  (click)="iframeForm.get('ClientCreditCard').value?.CVV === '***' ?
+                            stepper.next() :
+                            updateClient(activeClient, iframeForm.get('ClientCreditCard').value)"
+                  [disabled]="saleFinished"
+                  color="accent">
+            NEXT STEP
+          </button>
+        </div>
+      </mat-step>
 
-          <mat-datepicker-toggle matPrefix [for]="picker"></mat-datepicker-toggle>
+      <mat-step>
+        <ng-template matStepLabel>
+          <div fxLayoutAlign="space-between center">
+            <h5 *ngIf="saleFinished" fxFlex="0 0 auto">PURCHASE DONE</h5>
+            <h5 *ngIf="!saleFinished">PURCHASE</h5>
 
-          <mat-datepicker #picker></mat-datepicker>
+            <div fxFlex="0 0 auto"
+                class="step_check"
+                *ngIf="saleFinished">
+              <mat-icon color="accent">check</mat-icon>
+            </div>
+          </div>
+        </ng-template>
 
-          <mat-error *ngIf="iframeForm.get('personalDetails.Email').touched && iframeForm.get('personalDetails.Email').invalid">
-            Please insert a Birth Date
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field fxFlex="1 1 100%"
-                        *ngIf="personalDetailsFormGroup.contains('Email')">
-          <input type="text"
-                  placeholder="Email *"
-                  matInput
-                  formControlName="Email">
-
-          <mat-icon matPrefix>email</mat-icon>
-
-          <mat-error *ngIf="iframeForm.get('personalDetails.Email').touched && iframeForm.get('personalDetails.Email').invalid">
-            Please insert a correct Email
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field fxFlex="1 1 100%"
-                        *ngIf="personalDetailsFormGroup.contains('MobilePhone')">
-          <input type="number"
-                  placeholder="Mobile Phone*"
-                  matInput
-                  formControlName="MobilePhone">
-
-          <mat-icon matPrefix>phone_android</mat-icon>
-
-          <mat-error *ngIf="iframeForm.get('personalDetails.MobilePhone').touched && iframeForm.get('personalDetails.MobilePhone').invalid">
-            Please insert the Mobile Phone
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field fxFlex="1 1 100%"
-                        *ngIf="personalDetailsFormGroup.contains('EmergContact')">
-          <input type="number"
-                  placeholder="Emergency Contact*"
-                  matInput
-                  formControlName="EmergContact">
-
-          <mat-icon matPrefix>phone_android</mat-icon>
-
-          <mat-error *ngIf="iframeForm.get('personalDetails.EmergContact').touched && iframeForm.get('personalDetails.EmergContact').invalid">
-            Please insert the Emergency Contact
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field fxFlex="1 1 100%"
-                        *ngIf="personalDetailsFormGroup.contains('HomePhone')">
-          <input type="number"
-                  placeholder="Home Phone*"
-                  matInput
-                  formControlName="HomePhone">
-
-          <mat-icon matPrefix>phone_android</mat-icon>
-
-          <mat-error *ngIf="iframeForm.get('personalDetails.HomePhone').touched && iframeForm.get('personalDetails.HomePhone').invalid">
-            Please insert the Home Phone
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field fxFlex="1 1 100%"
-                        *ngIf="personalDetailsFormGroup.contains('WorkPhone')">
-          <input type="number"
-                  placeholder="Work Phone*"
-                  matInput
-                  formControlName="WorkPhone">
-
-          <mat-icon matPrefix>phone_android</mat-icon>
-
-          <mat-error *ngIf="iframeForm.get('personalDetails.WorkPhone').touched && iframeForm.get('personalDetails.WorkPhone').invalid">
-            Please insert the Work Phone
-          </mat-error>
-        </mat-form-field>
-
-        <div fxLayout="row wrap">
-          <mat-form-field fxFlex="1 1 100%"
-                          *ngIf="personalDetailsFormGroup.contains('AddressLine1')">
-            <input type="text"
-                    placeholder="AddressLine1*"
-                    matInput
-                    formControlName="AddressLine1">
-
-            <mat-error *ngIf="iframeForm.get('personalDetails.AddressLine1').touched && iframeForm.get('personalDetails.AddressLine1').invalid">
-              Please insert the AddressLine1
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field fxFlex="1 1 100%"
-                          *ngIf="personalDetailsFormGroup.contains('City')">
-            <input type="text"
-                    placeholder="City*"
-                    matInput
-                    formControlName="City">
-
-            <mat-error *ngIf="iframeForm.get('personalDetails.City').touched && iframeForm.get('personalDetails.City').invalid">
-              Please insert the City
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field fxFlex="1 1 100%"
-                          *ngIf="personalDetailsFormGroup.contains('State')">
-            <input type="text"
-                    placeholder="State*"
-                    matInput
-                    formControlName="State">
-
-            <mat-error *ngIf="iframeForm.get('personalDetails.State').touched && iframeForm.get('personalDetails.State').invalid">
-              Please insert the State
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field fxFlex="1 1 100%"
-                          *ngIf="personalDetailsFormGroup.contains('PostalCode')">
-            <input type="text"
-                    placeholder="PostalCode*"
-                    matInput
-                    formControlName="PostalCode">
-
-            <mat-error *ngIf="iframeForm.get('personalDetails.PostalCode').touched && iframeForm.get('personalDetails.PostalCode').invalid">
-              Please insert the Postal Code
-            </mat-error>
-          </mat-form-field>
+        <div fxLayoutAlign="center center"
+            class="purchase_contract_button">
+          <button mat-raised-button
+                  [disabled]="purchaseButtonDisabled || iframeForm.invalid"
+                  *ngIf="!saleFinished"
+                  color="accent"
+                  (click)="sellContract(iframeForm.get('contract').value, activeClient); purchaseButtonDisabled = true;">
+            PURCHASE CONTRACT
+          </button>
         </div>
 
-        <mat-form-field fxFlex="1 1 100%"
-                        *ngIf="personalDetailsFormGroup.contains('ReferredBy')">
-          <input type="text"
-                  placeholder="Referred By*"
-                  matInput
-                  formControlName="ReferredBy">
+        <div *ngIf="saleFinished"
+            fxLayoutAlign="center center">
+          <p>Thanks for buying {{ iframeForm.get('contract').value?.Name }}</p>
+        </div>
 
-          <mat-error *ngIf="iframeForm.get('personalDetails.ReferredBy').touched && iframeForm.get('personalDetails.ReferredBy').invalid">
-            Please insert the ReferredBy
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <button mat-button
-              matStepperNext
-              [disabled]="iframeForm.get('personalDetails').invalid"
-              (click)="addClient(iframeForm.get('personalDetails').value)">
-        Next Step
-      </button>
-    </mat-step>
-
-    <mat-step [stepControl]="iframeForm.get('ClientCreditCard')">
-      <div fxLayout="row wrap"
-            fxLayoutAlign="space-between center"
-            formGroupName="ClientCreditCard">
-        <mat-form-field fxFlex="1 1 100%">
-          <input  type="number"
-                  placeholder="Number*"
-                  matInput
-                  formControlName="CardNumber">
-
-          <mat-error *ngIf="iframeForm.get('ClientCreditCard.CardNumber').touched &&
-                            iframeForm.get('ClientCreditCard.CardNumber').invalid">
-            Please insert a valid Card Number
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field fxFlex="1 1 30%">
-          <mat-select placeholder="Expiration Month*"
-                      formControlName="ExpMonth">
-            <mat-option *ngFor="let month of months"
-                        [value]="month">
-              {{ month }}
-            </mat-option>
-          </mat-select>
-
-          <mat-error *ngIf="iframeForm.get('ClientCreditCard.ExpMonth').touched &&
-                            iframeForm.get('ClientCreditCard.ExpMonth').invalid">
-            Please insert a valid Expiration Month
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field fxFlex="1 1 30%">
-          <mat-select placeholder="Expiration Year*"
-                      formControlName="ExpYear">
-            <mat-option *ngFor="let year of years"
-                        [value]="year">
-              {{ year }}
-            </mat-option>
-          </mat-select>
-
-          <mat-error *ngIf="iframeForm.get('ClientCreditCard.ExpYear').touched &&
-                            iframeForm.get('ClientCreditCard.ExpYear').invalid">
-            Please insert an Expiration Year
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field fxFlex="1 1 30%"
-                        *ngIf="iframeForm.get('ClientCreditCard').enabled">
-          <input  type="number"
-                  placeholder="CVV*"
-                  matInput
-                  formControlName="CVV">
-
-          <mat-error *ngIf="iframeForm.get('ClientCreditCard.CVV').touched &&
-                            iframeForm.get('ClientCreditCard.CVV').invalid">
-            Please insert a valid CVV
-          </mat-error>
-        </mat-form-field>
-
-        <button mat-button
-                matStepperNext
-                [disabled]="iframeForm.get('ClientCreditCard').invalid"
-                (click)="sellContract(iframeForm.get('contract').value, activeClient, iframeForm.get('ClientCreditCard').value)">
-          PURCHASE CONTRACT
-        </button>
-      </div>
-    </mat-step>
-  </mat-vertical-stepper>
+        <div *ngIf="saleFinished && iframeForm.get('ClientCreditCard').value?.CVV !== '***'"
+            fxLayoutAlign="center center">
+          <p>
+            IMPORTANT: We have sent you an email to setup your password. You'll need it in order to login and book classes and appointments online. Thanks!
+          </p>
+        </div>
+      </mat-step>
+    </mat-vertical-stepper>
+  </div>
 </div>

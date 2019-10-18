@@ -51,7 +51,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   filterClient: IClient;
   selectedOrder: IOrder;
   dialogRef: MatDialogRef<TemplateRef<any>>;
-  user$: Observable<IUser>;
+  user$: Observable<IUser | IClient>;
   testEnvironment: boolean;
 
   @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;

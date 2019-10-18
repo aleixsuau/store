@@ -10,7 +10,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./base.component.scss']
 })
 export class BaseComponent implements OnInit {
-  user$: Observable<IUser>;
+  user$: Observable<IUser | IClient>;
   showUserMenu = false;
   navLinks = [
     { path: 'clients', label: 'clients', icon: 'people' },

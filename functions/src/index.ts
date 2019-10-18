@@ -576,21 +576,27 @@ async function getAllClients(req: express.Request, res: express.Response) {
 
   try {
     const appConfig = await _getAppConfig(siteId);
-    const url = `${baseUrl}/client/clients?${limit || 200}&offset=${offset || 0}${searchText ? `&SearchText=${searchText}` : ''}`;
-    const config = {
-      headers: {
-      'Api-Key': appConfig.apiKey,
-      'SiteId': siteId,
-      'Authorization': token,
-      }
-    };
-    const clientsResponse = await httpClient.get(url, config);
+    const clientsResponse = await _getAllClients(appConfig.apiKey, siteId, token, searchText, limit, offset);
 
     res.status(clientsResponse.status).json(clientsResponse.data);
   } catch(error) {
     _handleServerErrors(error, res);
   }
 };
+
+async function _getAllClients(apiKey: string, siteId: string, token: string, searchText?: string, limit?: string, offset?: string) {
+  const url = `${baseUrl}/client/clients?${limit || 200}&offset=${offset || 0}${searchText ? `&SearchText=${searchText}` : ''}`;
+  const config = {
+    headers: {
+    'Api-Key': apiKey,
+    'SiteId': siteId,
+    'Authorization': token,
+    }
+  };
+  const clientsResponse = await httpClient.get(url, config);
+
+  return clientsResponse;
+}
 
 async function addClient(req: express.Request, res: express.Response) {
   if (req.method === 'OPTIONS') { res.status(200).json() };
@@ -761,7 +767,10 @@ async function getClientContracts(req: express.Request, res: express.Response) {
   try {
     const clientContractsResponse = await DDBB.doc(`business/${siteId}/clients/${clientId}`).get();
     console.log('clientContractsResponse', clientContractsResponse.data());
-    const clientContracts = Object.values(clientContractsResponse.data().contracts).map((clientContract: any) => clientContract.Id);
+    const clientContracts = clientContractsResponse.data() &&
+                            Object
+                              .values(clientContractsResponse.data().contracts)
+                              .map((clientContract: any) => clientContract.Id);
     let clientContractsData: IMindBroClientContract[] = [];
     console.log('clientContracts', clientContracts);
 
@@ -1124,6 +1133,8 @@ async function addContract(req: express.Request, res: express.Response) {
 }
 
 async function getContracts(req: express.Request, res: express.Response) {
+  // IMPORTANT: We have to return the contracts without auth because the
+  // iframe IContracts select is not secured
   // TODO: Replace this mock with the call to MindBody
   if (req.method === 'OPTIONS') { res.status(200).json() };
 
@@ -1847,7 +1858,11 @@ function _getLastAutopayDate(contract: IContract, dateFrom?: moment.Moment, appC
   const lastAutopayDate = nextAutopayDate.subtract(frequencyValue, <moment.unitOfTime.DurationConstructor>frequencyTimeUnit);
 
   console.log('lastAutopayDate', lastAutopayDate);
-  return lastAutopayDate;
+  if (lastAutopayDate.isValid()) {
+    return lastAutopayDate;
+  } else {
+    throw new CustomError('Invalid Date', 500);
+  }
 }
 
 function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig, skipToday?: boolean): moment.Moment {
@@ -1872,7 +1887,7 @@ function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig, skip
       break;
 
     case 'FifteenthOfTheMonth':
-      firstAutopayDate = fifteen
+      firstAutopayDate = fifteen;
       break;
 
     case 'LastDayOfTheMonth':
@@ -1910,8 +1925,12 @@ function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig, skip
       firstAutopayDate = today;
   }
 
-  console.log('firstAutopayDate', firstAutopayDate)
-  return firstAutopayDate;
+  console.log('firstAutopayDate', firstAutopayDate, firstAutopayDate.isValid())
+  if (firstAutopayDate.isValid()) {
+    return firstAutopayDate;
+  } else {
+    throw new CustomError('Invalid Date', 500);
+  }
 }
 
 /* function _getAutopayDates(contract: IContract, date_created: string) {
@@ -1978,23 +1997,32 @@ async function validateLogin(req: express.Request, res: express.Response) {
 
   try {
     const validateLoginSoap = await httpClient.post('https://api.mindbodyonline.com/0_5_1/ClientService.asmx', message, config);
-    console.log('soapResponse', Object.keys(validateLoginSoap), validateLoginSoap.data, validateLoginSoap)
-
     const validateLoginJSON = parser.parse(validateLoginSoap.data);
     const validateLoginResponse = validateLoginJSON &&
                                     validateLoginJSON['soap:Envelope']['soap:Body'].ValidateLoginResponse.ValidateLoginResult;
     console.log('validateLoginResponse', validateLoginResponse, validateLoginJSON['soap:Envelope']['soap:Body'].ValidateLoginResponse);
 
-    const finalResponse = {
+    let finalResponse = {
       status: validateLoginResponse.Status,
       code: validateLoginResponse.ErrorCode,
       message: validateLoginResponse.Message,
       client: validateLoginResponse.Client,
     }
 
-    res.status(200).json(finalResponse);
+    if (validateLoginResponse.Client) {
+      const clientSearchResults = await _getAllClients(appConfig.apiKey, siteId, token, validateLoginResponse.Client.ID);
+
+      finalResponse = {
+        ...finalResponse,
+        client: clientSearchResults.data.Clients[0],
+      };
+    }
+
+    console.log('validateLogin finalResponse', finalResponse)
+
+    res.status(finalResponse.code).json(finalResponse);
   } catch (error) {
-    console.log('validateLogin error', error)
+    console.log('validateLogin error', error);
     _handleServerErrors(error, res);
   }
 }
@@ -2004,11 +2032,25 @@ async function sendResetPasswordEmail(req: express.Request, res: express.Respons
   const token = req.header('Authorization');
   const appConfig = await _getAppConfig(siteId);
   const UserEmail = req.body.UserEmail;
-  const UserFirstName = req.body.UserFirstName;
-  const UserLastName = req.body.UserLastName;
+  let UserFirstName = req.body.UserFirstName;
+  let UserLastName = req.body.UserLastName;
   console.log('sendResetPasswordEmail', UserEmail, UserFirstName, UserLastName);
 
   try {
+    if (!UserFirstName || !UserLastName) {
+      const clientResponse = await _getAllClients(appConfig.apiKey, siteId, token, UserEmail);
+      console.log('sendResetPasswordEmail clientResponse', clientResponse.data)
+      const client = clientResponse.data.Clients[0];
+
+      if (!client) {
+        res.status(404).json('No user found with this email');
+        return;
+      }
+
+      UserFirstName = UserFirstName || client.FirstName;
+      UserLastName = UserLastName || client.LastName;
+    }
+
     const config = {
       headers: {
       'Api-Key': appConfig.apiKey,
@@ -2023,7 +2065,8 @@ async function sendResetPasswordEmail(req: express.Request, res: express.Respons
       UserLastName,
     };
 
-    await httpClient.post(`${baseUrl}/client/sendpasswordresetemail`, data, config);
+    const resetPasswordResponse = await httpClient.post(`${baseUrl}/client/sendpasswordresetemail`, data, config);
+    console.log('resetPasswordResponse', Object.keys(resetPasswordResponse), resetPasswordResponse.data);
 
     res.status(200).json('Reset password email sent');
   } catch (error) {
@@ -2125,7 +2168,7 @@ server
 server
   .route('/clients/:id/contracts')
   .post(addContract)
-  .get(getClientContracts)
+  .get(getClientContracts);
 
 server
   .route('/clients/:id/contracts/:contractId')

@@ -72,6 +72,7 @@ interface IAppConfig {
 
 interface IClient {
   Id?: string;
+  ID?: string;
   UniqueId?: number;
   AddressLine1?: string;
   AddressLine2?: string;

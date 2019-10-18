@@ -10,7 +10,7 @@ export class NotificationService {
     // You can use .success/.error for success/error(styles.css)
     // or pass other classes to the notification methods
     panelClass: 'success',
-    horizontalPosition: 'right',
+    horizontalPosition: 'center',
     verticalPosition: 'top',
     duration: 6000,
   };

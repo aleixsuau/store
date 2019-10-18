@@ -3,13 +3,15 @@
       'background-image': 'url(' + (appConfig$ | async)?.customization.backgroundImage + ')',
       'background-size': 'cover',
       'background-position': 'center',
-      'filter': loginMouseEnter ? 'blur(10px)' : null
-    }">
+      'filter': loginMouseEnter ? 'blur(4px)' : null
+    }"
+    @fade>
 </div>
 
 <div fxLayout
      fxLayoutAlign="center center"
-     style="height: 100vh;">
+     style="height: 100vh;"
+     @fade>
   <div class="login"
        (mouseenter)="loginMouseEnter = true;"
        (mouseleave)="loginMouseEnter = false;">
@@ -17,38 +19,8 @@
       <h2>MINDBRO</h2>
     </div>
 
-    <form [formGroup]="loginForm" fxLayout="column" novalidate>
-      <div class="login-content" fxLayout="column" fxLayoutAlign="start stretch">
-          <mat-form-field>
-            <input matInput
-                   formControlName="username"
-                   type="email"
-                   placeholder="Username"
-                   fxFlex="100">
-          </mat-form-field>
-
-          <mat-form-field>
-            <input matInput
-                  formControlName="password"
-                  type="password"
-                  (keyup.enter)="login(loginForm.get('username').value, loginForm.get('password').value, loginForm.get('keepMeLoggedIn').value)"
-                  placeholder="Password"
-                  fxFlex="100">
-          </mat-form-field>
-
-          <mat-checkbox formControlName="keepMeLoggedIn"
-                        class="keep_me_logged">
-            <small>Keep me logged in</small>
-          </mat-checkbox>
-
-          <button mat-raised-button
-                  color="primary"
-                  type="button"
-                  (click)="login(loginForm.get('username').value, loginForm.get('password').value, loginForm.get('keepMeLoggedIn').value)"
-                  [disabled]="loginForm.invalid || invalidErrorMessage">
-            login
-          </button>
-      </div>
-    </form>
+    <app-login-widget mode="admin"
+                      (loggedIn)="redirectToLogin()">
+    </app-login-widget>
   </div>
 </div>

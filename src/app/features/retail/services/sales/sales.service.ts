@@ -1,6 +1,6 @@
 import { UserService } from './../../../../core/services/user/user.service';
 import { environment } from 'src/environments/environment';
-import { Injectable } from '@angular/core';
+import { Injectable, Type } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NotificationService } from 'src/app/core/services/notification/notification.service';
 import { tap } from 'rxjs/operators';
@@ -18,11 +18,13 @@ export class SalesService {
   ) { }
 
   sellContract(contract: IContract, client: IClient, instantPayment: boolean, startDate?: string) {
+    const user = this.userService.getUser();
+    const userIsAnAdmin = user && user['Type'];
     const dataToSend = {
       contract,
       instantPayment,
       startDate,
-      seller: this.userService.getUser() || null,
+      seller: userIsAnAdmin ? user : null,
     };
 
     return this.httpClient

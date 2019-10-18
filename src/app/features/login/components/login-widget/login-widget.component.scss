@@ -1,0 +1,46 @@
+@import '../../../../../variables';
+
+.login-content {
+    padding: 2.4rem 4.2rem 4.2rem;
+
+    mat-form-field {
+      width: 100%;
+      margin: 0.6rem 0;
+    }
+
+    .extra-options {
+      margin: 1.6rem 0 3.2rem;
+
+      .remember-me {
+        color: #777;
+      }
+    }
+
+    a {
+      text-decoration: none;
+      color: #2196F3;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .note {
+      color: #777;
+      margin: 2.4rem 0 0;
+      text-align: center;
+    }
+
+    .keep_me_logged {
+      margin-bottom: 2rem;
+    }
+
+    .login-error {
+      color: $warn;
+      text-align: center;
+    }
+
+    .forgot_password {
+      margin-top: 2rem !important;
+    }
+  }

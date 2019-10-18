@@ -1,3 +1,4 @@
+import { NotificationService } from './../../services/notification/notification.service';
 import { UserService } from '../../services/user/user.service';
 import { ConfigService } from './../../config/service/config.service';
 import { environment } from './../../../../environments/environment';
@@ -5,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable,  } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 /**
  * AUTH SYSTEM EXPLANATION:
@@ -46,6 +47,7 @@ export class AuthService {
     private router: Router,
     private configService: ConfigService,
     private userService: UserService,
+    private notificationService: NotificationService,
   ) {}
 
   login(username: string, password: string, keepMeLoggedIn: boolean): Observable<IAuthData> {
@@ -86,5 +88,28 @@ export class AuthService {
   deleteToken() {
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
+  }
+
+  // Validate the login of a user against Mindbody (iframe)
+  validateLogin(username: string, password: string, keepMeLoggedIn?: boolean): Observable<IClient> {
+    return this.httpClient
+                  .post(`${environment.firebase.functions_path}/validateLogin`, { username, password })
+                  .pipe(map((response: any) => {
+                    this.userService.setUser(response.client);
+
+                    return response.client;
+                  }));
+  }
+
+  sendResetPasswordEmail(userEmail: string, userFirstName?: string, userLastName?: string) {
+    const data = {
+      UserEmail: userEmail,
+      UserFirstName: userFirstName,
+      UserLastName: userLastName,
+    };
+
+    return this.httpClient
+                  .post(`${environment.firebase.functions_path}/sendResetPasswordEmail`, data)
+                  .pipe(tap(() => this.notificationService.notify(`Reset password email sent to ${userEmail}`)));
   }
 }

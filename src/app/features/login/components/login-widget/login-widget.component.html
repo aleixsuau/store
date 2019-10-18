@@ -1,0 +1,59 @@
+<form [formGroup]="loginForm" fxLayout="column" novalidate>
+  <div class="login-content" fxLayout="column" fxLayoutAlign="start stretch">
+    <div *ngIf="loginError"
+         class="login-error">
+      <p>Username and password doesn't match</p>
+    </div>
+
+    <mat-form-field>
+      <input matInput
+              formControlName="username"
+              type="email"
+              placeholder="Email or Username"
+              fxFlex="100">
+
+      <mat-error *ngIf="loginForm.get('username').hasError('required')">
+        Please insert your email or username
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="!resetPassword">
+      <input matInput
+            formControlName="password"
+            type="password"
+            (keyup.enter)="loginForm.valid && login(loginForm.get('username').value, loginForm.get('password').value, loginForm.get('keepMeLoggedIn').value)"
+            placeholder="Password"
+            fxFlex="100">
+
+        <mat-error *ngIf="loginForm.get('password').hasError('required')">
+          Please insert your password
+        </mat-error>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="keepMeLoggedIn"
+                  class="keep_me_logged"
+                  *ngIf="mode !== 'iframe'">
+      <small>Keep me logged in</small>
+    </mat-checkbox>
+
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="login(loginForm.get('username').value, loginForm.get('password').value, loginForm.get('keepMeLoggedIn').value)"
+            [disabled]="loginForm.invalid || invalidErrorMessage"
+            *ngIf="!resetPassword">
+      LOGIN
+    </button>
+
+    <div *ngIf="mode === 'iframe'"
+        fxLayoutAlign="end center"
+        class="forgot_password">
+      <button mat-button
+              type="button"
+              color="accent"
+              (click)="sendResetPasswordEmail(loginForm.get('username').value)">
+        Reset password
+      </button>
+    </div>
+  </div>
+</form>

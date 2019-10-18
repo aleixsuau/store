@@ -14,10 +14,12 @@ import {
         MatRadioModule,
         MatDatepickerModule,
         MatSelectModule,
-        MatInputModule
+        MatInputModule,
+        MatTabsModule
       } from '@angular/material';
 import { ReactiveFormsModule } from '@angular/forms';
 import { PipesModule } from 'src/app/shared/pipes/pipes.module';
+import { LoginModule } from '../login/login.module';
 
 @NgModule({
   declarations: [IframeComponent],
@@ -35,8 +37,10 @@ import { PipesModule } from 'src/app/shared/pipes/pipes.module';
     MatDatepickerModule,
     MatSelectModule,
     MatInputModule,
+    MatTabsModule,
     PipesModule,
     MatFormFieldModule,
+    LoginModule,
   ]
 })
 export class IframeModule { }

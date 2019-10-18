@@ -14,24 +14,6 @@ export class IframeService {
     private notificationService: NotificationService,
   ) { }
 
-  validateLogin(username: string, password: string) {
-    return this.httpClient
-                  .post(`${environment.firebase.functions_path}/validateLogin`, { username, password });
-
-  }
-
-  sendResetPasswordEmail(userEmail: string, userFirstName: string, userLastName: string) {
-    const data = {
-      UserEmail: userEmail,
-      UserFirstName: userFirstName,
-      UserLastName: userLastName,
-    };
-
-    return this.httpClient
-                  .post(`${environment.firebase.functions_path}/sendResetPasswordEmail`, data)
-                  .pipe(tap(() => this.notificationService.notify('Reset password email sent')));
-  }
-
   getRequiredFields() {
     return this.httpClient
                   .get(`${environment.firebase.functions_path}/requiredClientFields`);
