@@ -42,6 +42,7 @@ interface IAppConfig {
     language: string;
     country: string;
     backgroundImage: string;
+    texts: { [key: string]: { title: string, value: string} };
   };
   payments: {
     gateaway: {

@@ -173,7 +173,6 @@ export class RetailComponent implements OnInit, OnDestroy {
 
       case 'OnSaleDate':
         dateToCompare = today;
-        console.log('dateToCompare', dateToCheck, dateToCompare)
         return dateToCheck.isSame(dateToCompare);
 
       default:

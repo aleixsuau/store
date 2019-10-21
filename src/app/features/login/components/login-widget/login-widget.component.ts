@@ -39,7 +39,7 @@ export class LoginWidgetComponent implements OnInit {
   appConfig$: Observable<IAppConfig>;
 
   @Input()  mode: 'admin' | 'iframe';
-  @Output() loggedIn: Observable<IUser | IClient> = new EventEmitter();
+  @Output() loggedIn = new EventEmitter<IUser | IClient>();
   @Output() loginFailed = new EventEmitter();
 
   constructor(
@@ -91,7 +91,6 @@ export class LoginWidgetComponent implements OnInit {
   }
 
   handleError(error) {
-    console.log('handleError', error)
     this.loginError = true;
     this.loginFailed.emit(null);
     this.notificationService

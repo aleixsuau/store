@@ -6,7 +6,10 @@
         #stepper>
       <mat-step [stepControl]="iframeForm.get('contract')">
         <ng-template matStepLabel>
-          <h5 *ngIf="!iframeForm.get('contract')?.value">SELECT CONTRACT</h5>
+          <h5 *ngIf="!iframeForm.get('contract')?.value">
+            SELECT CONTRACT
+            <span *ngIf="iframeForm.get('contract').invalid">*</span>
+          </h5>
 
           <div class="step1_header"
               fxLayoutAlign="space-between center"
@@ -15,7 +18,7 @@
             <div fxFlex="0 0 20%"
                 class="step1_header_image"
                 [ngStyle]="{
-                  'background-image': 'url(' + 'https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500' + ')',
+                  'background-image': 'url(' + iframeForm.get('contract')?.value?.image + ')',
                   'background-size': 'cover'
                 }"
                 *ngIf="iframeForm.get('contract').value?.image">
@@ -25,9 +28,9 @@
                 fxFlex="0 0 80%"
                 fxLayout="row wrap"
                 fxLayoutAlign="start center">
-              <p fxFlex="0 0 100%">
-                <strong>CONTRACT: {{ iframeForm.get('contract').value?.Name | uppercase }}</strong>
-              </p>
+              <h5 fxFlex="0 0 100%">
+                <strong>CONTRACT: {{ iframeForm.get('contract').value?.Name }}</strong>
+              </h5>
 
               <div class="step1_header_tags"
                     fxFlex="0 0 100%"
@@ -86,7 +89,6 @@
                       *ngFor="let contract of selectableContracts"
                       fxFlex="1 1 30rem"
                       [ngClass]="{ selected_contract: iframeForm.get('contract')?.value?.Id === contract.Id }">
-
 
               <img mat-card-image
                     src="iframeForm.get('contract').value?.image"
@@ -180,10 +182,11 @@
       <mat-step [stepControl]="iframeForm.get('personalDetails')">
         <ng-template matStepLabel>
           <div fxLayoutAlign="space-between center">
-            <h5 fxFlex="0 0 auto">
+            <h5 fxFlex="0 0 80%">
               PERSONAL DETAILS
+              <span *ngIf="iframeForm.get('personalDetails').invalid">*</span>
               <span *ngIf="activeClient">
-                : {{ activeClient?.FirstName | uppercase }} ({{ activeClient?.Email }})
+                : {{ activeClient?.FirstName }} ({{ activeClient?.Email }})
               </span>
             </h5>
 
@@ -428,8 +431,9 @@
       <mat-step [stepControl]="iframeForm.get('ClientCreditCard')">
         <ng-template matStepLabel>
           <div fxLayoutAlign="space-between center">
-            <h5 fxFlex="0 0 auto">
+            <h5 fxFlex="0 0 80%">
               PAYMENT DETAILS
+              <span *ngIf="iframeForm.get('ClientCreditCard').invalid">*</span>
               <span *ngIf="iframeForm.get('ClientCreditCard').disabled">
               : {{ iframeForm.get('ClientCreditCard.CardNumber').value }}
               </span>
@@ -543,8 +547,10 @@
       <mat-step>
         <ng-template matStepLabel>
           <div fxLayoutAlign="space-between center">
-            <h5 *ngIf="saleFinished" fxFlex="0 0 auto">PURCHASE DONE</h5>
-            <h5 *ngIf="!saleFinished">PURCHASE</h5>
+            <h5 *ngIf="saleFinished" fxFlex="0 0 80%">PURCHASE DONE</h5>
+            <h5 *ngIf="!saleFinished">
+              PURCHASE
+            </h5>
 
             <div fxFlex="0 0 auto"
                 class="step_check"
@@ -553,6 +559,62 @@
             </div>
           </div>
         </ng-template>
+
+        <div class="terms_conditions_checks"
+             *ngIf="!saleFinished">
+          <div class="contract_terms_container"
+               fxLayout="row wrap"
+               fxLayoutAlign="start center">
+            <mat-checkbox class="contract_terms"
+                          formControlName="acceptedContractTerms">
+            </mat-checkbox>
+
+            <span>* By clicking here you agree this</span>
+
+            <button mat-button
+                   (click)="termToShow = 'contract_terms';">
+              contract
+            </button>
+
+            <span>terms and conditions</span>
+          </div>
+
+          <div class="business_terms_container"
+               fxLayout="row wrap"
+               fxLayoutAlign="start center">
+            <mat-checkbox class="business_terms"
+                          formControlName="acceptedBusinessTerms">
+            </mat-checkbox>
+
+            <span>* By clicking here you agree our</span>
+
+            <button mat-button
+                    *ngFor="let term of business_terms;"
+                    (click)="termToShow = term;">
+              {{ config.customization.texts[term].title }}
+            </button>
+
+            <span>terms and conditions</span>
+          </div>
+
+          <div class="terms_to_show_container">
+            <div *ngIf="termToShow"
+                class="terms_to_show">
+              <button mat-mini-fab
+                      (click)="termToShow = null;"
+                      color="accent">
+                <mat-icon>close</mat-icon>
+              </button>
+
+              <div fxLayoutAlign="center center"
+                  class="terms_text_container">
+                <p *ngIf="termToShow !== 'contract_terms'">{{ config.customization.texts[termToShow].value }}</p>
+
+                <p *ngIf="termToShow === 'contract_terms'">{{ iframeForm.get('contract').value.AgreementTerms }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div fxLayoutAlign="center center"
             class="purchase_contract_button">
@@ -566,8 +628,9 @@
         </div>
 
         <div *ngIf="saleFinished"
-            fxLayoutAlign="center center">
-          <p>Thanks for buying {{ iframeForm.get('contract').value?.Name }}</p>
+            fxLayoutAlign="center center"
+            class="sale_finished_message">
+          <p>THANKS FOR BUYING {{ iframeForm.get('contract').value?.Name | uppercase }}</p>
         </div>
 
         <div *ngIf="saleFinished && iframeForm.get('ClientCreditCard').value?.CVV !== '***'"

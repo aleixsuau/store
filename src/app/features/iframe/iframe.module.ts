@@ -15,7 +15,8 @@ import {
         MatDatepickerModule,
         MatSelectModule,
         MatInputModule,
-        MatTabsModule
+        MatTabsModule,
+        MatCheckboxModule,
       } from '@angular/material';
 import { ReactiveFormsModule } from '@angular/forms';
 import { PipesModule } from 'src/app/shared/pipes/pipes.module';
@@ -41,6 +42,7 @@ import { LoginModule } from '../login/login.module';
     PipesModule,
     MatFormFieldModule,
     LoginModule,
+    MatCheckboxModule,
   ]
 })
 export class IframeModule { }

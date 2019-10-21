@@ -46,9 +46,6 @@
   }
 
   &_name {
-    p {
-      margin: 0;
-    }
   }
 
   /* &_tags {
@@ -58,6 +55,15 @@
       color: $primary;
     }
   } */
+}
+
+:host ::ng-deep .mat-step-label {
+  h5 {
+    margin: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
 }
 
 .personal_details {
@@ -74,8 +80,58 @@
 }
 
 .purchase_contract_button {
-  padding-top: 1.5rem;
+  padding-top: 2rem;
 }
+
+.sale_finished_message {
+  color: $accent;
+}
+
+.terms_conditions_checks {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  color: $dark-grey;
+
+  .mat-button {
+    padding: 0.5rem;
+    line-height: 1rem;
+  }
+
+  .mat-checkbox {
+    margin-right: 1rem;
+  }
+
+  .contract_terms_container {
+    margin-bottom: 1rem;
+  }
+
+  .terms_to_show_container {
+    position: relative;
+  }
+
+  .terms_to_show {
+    margin-top: 1rem;
+    border: 0.1rem solid $lighter-grey;
+    border-radius: 0.5rem;
+    max-height: 10rem;
+    overflow: scroll;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+
+    .terms_text_container {
+      padding: 0.5rem;
+      max-height: 80%;
+      overflow: scroll;
+    }
+
+    .mat-mini-fab {
+      position: absolute;
+      top: -1rem;
+      right: -1rem;
+    }
+  }
+}
+
 
 // Material overwrites
 mat-card-subtitle mat-icon, .step1_header_tags mat-icon {

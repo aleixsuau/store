@@ -1,3 +1,4 @@
+import { ConfigService } from 'src/app/core/config/service/config.service';
 import { MomentService } from './../../../../core/services/moment/moment.service';
 import { UserService } from './../../../../core/services/user/user.service';
 import { NotificationService } from 'src/app/core/services/notification/notification.service';
@@ -55,6 +56,9 @@ export class IframeComponent implements OnInit {
   selectedTab = 0;
   purchaseButtonDisabled: boolean;
   showNoContractsMessage: boolean;
+  config: IAppConfig;
+  business_terms: string[];
+  termToShow: string;
 
   @ViewChild('stepper', {static: false}) stepper: MatStepper;
 
@@ -68,14 +72,19 @@ export class IframeComponent implements OnInit {
     private notificationService: NotificationService,
     private userService: UserService,
     private momentService: MomentService,
+    private configService: ConfigService,
   ) { }
 
   ngOnInit() {
     this.contracts = this.activatedRoute.snapshot.data.contracts;
+    this.config = this.configService.config;
+    this.business_terms = [...Object.keys(this.config.customization.texts)];
     const currentYear = new Date().getFullYear();
+
     Array(30).fill(true).forEach((e, index) => {
       this.years = [...this.years, `${currentYear + index}`];
     });
+
     this.iframeForm = this.formBuilder.group({
       contract: [null, Validators.required],
       personalDetails: this.formBuilder.group({}),
@@ -84,7 +93,9 @@ export class IframeComponent implements OnInit {
                                           ExpMonth: [null, Validators.required],
                                           ExpYear: [null, Validators.required],
                                           CVV: [null, Validators.required],
-                                        })
+                                        }),
+      acceptedContractTerms: [null, Validators.requiredTrue],
+      acceptedBusinessTerms: [null, Validators.requiredTrue],
     });
     this.personalDetailsFormGroup = this.iframeForm.get('personalDetails') as FormGroup;
     const activeUser = this.userService.getUser();
@@ -95,7 +106,8 @@ export class IframeComponent implements OnInit {
     if (activeUser && activeUser['Email']) {
       this.selectedTab = 1;
     }
-    this.filterSelectableContracts(this.contracts, activeUser);
+
+    this.filterSelectableContracts(this.contracts);
 
     this.iframeService
           .getRequiredFields()
@@ -172,7 +184,7 @@ export class IframeComponent implements OnInit {
   sendResetPasswordEmail(userEmail: string, userFirstName: string, userLastName: string) {
     this.authService
             .sendResetPasswordEmail(userEmail, userFirstName, userLastName)
-            .subscribe(response => console.log('sendResetPasswordEmail response: ', response));
+            .subscribe();
   }
 
   addClient(client: IClient) {
