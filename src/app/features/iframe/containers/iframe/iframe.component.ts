@@ -7,7 +7,7 @@ import { SalesService } from './../../../retail/services/sales/sales.service';
 import { ClientsService } from './../../../clients/services/clients/clients.service';
 import { IframeService } from './../../services/iframe/iframe.service';
 import { ActivatedRoute } from '@angular/router';
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { map, switchMap, debounceTime } from 'rxjs/operators';
 import { MatStepper } from '@angular/material';
@@ -142,13 +142,19 @@ export class IframeComponent implements OnInit, OnDestroy {
                                   this.lastScrollPosition = currentScrollPosition;
 
                                   if (scrollingLeft) {
-                                    this.scrollRightButtonDisabled = false;
+                                    // Avoid enable button when scrollbar bounces (IOS)
+                                    if (contractsBox.scrollLeft > 10) {
+                                      this.scrollRightButtonDisabled = false;
+                                    }
 
                                     if (contractsBox.scrollLeft >= maxScrollLeft) {
                                       this.scrollLeftButtonDisabled = true;
                                     }
                                   } else if (scrollingRight) {
-                                    this.scrollLeftButtonDisabled = false;
+                                    // Avoid enable button when scrollbar bounces (IOS)
+                                    if ((maxScrollLeft - contractsBox.scrollLeft) > 10) {
+                                      this.scrollLeftButtonDisabled = false;
+                                    }
 
                                     if (contractsBox.scrollLeft <= 0) {
                                       this.scrollRightButtonDisabled = true;
