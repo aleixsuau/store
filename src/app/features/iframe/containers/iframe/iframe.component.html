@@ -3,7 +3,8 @@
   <div class="stepper_container">
     <mat-vertical-stepper
         linear
-        #stepper>
+        #stepper
+        @fade>
       <mat-step [stepControl]="iframeForm.get('contract')">
         <ng-template matStepLabel>
           <h5 *ngIf="!iframeForm.get('contract')?.value">
@@ -105,7 +106,8 @@
                         fxFlex="1 1 30rem"
                         fxLayout="column"
                         fxLayoutAlign="space-between end"
-                        [ngClass]="{ selected_contract: iframeForm.get('contract')?.value?.Id === contract.Id }">
+                        [ngClass]="{ selected_contract: iframeForm.get('contract')?.value?.Id === contract.Id }"
+                        @fade>
 
                 <img mat-card-image
                       src="iframeForm.get('contract').value?.image"

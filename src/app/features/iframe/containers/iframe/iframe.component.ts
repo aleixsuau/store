@@ -9,9 +9,11 @@ import { IframeService } from './../../services/iframe/iframe.service';
 import { ActivatedRoute } from '@angular/router';
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { map, switchMap, debounceTime } from 'rxjs/operators';
+import { switchMap, debounceTime } from 'rxjs/operators';
 import { MatStepper } from '@angular/material';
 import { fromEvent, Subscription } from 'rxjs';
+import { fadeAnimation } from '../../../../shared/animations/animations';
+import { transition, trigger, useAnimation } from '@angular/animations';
 
 /**
  * EXPLANATION
@@ -42,7 +44,17 @@ import { fromEvent, Subscription } from 'rxjs';
 @Component({
   selector: 'app-iframe',
   templateUrl: './iframe.component.html',
-  styleUrls: ['./iframe.component.scss']
+  styleUrls: ['./iframe.component.scss'],
+  animations: [
+    trigger('fade', [
+      transition('void => *', [
+        useAnimation(fadeAnimation, {
+          delay: 0,
+          params: { from: 0, to: 1, time: '500ms' },
+        })
+      ])
+    ])
+  ]
 })
 export class IframeComponent implements OnInit, OnDestroy {
   contracts: IContract[];

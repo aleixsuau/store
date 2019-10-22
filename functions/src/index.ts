@@ -494,6 +494,14 @@ async function _checkMindbodyAuth(apiKey: string, siteId: string, token: string)
   }
 }
 
+async function _getClientEnviromentVariables(siteId: string) {
+  const aliasMapSnapshot = await DDBB.collection('business').doc('alias').get();
+  const aliasMap = aliasMapSnapshot.data();
+  const alias = aliasMap[siteId];
+
+  return functions.config()[alias];
+}
+
 
 // ROUTE HANDLERS
 // CONFIG
@@ -537,26 +545,34 @@ async function login(req: express.Request, res: express.Response) {
   const username = req.body.username;
   const password = req.body.password;
   console.log('_login', siteId, username, password);
-  try {
-    const appConfig = await _getAppConfig(siteId);
-    const url = `${baseUrl}/usertoken/issue`;
-    const config = {
-      headers: {
-      'Api-Key': appConfig.apiKey,
-      'SiteId': siteId,
-      }
-    };
-    const tokenRequest = {
-      Username: username,
-      Password: password,
-    };
 
-    const tokenResponse = await httpClient.post(url, tokenRequest, config);
+  try {
+    const tokenResponse = await _login(siteId, username, password);
 
     res.status(tokenResponse.status).json(tokenResponse.data);
   } catch(error) {
     _handleServerErrors(error, res);
   }
+}
+
+async function _login(siteId: string, username: string, password: string) {
+  const appConfig = await _getAppConfig(siteId);
+  const url = `${baseUrl}/usertoken/issue`;
+  const config = {
+    headers: {
+    'Api-Key': appConfig.apiKey,
+    'SiteId': siteId,
+    }
+  };
+  const tokenRequest = {
+    Username: username,
+    Password: password,
+  };
+
+  const tokenResponse = await httpClient.post(url, tokenRequest, config);
+  console.log('tokenResponse', tokenResponse.data);
+
+  return tokenResponse;
 }
 
 // CLIENTS
@@ -1133,7 +1149,7 @@ async function addContract(req: express.Request, res: express.Response) {
 }
 
 async function getContracts(req: express.Request, res: express.Response) {
-  // IMPORTANT: We have to return the contracts without auth because the
+  // TODO: IMPORTANT: We have to return the contracts without auth because the
   // iframe IContracts select is not secured
   // TODO: Replace this mock with the call to MindBody
   if (req.method === 'OPTIONS') { res.status(200).json() };
@@ -1142,12 +1158,11 @@ async function getContracts(req: express.Request, res: express.Response) {
   const token = req.header('Authorization');
   console.log('getContracts', siteId, token);
 
-  if (!token) { res.status(401).json({message: 'Unauthorized'}); }
   if (!siteId) { res.status(422).json({message: 'SiteId header is missing'}); }
 
   try {
     // const appConfig = await _getAppConfig(siteId);
-    const contracts = await _getContracts();
+    const contracts = await _getContracts(siteId, token);
 
     res.status(200).json(contracts);
   } catch(error) {
@@ -1155,8 +1170,20 @@ async function getContracts(req: express.Request, res: express.Response) {
   }
 };
 
-async function _getContracts(): Promise<IContract[]> {
-  return Promise.resolve(contractsMock);
+async function _getContracts(siteId: string, token?: string): Promise<IContract[]> {
+  if (token) {
+    // Call directly to Mindbody to get the IContracts
+    return Promise.resolve(contractsMock);
+  } else {
+    // Get the token and then get the contract
+    const clientEnviromentVariables = await _getClientEnviromentVariables(siteId);
+    console.log('_getContracts clientEnviromentVariables', token, clientEnviromentVariables);
+    const tokenResponse = await _login(siteId, clientEnviromentVariables.username, clientEnviromentVariables.password);
+    const newToken = tokenResponse.data;
+    console.log(' _getContracts token', newToken);
+
+    return Promise.resolve(contractsMock);
+  }
 }
 
 async function updateContract(req: express.Request, res: express.Response) {
@@ -1178,7 +1205,7 @@ async function updateContract(req: express.Request, res: express.Response) {
 
     if (update && update.status) {
       if (update.status === 'active') {
-        const contractsCatalogue: IContract[] = await _getContracts();
+        const contractsCatalogue: IContract[] = await _getContracts(siteId);
         const contract: IContract = contractsCatalogue.find(contractItem => contractItem.Id === contractId);
         const clientContractResponse = await DDBB
                                                       .doc(`business/${siteId}/contracts/${contractId}/clients/${clientId}`)
@@ -1932,38 +1959,6 @@ function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig, skip
     throw new CustomError('Invalid Date', 500);
   }
 }
-
-/* function _getAutopayDates(contract: IContract, date_created: string) {
-  if (contract.AutopaySchedule.FrequencyType === 'MonthToMonth') { return []; }
-
-  const autopays = contract.NumberOfAutopays;
-  let autopaysCounter = contract.NumberOfAutopays;
-  const firstAutopay = moment(date_created).startOf('day');
-  let autopayDates = [firstAutopay];
-  const FrequencyTimeUnit = contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
-                              'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
-                              'months' : 'years';
-
-  while(autopaysCounter--) {
-    const previousAutopayDate = autopayDates[autopays - autopaysCounter - 1];
-    const nextAutopayDate = previousAutopayDate.clone().add(contract.AutopaySchedule.FrequencyValue, FrequencyTimeUnit);
-
-    autopayDates = [...autopayDates, nextAutopayDate];
-  }
-
-  const autopayDateStrings = autopayDates.map(autopayDate => autopayDate.toISOString());
-  const autopayDatesFormatted: IAutopay[] = autopayDateStrings.map(autopayDate => {
-                                const autopayDateFormatted: IAutopay = {
-                                  status: null,
-                                  payment_attempts: [],
-                                };
-
-                                return autopayDateFormatted;
-                              })
-  console.log('autopayDateStrings', autopayDateStrings);
-
-  return autopayDatesFormatted;
-} */
 
 // IFRAME
 async function validateLogin(req: express.Request, res: express.Response) {
