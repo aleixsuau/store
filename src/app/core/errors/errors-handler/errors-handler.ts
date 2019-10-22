@@ -29,6 +29,8 @@ export class ErrorsHandler implements ErrorHandler {
     }
 
     if (error instanceof HttpErrorResponse) {
+      const errorMessage = typeof error.error === 'string' ? error.error :
+                                  error.error && error.error.message ? error.error.message : error.message;
       // Server or connection error happened
       if (!navigator.onLine) {
         // Handle offline error
@@ -36,17 +38,17 @@ export class ErrorsHandler implements ErrorHandler {
       } else {
         // Handle Http Error (error.status === 401, 403...)
         if (error.status === 401 || error.status === 403) {
-          notificationService.notify(`Unauthenticated user: ${error.error || error.message}`, 'X', { duration: 10000, panelClass: 'error' });
+          notificationService.notify(`Unauthenticated user: ${errorMessage}`, 'X', { duration: 10000, panelClass: 'error' });
           authService.logout();
           return;
         } else if (error.status === 404) {
-          notificationService.notify(`ERROR ${error.status}: ${error.error || error.message}`, 'X', { duration: 10000, panelClass: 'error' });
+          notificationService.notify(`ERROR ${error.status}: ${errorMessage}`, 'X', { duration: 10000, panelClass: 'error' });
           errorsService.log(error).subscribe(() => router.navigate(['/error'], { queryParams: { status: 404, message: 'No app with this id', } }));
         } else if (error.status === 500) {
-          notificationService.notify(`ERROR 500: ${error.error || error.message}`,  'X', { duration: 10000, panelClass: 'error' });
+          notificationService.notify(`ERROR 500: ${errorMessage}`,  'X', { duration: 10000, panelClass: 'error' });
           errorsService.log(error).subscribe();
         } else {
-          notificationService.notify(`ERROR ${error.status}: ${error.error || error.message}`, 'X', { duration: 10000, panelClass: 'error' });
+          notificationService.notify(`ERROR ${error.status}: ${errorMessage}`, 'X', { duration: 10000, panelClass: 'error' });
           errorsService.log(error).subscribe();
         }
       }

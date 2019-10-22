@@ -11,7 +11,7 @@
 
 .iframe_container {
   background: rgb(255,255,255);
-  background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(245,240,240,1) 84%);
+  background: radial-gradient(circle, white 0%,#eae8e8 84%);
 }
 
 .mat-stepper-vertical {
@@ -26,13 +26,26 @@
 .step1 {
   padding-top: 2rem;
 
-  &__cards-container {
+  &__cards-box {
     overflow: scroll;
+
+    .scroll_left_button {
+      position: absolute;
+      right: 0;
+      z-index: 1;
+    }
+
+    .scroll_right_button {
+      position: absolute;
+      left: 0;
+      z-index: 1;
+    }
   }
 
   mat-card {
     margin-right: 1.5rem;
   }
+
 }
 
 .step1_header {

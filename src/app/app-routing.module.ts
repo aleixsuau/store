@@ -1,5 +1,4 @@
 import { ErrorsComponent } from './core/errors/errors-component/errors.component';
-import { ConfigResolverService } from './core/config/resolver/config.resolver';
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { LoginComponent } from './features/login/containers/login/login.component';
@@ -11,7 +10,6 @@ import { ContractsResolverService } from './features/retail/resolvers/contracts/
 const routes: Routes = [
   {
     path: ':siteId',
-    canActivate: [ConfigGuard],
     canActivateChild: [ConfigGuard],
     children: [
       {

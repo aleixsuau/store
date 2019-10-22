@@ -7,10 +7,11 @@ import { SalesService } from './../../../retail/services/sales/sales.service';
 import { ClientsService } from './../../../clients/services/clients/clients.service';
 import { IframeService } from './../../services/iframe/iframe.service';
 import { ActivatedRoute } from '@angular/router';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { map, switchMap, debounceTime } from 'rxjs/operators';
 import { MatStepper } from '@angular/material';
+import { fromEvent, Subscription } from 'rxjs';
 
 /**
  * EXPLANATION
@@ -43,7 +44,7 @@ import { MatStepper } from '@angular/material';
   templateUrl: './iframe.component.html',
   styleUrls: ['./iframe.component.scss']
 })
-export class IframeComponent implements OnInit {
+export class IframeComponent implements OnInit, OnDestroy {
   contracts: IContract[];
   selectableContracts: IContract[];
   iframeForm: FormGroup;
@@ -59,8 +60,13 @@ export class IframeComponent implements OnInit {
   config: IAppConfig;
   business_terms: string[];
   termToShow: string;
+  scrollLeftButtonDisabled = false;
+  scrollRightButtonDisabled = true;
+  scrollSubscription: Subscription;
+  lastScrollPosition: number;
 
   @ViewChild('stepper', {static: false}) stepper: MatStepper;
+  @ViewChild('contractsBox', {static: true}) contractsBox: ElementRef<HTMLElement>;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -123,6 +129,36 @@ export class IframeComponent implements OnInit {
                     personalDetailsGroup.addControl(requiredField, this.formBuilder.control(null, validators));
                   });
           });
+
+    this.scrollSubscription = fromEvent(this.contractsBox.nativeElement, 'scroll')
+                                .subscribe(event => {
+                                  const target = event.target as HTMLElement;
+                                  const currentScrollPosition = target.scrollLeft;
+                                  const scrollingRight = currentScrollPosition < this.lastScrollPosition;
+                                  const scrollingLeft = currentScrollPosition > this.lastScrollPosition;
+                                  const contractsBox = this.contractsBox.nativeElement;
+                                  // box.scrollWidth === box.clientWidth + box.scrollLeft
+                                  const maxScrollLeft = contractsBox.scrollWidth - contractsBox.clientWidth;
+                                  this.lastScrollPosition = currentScrollPosition;
+
+                                  if (scrollingLeft) {
+                                    this.scrollRightButtonDisabled = false;
+
+                                    if (contractsBox.scrollLeft >= maxScrollLeft) {
+                                      this.scrollLeftButtonDisabled = true;
+                                    }
+                                  } else if (scrollingRight) {
+                                    this.scrollLeftButtonDisabled = false;
+
+                                    if (contractsBox.scrollLeft <= 0) {
+                                      this.scrollRightButtonDisabled = true;
+                                    }
+                                  }
+                                });
+  }
+
+  ngOnDestroy() {
+    this.scrollSubscription.unsubscribe();
   }
 
   getContractStart (contract: IContract) {
@@ -302,5 +338,14 @@ export class IframeComponent implements OnInit {
     }
 
     this.showNoContractsMessage = this.selectableContracts && !this.selectableContracts.length;
+  }
+
+  scrollIt(direction: 'right' | 'left') {
+    const contractsBox = this.contractsBox.nativeElement;
+    if (direction === 'left') {
+      contractsBox.scrollLeft += contractsBox.clientWidth;
+    } else if (direction === 'right') {
+      contractsBox.scrollLeft -= contractsBox.clientWidth;
+    }
   }
 }

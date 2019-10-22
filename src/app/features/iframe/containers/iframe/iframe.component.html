@@ -83,92 +83,119 @@
           </div>
         </ng-template>
 
-        <div class="step1">
-          <div class="step1__cards-container">
-            <mat-card class="contract-card"
-                      *ngFor="let contract of selectableContracts"
-                      fxFlex="1 1 30rem"
-                      [ngClass]="{ selected_contract: iframeForm.get('contract')?.value?.Id === contract.Id }">
+        <div class="step1"
+             fxLayout="row wrap">
+          <div class="step1__cards-box"
+               #contractsBox
+               fxFlex="1 1 100%"
+               fxLayoutAlign="space-between center">
+            <button mat-mini-fab
+                    color="primary"
+                    class="scroll_right_button"
+                    [disabled]="scrollRightButtonDisabled"
+                    (click)="scrollIt('right')"
+                    fxFlex="0 0 auto">
+              <mat-icon>arrow_left</mat-icon>
+            </button>
 
-              <img mat-card-image
-                    src="iframeForm.get('contract').value?.image"
-                    alt="Photo of a Shiba Inu"
-                    *ngIf="iframeForm.get('contract').value?.image">
+            <div class="step1__cards-container"
+                #contractsContainer>
+              <mat-card class="contract-card"
+                        *ngFor="let contract of selectableContracts"
+                        fxFlex="1 1 30rem"
+                        [ngClass]="{ selected_contract: iframeForm.get('contract')?.value?.Id === contract.Id }">
 
-              <mat-card-content>
-                <mat-card-title>{{ contract.Name | uppercase }}</mat-card-title>
+                <img mat-card-image
+                      src="iframeForm.get('contract').value?.image"
+                      alt="Photo of a Shiba Inu"
+                      *ngIf="iframeForm.get('contract').value?.image">
 
-                <p>{{ contract.Description }}</p>
+                <mat-card-content>
+                  <mat-card-title>{{ contract.Name | uppercase }}</mat-card-title>
 
-                <mat-card-subtitle>
-                  <div fxLayoutAlign="start center"
-                      *ngIf="contract.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays'"
-                      matTooltip="Duration"
-                      matTooltipPosition="left">
-                    <mat-icon>calendar_today</mat-icon>
+                  <p>{{ contract.Description }}</p>
 
-                    {{ contract.NumberOfAutopays }} periods of
-                    {{ contract.AutopaySchedule.FrequencyValue }}
-                    {{
-                      contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
-                        'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
-                          'months' :
-                          'years'
-                    }}
-                  </div>
+                  <mat-card-subtitle>
+                    <div fxLayoutAlign="start center"
+                        *ngIf="contract.AutopaySchedule.FrequencyType === 'SetNumberOfAutopays'"
+                        matTooltip="Duration"
+                        matTooltipPosition="left">
+                      <mat-icon>calendar_today</mat-icon>
 
-                  <div fxLayoutAlign="start center"
-                      matTooltip="Price per period"
-                      matTooltipPosition="left">
-                    <mat-icon>attach_money</mat-icon>
+                      {{ contract.NumberOfAutopays }} periods of
+                      {{ contract.AutopaySchedule.FrequencyValue }}
+                      {{
+                        contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                          'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                            'months' :
+                            'years'
+                      }}
+                    </div>
 
-                    {{ contract.RecurringPaymentAmountTotal }} every
-                    {{ contract.AutopaySchedule.FrequencyValue }}
-                    {{
-                      contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
-                        'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
-                          'months' :
-                          'years'
-                    }}
-                  </div>
+                    <div fxLayoutAlign="start center"
+                        matTooltip="Price per period"
+                        matTooltipPosition="left">
+                      <mat-icon>attach_money</mat-icon>
 
-                  <div fxLayoutAlign="start center"
-                      matTooltip="Start"
-                      matTooltipPosition="left">
-                    <mat-icon>timer</mat-icon>
+                      {{ contract.RecurringPaymentAmountTotal }} every
+                      {{ contract.AutopaySchedule.FrequencyValue }}
+                      {{
+                        contract.AutopaySchedule.FrequencyTimeUnit === 'Weekly' ?
+                          'weeks' : contract.AutopaySchedule.FrequencyTimeUnit === 'Monthly' ?
+                            'months' :
+                            'years'
+                      }}
+                    </div>
 
-                    {{ getContractStart(contract) }}
-                  </div>
-                </mat-card-subtitle>
-              </mat-card-content>
-              <mat-card-actions align="end">
-                <button mat-stroked-button
-                        (click)="iframeForm.get('contract').setValue(contract); iframeForm.get('contract').disable();"
-                        [disabled]="saleFinished"
-                        color="primary"
-                        *ngIf="iframeForm.get('contract').value?.Id !== contract.Id">
-                  <mat-icon>shopping_cart</mat-icon>
-                  SELECT CONTRACT
-                </button>
+                    <div fxLayoutAlign="start center"
+                        matTooltip="Start"
+                        matTooltipPosition="left">
+                      <mat-icon>timer</mat-icon>
 
-                <button mat-flat-button
-                        (click)="iframeForm.get('contract').setValue(contract); iframeForm.get('contract').disable();"
-                        [disabled]="saleFinished"
-                        color="primary"
-                        *ngIf="iframeForm.get('contract').value?.Id === contract.Id">
-                  <mat-icon>shopping_cart</mat-icon>
-                  SELECTED CONTRACT
-                </button>
-              </mat-card-actions>
-            </mat-card>
+                      {{ getContractStart(contract) }}
+                    </div>
+                  </mat-card-subtitle>
+                </mat-card-content>
+                <mat-card-actions align="end">
+                  <button mat-stroked-button
+                          (click)="iframeForm.get('contract').setValue(contract); iframeForm.get('contract').disable();"
+                          [disabled]="saleFinished"
+                          color="primary"
+                          *ngIf="iframeForm.get('contract').value?.Id !== contract.Id">
+                    <mat-icon>shopping_cart</mat-icon>
+                    SELECT CONTRACT
+                  </button>
+
+                  <button mat-flat-button
+                          (click)="iframeForm.get('contract').setValue(contract); iframeForm.get('contract').disable();"
+                          [disabled]="saleFinished"
+                          color="primary"
+                          *ngIf="iframeForm.get('contract').value?.Id === contract.Id">
+                    <mat-icon>shopping_cart</mat-icon>
+                    SELECTED CONTRACT
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            </div>
+
+            <button mat-mini-fab
+                    color="primary"
+                    class="scroll_left_button"
+                    [disabled]="scrollLeftButtonDisabled"
+                    (click)="scrollIt('left')"
+                    fxFlex="0 0 auto">
+              <mat-icon>arrow_right</mat-icon>
+            </button>
           </div>
 
-          <div fxLayoutAlign="center center"
-              *ngIf="showNoContractsMessage">
+          <div fxFlex="1 1 100%"
+               fxLayoutAlign="center center"
+               *ngIf="showNoContractsMessage">
               <h6>Sorry {{ activeClient?.FirstName }}, no contracts available for you at this moment.</h6>
           </div>
 
-          <div fxLayoutAlign="end center">
+          <div  fxFlex="1 1 100%"
+                fxLayoutAlign="end center">
             <button mat-raised-button
                     matStepperNext
                     [disabled]="iframeForm.get('contract').invalid || saleFinished"
