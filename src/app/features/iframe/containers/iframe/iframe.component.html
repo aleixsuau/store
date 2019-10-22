@@ -103,6 +103,8 @@
               <mat-card class="contract-card"
                         *ngFor="let contract of selectableContracts"
                         fxFlex="1 1 30rem"
+                        fxLayout="column"
+                        fxLayoutAlign="space-between end"
                         [ngClass]="{ selected_contract: iframeForm.get('contract')?.value?.Id === contract.Id }">
 
                 <img mat-card-image
@@ -156,6 +158,7 @@
                     </div>
                   </mat-card-subtitle>
                 </mat-card-content>
+
                 <mat-card-actions align="end">
                   <button mat-stroked-button
                           (click)="iframeForm.get('contract').setValue(contract); iframeForm.get('contract').disable();"
