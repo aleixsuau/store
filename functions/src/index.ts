@@ -423,22 +423,6 @@ server.use(async (req, res, next) => {
 
 
 // UTILS
-export async function _getAppConfig(siteId: string): Promise<IAppConfig> {
-  console.log('_getAppConfig', siteId);
-  if (!siteId) { throw new Error('Please provide an ID'); }
-
-  const businessData = await DDBB.collection('business').doc(siteId).get();
-
-  console.log('businessDataaaaa', businessData.data());
-
-  if (!businessData.exists || !businessData.data() || !businessData.data().config){
-    console.log('No App with this ID');
-    return null;
-  } else {
-    return businessData.data().config as IAppConfig;
-  }
-}
-
 function handleClientErrors(req: express.Request, res: express.Response) {
   if (req.method === 'OPTIONS') { res.status(200).json() };
 
@@ -517,9 +501,25 @@ function getConfig(req: express.Request, res: express.Response) {
       }
       // Keep apiKey private
       const {customization, id, queryLimit, test} = appConfig;
-      res.status(200).json({customization, id, queryLimit, test});
+      res.status(200).json({customization, id, queryLimit, test, payments: { needs_iframe: appConfig.payments.needs_iframe }});
     })
     .catch(error => res.status(500).json(error));
+}
+
+export async function _getAppConfig(siteId: string): Promise<IAppConfig> {
+  console.log('_getAppConfig', siteId);
+  if (!siteId) { throw new Error('Please provide an ID'); }
+
+  const businessData = await DDBB.collection('business').doc(siteId).get();
+
+  console.log('businessDataaaaa', businessData.data());
+
+  if (!businessData.exists || !businessData.data() || !businessData.data().config){
+    console.log('No App with this ID');
+    return null;
+  } else {
+    return businessData.data().config as IAppConfig;
+  }
 }
 
 async function updateConfig(req: express.Request, res: express.Response) {
@@ -747,12 +747,12 @@ async function updateClient(req: express.Request, res: express.Response) {
     }
 
     if (isDeletingCard) {
-      if (appConfig.payments.gateaway.name === 'mercadopago') {
+      if (appConfig.payments.gateway.name === 'mercadopago') {
         const clientSnapshop = await DDBB.doc(`business/${appConfig.id}/clients/${clientId}`).get();
         const clientPaymentsConfig = clientSnapshop.data() && clientSnapshop.data().payments_config || null as IMindBroClientPaymentsConfig | null;
-        const apiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
+        const apiToken = appConfig.test ? appConfig.payments.gateway.apiToken.test : appConfig.payments.gateway.apiToken.production;
 
-        await httpClient.delete(`${appConfig.payments.gateaway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
+        await httpClient.delete(`${appConfig.payments.gateway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
       }
 
       await DDBB
@@ -823,7 +823,7 @@ async function _createPaymentsConfig(appConfig: IAppConfig, client: IClient): Pr
   // If the user comes with a CVV inside the credit card data, then
   // he is creating a new Credit Card (MindBody doesn't save CVV)
   // If the user already has a CrediCard, pass its data to update
-  if (appConfig.payments.gateaway.name === 'mercadopago') {
+  if (appConfig.payments.gateway.name === 'mercadopago') {
     return _createMercadopagoPaymentsConfig(appConfig, client, clientPaymentsConfig);
   }
 
@@ -844,8 +844,8 @@ async function _createMercadopagoPaymentsConfig(
     //     the user's id and the Credit Card token)
     // 4 - If the client already had a saved credit card,
     //     delete it.
-    const apiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
-    const apiKey = appConfig.test ? appConfig.payments.gateaway.apiKey.test : appConfig.payments.gateaway.apiKey.production;
+    const apiToken = appConfig.test ? appConfig.payments.gateway.apiToken.test : appConfig.payments.gateway.apiToken.production;
+    const apiKey = appConfig.test ? appConfig.payments.gateway.apiKey.test : appConfig.payments.gateway.apiKey.production;
     const creditCardTokenRequest = {
       authenticate: true,
       card_number: client.ClientCreditCard.CardNumber.toString(),
@@ -853,13 +853,13 @@ async function _createMercadopagoPaymentsConfig(
       expiration_month: client.ClientCreditCard.ExpMonth.toString(),
       expiration_year: client.ClientCreditCard.ExpYear.toString(),
       cardholder: {
-        name: appConfig.test && appConfig.payments.gateaway.name === 'mercadopago' ?
-                appConfig.payments.gateaway.test_payment_response :
+        name: appConfig.test && appConfig.payments.gateway.name === 'mercadopago' ?
+                appConfig.payments.gateway.test_payment_response :
                 `${client.FirstName} ${client.LastName}`,
       }
     };
     console.log('apiKey', apiKey, creditCardTokenRequest)
-    const creditCardToken = await httpClient.post(`${appConfig.payments.gateaway.url}/card_tokens?public_key=${apiKey}`, creditCardTokenRequest);
+    const creditCardToken = await httpClient.post(`${appConfig.payments.gateway.url}/card_tokens?public_key=${apiKey}`, creditCardTokenRequest);
     const creditCardTokenId = creditCardToken.data.id;
     console.log('creditCardTokenId', creditCardTokenId, creditCardToken)
     let clientId;
@@ -878,7 +878,7 @@ async function _createMercadopagoPaymentsConfig(
         last_name: client.LastName,
       }
       console.log('apiToken', apiToken, clientData)
-      const clientResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/customers?access_token=${apiToken}`, clientData);
+      const clientResponse = await httpClient.post(`${appConfig.payments.gateway.url}/customers?access_token=${apiToken}`, clientData);
       clientId = clientResponse.data.id;
     }
 
@@ -887,13 +887,13 @@ async function _createMercadopagoPaymentsConfig(
       token: creditCardTokenId,
     }
 
-    const newCardResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/customers/${clientId}/cards?access_token=${apiToken}`, card);
+    const newCardResponse = await httpClient.post(`${appConfig.payments.gateway.url}/customers/${clientId}/cards?access_token=${apiToken}`, card);
     const cardId = newCardResponse.data.id;
 
     // If the user already had a Credit Card, remove it after
     // saving the new one (we only allow one credit card per client)
     if (clientPaymentsConfig && clientPaymentsConfig.cardId) {
-      await httpClient.delete(`${appConfig.payments.gateaway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
+      await httpClient.delete(`${appConfig.payments.gateway.url}/customers/${clientPaymentsConfig.clientId}/cards/${clientPaymentsConfig.cardId}?access_token=${apiToken}`);
     }
 
     // Return paymentConfig to save it on Firebase
@@ -923,10 +923,10 @@ async function _createMercadopagoPaymentsConfig(
 
 async function _makePaymentWithMercadopago(contract: IContract, appConfig: IAppConfig, clientPaymentConfig: IMindBroClientPaymentsConfig, amount: number): Promise<IPayment> {
   console.log('_makePaymentWithMercadopago', contract, clientPaymentConfig, amount, appConfig);
-  const paymentsApiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
-  const paymentsApiKey = appConfig.test ? appConfig.payments.gateaway.apiKey.test : appConfig.payments.gateaway.apiKey.production;
-  console.log('paymentsApiKey', paymentsApiKey, paymentsApiToken, `${appConfig.payments.gateaway.url}/card_tokens?public_key=${paymentsApiKey}`, typeof clientPaymentConfig.cardId, clientPaymentConfig.cardId, typeof clientPaymentConfig.CVV, clientPaymentConfig.CVV)
-  const cardTokenResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/card_tokens?public_key=${paymentsApiKey}`, { card_id: clientPaymentConfig.cardId, security_code: clientPaymentConfig.CVV })
+  const paymentsApiToken = appConfig.test ? appConfig.payments.gateway.apiToken.test : appConfig.payments.gateway.apiToken.production;
+  const paymentsApiKey = appConfig.test ? appConfig.payments.gateway.apiKey.test : appConfig.payments.gateway.apiKey.production;
+  console.log('paymentsApiKey', paymentsApiKey, paymentsApiToken, `${appConfig.payments.gateway.url}/card_tokens?public_key=${paymentsApiKey}`, typeof clientPaymentConfig.cardId, clientPaymentConfig.cardId, typeof clientPaymentConfig.CVV, clientPaymentConfig.CVV)
+  const cardTokenResponse = await httpClient.post(`${appConfig.payments.gateway.url}/card_tokens?public_key=${paymentsApiKey}`, { card_id: clientPaymentConfig.cardId, security_code: clientPaymentConfig.CVV })
   console.log('cardTokenResponse', cardTokenResponse)
   const cardToken = cardTokenResponse.data.id;
   // TODO: Cover the cases when the order is the first or last
@@ -940,7 +940,7 @@ async function _makePaymentWithMercadopago(contract: IContract, appConfig: IAppC
     }
   };
   console.log('mercadopagoOrder 1: ', mercadopagoOrder, paymentsApiToken)
-  const paymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments?access_token=${paymentsApiToken}`, mercadopagoOrder);
+  const paymentResponse = await httpClient.post(`${appConfig.payments.gateway.url}/payments?access_token=${paymentsApiToken}`, mercadopagoOrder);
   console.log('mercadopagoPaymentResponse 1', paymentResponse.data);
 
   return paymentResponse.data as IPayment;
@@ -1017,12 +1017,12 @@ async function refundPayment(req: express.Request, res: express.Response) {
 
   try {
     const appConfig = await _getAppConfig(siteId);
-    const apiToken = appConfig.test ? appConfig.payments.gateaway.apiToken.test : appConfig.payments.gateaway.apiToken.production;
+    const apiToken = appConfig.test ? appConfig.payments.gateway.apiToken.test : appConfig.payments.gateway.apiToken.production;
     const orderResponse = await DDBB.doc(`business/${siteId}/orders/${orderId}`).get();
     const orderPaymentAttempts = orderResponse.data().payment_attempts;
     console.log('orderPaymentAttempts', orderPaymentAttempts, orderPaymentAttempts[orderPaymentAttempts.length - 1])
     const paymentId = orderPaymentAttempts[orderPaymentAttempts.length - 1].id;
-    const refundPaymentResponse = await httpClient.post(`${appConfig.payments.gateaway.url}/payments/${paymentId}/refunds?access_token=${apiToken}`);
+    const refundPaymentResponse = await httpClient.post(`${appConfig.payments.gateway.url}/payments/${paymentId}/refunds?access_token=${apiToken}`);
     const refundedPayment = refundPaymentResponse.data;
     console.log('refundedPayment', refundedPayment);
 
@@ -1788,7 +1788,7 @@ async function _payOrder(contract: IContract, clientId: string, appConfig: IAppC
   console.log('_payOrder', _payOrder, clientPaymentConfig)
 
   if (clientPaymentConfig && clientPaymentConfig.cardId) {
-    if (appConfig.payments.gateaway.name === 'mercadopago') {
+    if (appConfig.payments.gateway.name === 'mercadopago') {
       const paymentResponse: IPayment = await _makePaymentWithMercadopago(contract, appConfig, clientPaymentConfig, amount);
 
       const order = {
@@ -1799,7 +1799,7 @@ async function _payOrder(contract: IContract, clientId: string, appConfig: IAppC
 
       return order;
     } else {
-      throw new CustomError('This site does not have a Gateaway associated', 400);
+      throw new CustomError('This site does not have a Gateway associated', 400);
     }
   } else {
     throw new CustomError('This client does not have a Credit Card associated', 400);
@@ -2092,6 +2092,34 @@ async function requiredClientFields(req: express.Request, res: express.Response)
   }
 }
 
+async function gatewayReturnPage(req: express.Request, res: express.Response) {
+  console.log('gatewayReturnPage', req.body);
+  const payment_reference = req.body.payment_reference;
+  /* const transaction_id = req.body.transaction_id;
+  const stcpay_reference_number = req.body.stcpay_reference_number;
+  const stcpay_expiration_time = req.body.stcpay_expiration_time;
+  const stcpay_result = req.body.stcpay_result; */
+
+  // TODO: Finish this
+  // On the fron, we have to set a listener
+
+  const page = `
+      <!doctype html>
+      <head>
+        <title>Time</title>
+        <script type="text/javascript">
+          parent.postMessage("payment_reference ${payment_reference}" , "http://localhost:4200")
+        </script>
+      </head>
+      <body>
+        payment_reference: ${payment_reference}
+      </body>
+    </html>
+  `;
+
+  res.status(200).send(page);
+}
+
 // TEST FUNCTIONALITY
 // Mindbody calculates the first autopay date based on the IContract.ClientsChargedOn
 // Once it is all the rest autopays will be calculated based on it (ie: 2 weeks from it)
@@ -2195,6 +2223,10 @@ server
 server
   .route('/requiredClientFields')
   .get(requiredClientFields);
+
+server
+  .route('/returnUrl')
+  .post(gatewayReturnPage);
 
 // TEST ROUTES
 server

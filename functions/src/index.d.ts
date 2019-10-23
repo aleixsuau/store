@@ -52,7 +52,7 @@ interface IAppConfig {
     texts: { [key: string]: { title: string, value: string} };
   };
   payments: {
-    gateaway: {
+    gateway: {
       name: string;
       url: string;
       test_payment_response: string;
@@ -67,6 +67,7 @@ interface IAppConfig {
     };
     needs_cvv: boolean;
     number_of_retries: number;
+    needs_iframe: boolean;
   };
   queryLimit: number;
 }
