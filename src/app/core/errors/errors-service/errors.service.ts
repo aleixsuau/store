@@ -6,6 +6,7 @@ import { Injectable, Injector, Type } from '@angular/core';
 import { Router } from '@angular/router';
 import * as StackTraceParser from 'error-stack-parser';
 import { UserService } from './../../services/user/user.service';
+import { of } from 'rxjs';
 
 
 @Injectable()
@@ -23,7 +24,9 @@ export class ErrorsService {
     console.error(error);
     // Send error to server
     const errorToSend = this.addContextInfo(error);
-    return this.report(errorToSend);
+    this.report(errorToSend).subscribe();
+
+    return of(errorToSend);
   }
 
   addContextInfo(error): ErrorWithContext {
