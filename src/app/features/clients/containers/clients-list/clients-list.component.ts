@@ -86,7 +86,7 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
                                             this.searchResults = results.Clients;
 
                                             if (!this.searchResults.length) {
-                                              this.notificationService.notify('No results', null, {panelClass: 'error'});
+                                              this.notificationService.notify('No results', 'X', {panelClass: 'error'});
                                             }
                                           });
 

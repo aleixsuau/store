@@ -35,13 +35,13 @@ export class ClientsService {
   addClient(client: IClient): Observable<IClient> {
     return this.httpClient
                  .post<IClient>(`${environment.firebase.functions_path}/clients`, {Client: client})
-                 .pipe(tap(newClient => this.notificationService.notify('New client created')));
+                 .pipe(tap(newClient => this.notificationService.notify('New client created', 'X')));
   }
 
   updateClient(client: IClient): Observable<IClient> {
     return this.httpClient
                  .patch<IClient>(`${environment.firebase.functions_path}/clients/${client.Id}`, {Client: client})
-                 .pipe(tap(newClient => this.notificationService.notify('Client updated')));
+                 .pipe(tap(newClient => this.notificationService.notify('Client updated', 'X')));
   }
 
   getClientContracts(id?: string): Observable<IMindBroClientContract[]> {
@@ -53,7 +53,7 @@ export class ClientsService {
   updateClientContract(clientId: string, contractId: string, data: any) {
     return this.httpClient
                   .patch<IContract>(`${environment.firebase.functions_path}/${this.basePath}/${clientId}/contracts/${contractId}`, data)
-                  .pipe(tap(newClient => this.notificationService.notify('Contract updated')));
+                  .pipe(tap(newClient => this.notificationService.notify('Contract updated', 'X')));
   }
 
   // TEST FUNCIONALITY
@@ -66,6 +66,6 @@ export class ClientsService {
 
     return this.httpClient
                   .post(`${environment.firebase.functions_path}/${this.basePath}/change_card`, dataToSend)
-                  .pipe(tap(newClient => this.notificationService.notify('Client Card Updated')));
+                  .pipe(tap(newClient => this.notificationService.notify('Client Card Updated', 'X')));
   }
 }

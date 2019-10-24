@@ -24,13 +24,13 @@ export class OrdersService {
   refundOrder(orderId: string) {
     return this.httpClient
                   .post<IOrder[]>(`${environment.firebase.functions_path}/${this.basePath}/${orderId}/refund`, null)
-                  .pipe(tap(response => this.notificationService.notify('Order refunded')));
+                  .pipe(tap(response => this.notificationService.notify('Order refunded', 'X')));
   }
 
   // TEST FUNCIONALITY
   triggerBillingCycle() {
     return this.httpClient
                   .post<IOrder[]>(`${environment.firebase.functions_path}/${this.basePath}/trigger`, null)
-                  .pipe(tap(response => this.notificationService.notify('Billing Cycle Started')));
+                  .pipe(tap(response => this.notificationService.notify('Billing Cycle Started', 'X')));
   }
 }

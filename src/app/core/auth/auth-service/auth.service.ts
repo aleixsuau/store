@@ -110,6 +110,6 @@ export class AuthService {
 
     return this.httpClient
                   .post(`${environment.firebase.functions_path}/sendResetPasswordEmail`, data)
-                  .pipe(tap(() => this.notificationService.notify(`Reset password email sent to ${userEmail}`)));
+                  .pipe(tap(() => this.notificationService.notify(`Reset password email sent to ${userEmail}`, 'X')));
   }
 }

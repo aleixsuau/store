@@ -281,17 +281,17 @@ export class IframeComponent implements OnInit, OnDestroy {
                   });
   }
 
-  sellContract(contract: IContract, client: IClient) {
-        this.salesService
-              .sellContract(contract, this.activeClient, true)
-              .pipe(debounceTime(1000))
-              .subscribe(
-                response => this.finishSale(),
-                error => {
-                  this.notificationService.notify(error.error);
-                  this.purchaseButtonDisabled = false;
-                },
-              );
+  sellContract(contract: IContract, client: IClient, acceptedContractTerms: boolean, acceptedBusinessTerms: boolean) {
+    this.salesService
+          .sellContract(contract, this.activeClient, true, null, acceptedContractTerms, acceptedBusinessTerms)
+          .pipe(debounceTime(1000))
+          .subscribe(
+            response => this.finishSale(),
+            error => {
+              this.notificationService.notify(error.error, 'X', { panelClass: 'error' });
+              this.purchaseButtonDisabled = false;
+            },
+          );
   }
 
   finishSale() {

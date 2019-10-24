@@ -17,7 +17,14 @@ export class SalesService {
     private userService: UserService,
   ) { }
 
-  sellContract(contract: IContract, client: IClient, instantPayment: boolean, startDate?: string) {
+  sellContract(
+    contract: IContract,
+    client: IClient,
+    instantPayment: boolean,
+    startDate?: string,
+    acceptedContractTerms?: boolean,
+    acceptedBusinessTerms?: boolean,
+    ) {
     const user = this.userService.getUser();
     const userIsAnAdmin = user && user['Type'];
     const dataToSend = {
@@ -25,10 +32,12 @@ export class SalesService {
       instantPayment,
       startDate,
       seller: userIsAnAdmin ? user : null,
+      acceptedContractTerms,
+      acceptedBusinessTerms,
     };
 
     return this.httpClient
                   .post<IClient>(`${environment.firebase.functions_path}/clients/${client.UniqueId}/contracts`, dataToSend)
-                  .pipe(tap(response => this.notificationService.notify('Contract Sold')));
+                  .pipe(tap(response => this.notificationService.notify('Contract Sold', 'X')));
   }
 }

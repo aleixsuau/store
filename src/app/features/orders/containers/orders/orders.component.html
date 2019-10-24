@@ -106,45 +106,47 @@
                   @fade>
           <mat-header-row class="table-header"
                           *matHeaderRowDef="columns"
+                          fxLayoutAlign="space-between center"
                           color="primary"
                           @fade>
           </mat-header-row>
 
           <mat-row *matRowDef="let order; columns: columns; let index = index"
-                   (click)="openOrderDetailDialog(order);">
+                   (click)="openOrderDetailDialog(order);"
+                   fxLayoutAlign="space-between center">
           </mat-row>
 
           <ng-container matColumnDef="Date">
-            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center">DATE</mat-header-cell>
-            <mat-cell *matCellDef="let order" fxLayoutAlign="center center" [matTooltip]="order?.date_created | date:'medium'">{{ order.date_created | date:'M/d/yy' }}</mat-cell>
+            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center" fxFlex="1 1 15%">DATE</mat-header-cell>
+            <mat-cell *matCellDef="let order" fxLayoutAlign="center center" [matTooltip]="order?.date_created | date:'medium'" fxFlex="1 1 15%">{{ order.date_created | date:'M/d/yy' }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="Client">
-            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center">CLIENT</mat-header-cell>
-            <mat-cell *matCellDef="let order" fxLayoutAlign="center center">{{ order.client_id }}</mat-cell>
+            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center" fxFlex="1 1 15%">CLIENT</mat-header-cell>
+            <mat-cell *matCellDef="let order" fxLayoutAlign="center center" fxFlex="1 1 15%">{{ order.client_id }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="Contract">
-            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center">CONTRACT</mat-header-cell>
-            <mat-cell *matCellDef="let order" fxLayoutAlign="center center">{{ getContractData(order.contract_id)?.Name }}</mat-cell>
+            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center" fxFlex="1 1 35%">CONTRACT</mat-header-cell>
+            <mat-cell *matCellDef="let order" fxLayoutAlign="center center" fxFlex="1 1 35%">{{ getContractData(order.contract_id)?.Name }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="Total">
-            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center">TOTAL</mat-header-cell>
-            <mat-cell *matCellDef="let order" fxLayoutAlign="center center">{{ order?.payment_attempts[order?.payment_attempts?.length - 1]?.transaction_amount }}</mat-cell>
+            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center" fxFlex="1 1 15%">TOTAL</mat-header-cell>
+            <mat-cell *matCellDef="let order" fxLayoutAlign="center center" fxFlex="1 1 15%">{{ order?.payment_attempts[order?.payment_attempts?.length - 1]?.transaction_amount }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="Delivered">
-            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center">DELIVERED</mat-header-cell>
-            <mat-cell *matCellDef="let order" fxLayoutAlign="center center">
+            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center" fxFlex="1 1 10%">DELIVERED</mat-header-cell>
+            <mat-cell *matCellDef="let order" fxLayoutAlign="center center" fxFlex="1 1 10%">
               <mat-icon *ngIf="order.delivered">done</mat-icon>
               <mat-icon *ngIf="!order.delivered">clear</mat-icon>
             </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="Status">
-            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center">STATUS</mat-header-cell>
-            <mat-cell *matCellDef="let order" fxLayoutAlign="center center">
+            <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center" fxFlex="1 1 10%">STATUS</mat-header-cell>
+            <mat-cell *matCellDef="let order" fxLayoutAlign="center center" fxFlex="1 1 10%">
               <mat-icon *ngIf="order.payment_status === 'approved'"
                         [ngStyle]="{'color':'green'}"
                         [matTooltip]="order.payment_status + ': ' + order.payment_status_detail">

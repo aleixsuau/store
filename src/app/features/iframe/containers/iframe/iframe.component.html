@@ -654,7 +654,7 @@
                   [disabled]="purchaseButtonDisabled || iframeForm.invalid"
                   *ngIf="!saleFinished"
                   color="accent"
-                  (click)="sellContract(iframeForm.get('contract').value, activeClient); purchaseButtonDisabled = true;">
+                  (click)="sellContract(iframeForm.get('contract').value, activeClient, iframeForm.get('acceptedContractTerms').value, iframeForm.get('acceptedBusinessTerms').value); purchaseButtonDisabled = true;">
             PURCHASE CONTRACT
           </button>
         </div>

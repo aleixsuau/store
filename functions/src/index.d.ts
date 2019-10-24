@@ -30,6 +30,8 @@ interface IMindBroClientContract {
   client_id: string;
   autopays_counter: number;
   last_autopay: string;
+  accepted_contract_terms: boolean,
+  accepted_business_terms: boolean,
 }
 
 interface IMindBroClientPaymentsConfig {

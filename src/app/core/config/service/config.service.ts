@@ -83,6 +83,6 @@ export class ConfigService {
 
     return this.httpClient
                   .post(`${environment.firebase.functions_path}/${this.endPoint}/${this.siteId}`, dateToSet)
-                  .pipe(tap(response => this.notificationService.notify('Mocked date setted')));
+                  .pipe(tap(response => this.notificationService.notify('Mocked date setted', 'X')));
   }
 }

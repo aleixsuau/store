@@ -1068,9 +1068,11 @@ async function addContract(req: express.Request, res: express.Response) {
   const token = req.header('Authorization');
   const clientId = req.params.id;
   const contract: IContract = req.body.contract;
-  let instantPayment = req.body.instantPayment;
-  const startDate = req.body.startDate;
+  let instantPayment = req.body.instantPayment || null;
+  const startDate = req.body.startDate || null;
   const seller = req.body.seller || null;
+  const accepted_contract_terms = req.body.acceptedContractTerms || null;
+  const accepted_business_terms = req.body.acceptedBusinessTerms || null;
 
   console.log('addContract', siteId, token, clientId, instantPayment, startDate, seller, contract);
 
@@ -1087,6 +1089,8 @@ async function addContract(req: express.Request, res: express.Response) {
       autopays_counter: contract.NumberOfAutopays,
       client_id: clientId,
       last_autopay: null,
+      accepted_contract_terms,
+      accepted_business_terms,
     };
     const isTodayTheAutopayDay = _isTodayTheAutopayDay(contract, startDate && moment(startDate), null, appConfig);
     const skipPayment = contract.FirstAutopayFree;
@@ -1193,7 +1197,7 @@ async function updateContract(req: express.Request, res: express.Response) {
   const token = req.header('Authorization');
   const clientId = req.params.id;
   const contractId = req.params.contractId;
-  let update = req.body;
+  const update = req.body;
 
   console.log('updateContract', siteId, token);
 
@@ -1208,8 +1212,8 @@ async function updateContract(req: express.Request, res: express.Response) {
         const contractsCatalogue: IContract[] = await _getContracts(siteId);
         const contract: IContract = contractsCatalogue.find(contractItem => contractItem.Id === contractId);
         const clientContractResponse = await DDBB
-                                                      .doc(`business/${siteId}/contracts/${contractId}/clients/${clientId}`)
-                                                      .get();
+                                              .doc(`business/${siteId}/contracts/${contractId}/clients/${clientId}`)
+                                              .get();
         const clientContract = clientContractResponse.data() as IMindBroClientContract;
         console.log('updateContract clientContract', clientContract)
 
@@ -1231,15 +1235,11 @@ async function updateContract(req: express.Request, res: express.Response) {
           if (today.isSameOrAfter(nextAutopay, 'day')) {
             const skipPayment = false;
             const skipDeliver = !_isTodayTheAutopayDay(contract, null, null, appConfig);
-            const contractOrder = await _processOneContractOrder(contract, clientId, clientContract, appConfig, token, null, skipPayment, skipDeliver);
+            const throwIfPaymentFails = true;
+            const contractOrder = await _processOneContractOrder(contract, clientId, clientContract, appConfig, token, null, skipPayment, skipDeliver, throwIfPaymentFails);
             console.log('updateContract contractOrder', contractOrder)
             await _updateContractAfterProcessOrder(appConfig, contractOrder, clientContract, contract);
-            await DDBB.doc(`business/${siteId}/clients/${clientId}`).update({[`contracts.${contractId}.status`]: update.status});
           } else {
-            update = {
-              ...update,
-              start_date: _getFirstAutopayDate(contract, appConfig, true).toISOString(),
-            }
             await DDBB.doc(`business/${siteId}/clients/${clientId}`).update({[`contracts.${contractId}.status`]: update.status});
             await DDBB.doc(`business/${siteId}/contracts/${contractId}/clients/${clientId}`).update(update);
           }
@@ -1252,10 +1252,11 @@ async function updateContract(req: express.Request, res: express.Response) {
           const skipDeliver = false;
           const debtAutopays = await _getDebtAutopays(contract, clientContract, appConfig);
           const debtAmount = debtAutopays.reduce(result => result + contract.RecurringPaymentAmountTotal, 0);
-          const contractOrder = await _processOneContractOrder(contract, clientId, clientContract, appConfig, token, null, skipPayment, skipDeliver, null, null, debtAmount);
+          const throwIfPaymentFails = true;
+          const contractOrder = await _processOneContractOrder(contract, clientId, clientContract, appConfig, token, null, skipPayment, skipDeliver, throwIfPaymentFails, null, debtAmount);
           console.log('updateContract contractOrder', contractOrder)
           await _updateContractAfterProcessOrder(appConfig, contractOrder, clientContract, contract);
-          await DDBB.doc(`business/${siteId}/clients/${clientId}`).update({[`contracts.${contractId}.status`]: update.status});
+          // await DDBB.doc(`business/${siteId}/clients/${clientId}`).update({[`contracts.${contractId}.status`]: update.status});
         } else {
           await DDBB.doc(`business/${siteId}/clients/${clientId}`).update({[`contracts.${contractId}.status`]: update.status});
           await DDBB.doc(`business/${siteId}/contracts/${contractId}/clients/${clientId}`).update(update);
@@ -1404,7 +1405,7 @@ async function _processAllContractOrders(contract: IContract, appConfig: IAppCon
     console.log('CURRENT CLIENT: ', i, currentClientContract);
     // When the IContract.status is 'activation_pending' the payment was done in advance so
     // we don't need to calculate the next autopay from the 'last_autopay', we just need to
-    // check if today is === the firstAutopayDate to set the IContract.status to
+    // check if today is === the firstAutopayDate to set to
     // deliver the IContract items and set its status to 'active'
     const currentClientContractDateFrom = currentClientContract.status !== 'activation_pending' && currentClientContract.last_autopay ?
                                             moment(currentClientContract.last_autopay) :
@@ -1692,7 +1693,7 @@ async function _updateContractAfterProcessOrder(appConfig: IAppConfig, contractO
     if (!skipPayment) {
       let lastAutopay;
 
-      if (clientContract.status === 'activation_pending') {
+      if (clientContract.status === 'activation_pending' || clientContract.status === 'paused') {
         // If IOrder.payment_status === 'approved' && IOrder.delivered === false
         // then _isTodayTheAutopayDay was false (ie: it was an instantPayment)
         // and the clientContract.status === 'activation_pending'
@@ -1701,7 +1702,9 @@ async function _updateContractAfterProcessOrder(appConfig: IAppConfig, contractO
         // we set the last_payment to the next autopay date (_getFirstAutopayDate)
         // to calculate the next autopay dates from it. If not we'd charge it double,
         // when the IContract is purchased, and then when arrives the first IContract.clientsChargeOn
-        lastAutopay = _getFirstAutopayDate(contract, appConfig).toISOString();
+        // Also, if the clientContract.status === 'paused', here we are resuming the contract
+        // and we have already paid (instantPayment), so we are in the same case.
+        lastAutopay = _getNextAutopayDate(contract, null, appConfig).toISOString();
       } else if (clientContract.status === 'paused_no_payment') {
         // If the clientContract.status === 'paused_no_payment', then
         // we are resuming (reactivating) it after the payment of the debt, then
@@ -1807,11 +1810,10 @@ async function _payOrder(contract: IContract, clientId: string, appConfig: IAppC
 }
 
 export function _isTodayTheAutopayDay(contract: IContract, startDate?: moment.Moment, dateFrom?: moment.Moment, appConfig?: IAppConfig): boolean {
-  // console.log('_isTodayTheAutopayDay', contract, startDate, dateFrom, appConfig, todayMock)
   // TEST FUNCTIONALITY
   const today = appConfig.test && appConfig.today_test_mock ?
-                  moment(appConfig.today_test_mock) :
-                  moment();
+                  moment(appConfig.today_test_mock).startOf('day') :
+                  moment().startOf('day');
 
   if (startDate && startDate.isSameOrAfter(today, 'day')) {
     return today.isSame(startDate, 'day');

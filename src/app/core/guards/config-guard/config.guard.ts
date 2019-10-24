@@ -31,7 +31,7 @@ export class ConfigGuard implements CanActivate, CanActivateChild {
                       if (config) {
                         return true;
                       } else {
-                        this.notificationService.notify('No app with this id---', 'CLOSE', { panelClass: 'error' });
+                        this.notificationService.notify('No app with this id---', 'X', { panelClass: 'error' });
                         this.router.navigate(['/error'], { queryParams: { message: 'No app with this id', } });
                         return false;
                       }

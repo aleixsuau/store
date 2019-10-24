@@ -81,7 +81,6 @@ import * as moment from 'moment';
  *        No new IOrder
  *
  *
- *
  * TEST AUTOPAYS_COUNTER WHEN FINISH
  *
  *
@@ -91,18 +90,27 @@ import * as moment from 'moment';
  * - When resume:
  *    - If the previous IOrder has expired it process a new IOrder +
  *        - if (_isTodayTheAutopayDate) { IMindBroClientContract.status = 'active', the client/id/contracts/id.status = 'active' }
- *        - else { IMindBroClientContract.status = 'activation_pending', the client/id/contracts/id.status = 'activation_pending' }
+ *          + IOrder.delivered = true
  *          + IMindBroClientContract.last_autopay = _getNextAutopayDate
+ *          + IMindBroClientContract.autopays_counter--
+ *        - else { IMindBroClientContract.status = 'activation_pending', the client/id/contracts/id.status = 'activation_pending' }
+ *          + IOrder.delivered = false
+ *          + IMindBroClientContract.last_autopay = _getNextAutopayDate *
+ *          + IMindBroClientContract.autopays_counter-- *
  *          - Triggering billingCycle on the clientsChargedOn date should:
  *              - IOrder.delivered = true
  *              - IMindBroClientContract.status = 'active', the client/id/contracts/id.status = 'active'
  *
- *    - If previous IOrder is still active, it set the IContracts.status = active &&
- *      start_date = to the next autopay first date (excluding today to avoid the case
- *      that the IMindBroClientContract is resumed on the clientChargeOnDay of the current IOrder)
+ *
+ *    - If previous IOrder is still active, it set the IContracts.status = active
 *          - Triggering billingCycle on the clientsChargedOn date should:
  *              - IOrder.delivered = true
  *              - IMindBroClientContract.status = 'active', the client/id/contracts/id.status = 'active'
+ *
+ *    - Edge cases:
+ *      If resuming the payment fails:
+ *          - Creates a 'canceled' IOrder, so it doesn't retry and throws so the admin knows it instantly
+ *          - IContract.status === 'paused_no_payment'
  *
  * TESTING ICONTRACT PAUSE_NO_PAYMENT/RESUME
  *      - IMindBroClientContract.status = 'activation_pending', the client/id/contracts/id.status = 'activation_pending'
