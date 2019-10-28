@@ -5,9 +5,9 @@
     The IContract is a MindBody contract that contains all the items that are going to be charged.
     It also constains the periodicity of the charges (Autopays) on its property AutopaySchedule.FrequencyType that
     can be:
-        - 'SetNumberOfAutopays': set a schedule timing ('OnSaleDate' | 'FirstOfTheMonth' | 'SpecificDate'...)
-          and a number of payments (IContract.NumberOfAutopays).
-        - 'MonthToMonth': charge every month until the business owner stops it.
+        - 'SetNumberOfAutopays': set a schedule timing (AutopaySchedule.FrequencyValue, AutopaySchedule.FrequencyTimeUnit)
+           and a number of payments (IContract.NumberOfAutopays).
+        - 'MonthToMonth': charge every month until the business owner stops it (or the IClient).
 
     * IContracts can only be created/updated/deleted on MindBody
     * We use IContracts to show/search all the contracts available and their details throught their Id
@@ -159,7 +159,7 @@ const contractsMock: IContract[] = [
     IntroOffer: 'None',
     NumberOfAutopays: 12,
     AutopayTriggerType: 'OnSetSchedule',
-    ActionUponCompletionOfAutopays: 'ContractExpires',
+    ActionUponCompletionOfAutopays: 'ContractAutomaticallyRenews',
     ClientsChargedOn: 'FirstOfTheMonth',
     ClientsChargedOnSpecificDate: null,
     DiscountAmount: 0,
@@ -479,7 +479,7 @@ async function _checkMindbodyAuth(apiKey: string, siteId: string, token: string)
 }
 
 async function _getClientEnviromentVariables(siteId: string) {
-  const aliasMapSnapshot = await DDBB.collection('business').doc('alias').get();
+  const aliasMapSnapshot = await DDBB.collection('alias').doc('table').get();
   const aliasMap = aliasMapSnapshot.data();
   const alias = aliasMap[siteId];
 
@@ -1086,8 +1086,8 @@ async function addContract(req: express.Request, res: express.Response) {
       id: contract.Id,
       start_date: startDate || null,
       // TODO: Check if the contract already starts minus the first autopay (ie: 1 year = 11 autopays)
-      autopays_counter: contract.NumberOfAutopays,
       client_id: clientId,
+      autopays_counter: contract.NumberOfAutopays,
       last_autopay: null,
       accepted_contract_terms,
       accepted_business_terms,
@@ -1102,7 +1102,7 @@ async function addContract(req: express.Request, res: express.Response) {
                       moment(appConfig.today_test_mock).startOf('day') :
                       moment().startOf('day');
 
-      if (specificDate.isBefore(today)) {
+      if (specificDate.isSameOrBefore(today, 'day')) {
         instantPayment = true;
       }
     }
@@ -1250,9 +1250,9 @@ async function updateContract(req: express.Request, res: express.Response) {
           // and deliver the contractItems for the current period
           const skipPayment = false;
           const skipDeliver = false;
-          const debtAutopays = await _getDebtAutopays(contract, clientContract, appConfig);
-          const debtAmount = debtAutopays.reduce(result => result + contract.RecurringPaymentAmountTotal, 0);
           const throwIfPaymentFails = true;
+          const debtAutopays = await _getDebtAutopays(contract, clientContract, appConfig);
+          const debtAmount = contract.RecurringPaymentAmountTotal * debtAutopays;
           const contractOrder = await _processOneContractOrder(contract, clientId, clientContract, appConfig, token, null, skipPayment, skipDeliver, throwIfPaymentFails, null, debtAmount);
           console.log('updateContract contractOrder', contractOrder)
           await _updateContractAfterProcessOrder(appConfig, contractOrder, clientContract, contract);
@@ -1275,20 +1275,26 @@ async function updateContract(req: express.Request, res: express.Response) {
   }
 }
 
-async function _getDebtAutopays(contract: IContract, clientContract: IMindBroClientContract, appConfig: IAppConfig) {
-  const order = await _findOrderByStatus(appConfig, contract.Id, clientContract.client_id, 'canceled');
+export async function _getDebtAutopays(contract: IContract, clientContract: IMindBroClientContract, appConfig: IAppConfig) {
+  const order = await _findOrderByStatus(appConfig, clientContract, 'canceled');
   let lastAutopayDate = moment(order.date_created);
-  let debtAutopays: moment.Moment[] = [lastAutopayDate];
+  let debtAutopaysArray: moment.Moment[] = [lastAutopayDate];
   // TEST FUNTIONALITY
   const today = appConfig.test && appConfig.today_test_mock ?
                   moment(appConfig.today_test_mock).startOf('day') :
                   moment().startOf('day');
+  let nextAutopayDate = _getNextAutopayDate(contract, lastAutopayDate, appConfig);
 
-
-  while (_getNextAutopayDate(contract, lastAutopayDate, appConfig).isSameOrBefore(today, 'day')) {
-    lastAutopayDate = _getNextAutopayDate(contract, lastAutopayDate, appConfig);
-    debtAutopays = [...debtAutopays, lastAutopayDate];
+  while (nextAutopayDate.isSameOrBefore(today, 'day')) {
+    lastAutopayDate = nextAutopayDate;
+    debtAutopaysArray = [...debtAutopaysArray, lastAutopayDate];
+    nextAutopayDate = _getNextAutopayDate(contract, lastAutopayDate, appConfig);
   }
+
+  // Don't charge more debt than the current contract autopays left
+  const debtAutopays = debtAutopaysArray.length > clientContract.autopays_counter ?
+                          clientContract.autopays_counter :
+                          debtAutopaysArray.length;
 
   console.log('debtAutopays: ', debtAutopays);
 
@@ -1552,7 +1558,7 @@ async function _processOneContractOrder(
       // and last_autopay have been already updated but we need to update the related IOrder delivered
       // status and add the shopping_cart
       if (clientContract.status === 'activation_pending') {
-        const activationPendingOrder = await _findOrderByStatus(appConfig, contract.Id, clientId, 'approved');
+        const activationPendingOrder = await _findOrderByStatus(appConfig, clientContract, 'approved');
 
         orderToSave = {
           ...activationPendingOrder,
@@ -1595,7 +1601,7 @@ async function _processOneContractOrder(
           ...!skipDeliver && { delivery_attempts: [...orderToSave.delivery_attempts, error] },
         }
       } else if (clientContract.status === 'activation_pending') {
-        const activationPendingOrder = await _findOrderByStatus(appConfig, contract.Id, clientId, 'approved');
+        const activationPendingOrder = await _findOrderByStatus(appConfig, clientContract, 'approved');
 
         orderToSave = {
           ...activationPendingOrder,
@@ -1732,7 +1738,7 @@ async function _updateContractAfterProcessOrder(appConfig: IAppConfig, contractO
         // from the autopays_counter when the contract is resumed
         if (clientContract.status === 'paused_no_payment') {
           const debtAutopays = await _getDebtAutopays(contract, clientContract, appConfig);
-          autopaysCounter = clientContract.autopays_counter - debtAutopays.length;
+          autopaysCounter = clientContract.autopays_counter - debtAutopays;
         }
 
         clientContractUpdate = {
@@ -1744,6 +1750,7 @@ async function _updateContractAfterProcessOrder(appConfig: IAppConfig, contractO
           if (contract.ActionUponCompletionOfAutopays === 'ContractAutomaticallyRenews') {
             clientContractUpdate.autopays_counter = contract.NumberOfAutopays;
           } else {
+            // The autopaysCounter will show the debt of the client
             clientContractUpdate.status = 'terminated';
           }
         }
@@ -1768,15 +1775,14 @@ async function _updateContractAfterProcessOrder(appConfig: IAppConfig, contractO
   }
 }
 
-async function _findOrderByStatus(appConfig: IAppConfig, contractId: string, clientId: string, status: string) {
-  const clientContractResponse = await DDBB.doc(`business/${appConfig.id}/contracts/${contractId}/clients/${clientId}`).get();
-  const clientContract = clientContractResponse.data() as IMindBroClientContract;
+async function _findOrderByStatus(appConfig: IAppConfig, clientContract: IMindBroClientContract, status: string) {
+  console.log('_findOrderByStatus', clientContract);
   const ordersRef = await DDBB
                             .collection(`business/${appConfig.id}/orders`)
                             .orderBy('date_created_timestamp', 'desc')
                             .where('date_created_timestamp', '>=', clientContract.date_created_timestamp)
-                            .where('contract_id', '==', contractId)
-                            .where('client_id', '==', clientId)
+                            .where('contract_id', '==', clientContract.id)
+                            .where('client_id', '==', clientContract.client_id)
                             .where('payment_status', '==', status)
                             .where('delivered', '==', false);
 
@@ -1820,7 +1826,7 @@ export function _isTodayTheAutopayDay(contract: IContract, startDate?: moment.Mo
   }
 
   const nextAutopay = _getNextAutopayDate(contract, dateFrom, appConfig);
-  console.log('nextAutopay', today, nextAutopay)
+  // console.log('nextAutopay', today, nextAutopay)
 
   return today.isSame(nextAutopay, 'day');
 }
@@ -1860,7 +1866,7 @@ function _getLastAutopayDate(contract: IContract, dateFrom?: moment.Moment, appC
                   moment().startOf('day');
 
   const nextAutopayDate = _getNextAutopayDate(contract, null, appConfig);
-  console.log('_getLastAutopayDate nextAutopayDate', nextAutopayDate, today)
+  // console.log('_getLastAutopayDate nextAutopayDate', nextAutopayDate, today)
 
   if (contract.AutopaySchedule.FrequencyType === 'MonthToMonth') {
     frequencyTimeUnit = 'months';
@@ -1886,7 +1892,7 @@ function _getLastAutopayDate(contract: IContract, dateFrom?: moment.Moment, appC
 
   const lastAutopayDate = nextAutopayDate.subtract(frequencyValue, <moment.unitOfTime.DurationConstructor>frequencyTimeUnit);
 
-  console.log('lastAutopayDate', lastAutopayDate);
+  // console.log('lastAutopayDate', lastAutopayDate);
   if (lastAutopayDate.isValid()) {
     return lastAutopayDate;
   } else {
@@ -1894,7 +1900,7 @@ function _getLastAutopayDate(contract: IContract, dateFrom?: moment.Moment, appC
   }
 }
 
-function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig, skipToday?: boolean): moment.Moment {
+export function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig, skipToday?: boolean): moment.Moment {
   let firstAutopayDate;
   // TEST FUNTIONALITY
   const today = appConfig.test && appConfig.today_test_mock ?
@@ -1904,11 +1910,11 @@ function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig, skip
   if (skipToday) { today.add(1, 'days') }
 
   const first = today.date() === 1 ? today : today.clone().add(1, 'months').startOf('month');
-  const last = today.date() === today.clone().endOf('month').date() ? today : today.clone().endOf('month');
+  const last = today.clone().endOf('month');
   const fifteen = today.date() <= 15 ? today.clone().date(15) : today.clone().add(1, 'months').date(15);
   const sixteen = today.date() <= 16 ? today.clone().date(16) : today.clone().add(1, 'months').date(16);
 
-  console.log('_getFirstAutopayDate', contract.ClientsChargedOn, skipToday, appConfig.today_test_mock, today, first, last, fifteen, sixteen);
+  // console.log('_getFirstAutopayDate', contract.ClientsChargedOn, skipToday, appConfig.today_test_mock, today, first, last, fifteen, sixteen);
 
   switch (contract.ClientsChargedOn) {
     case 'FirstOfTheMonth':
@@ -1923,21 +1929,20 @@ function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig, skip
       firstAutopayDate = last;
       break;
 
-    // TODO: Cover this case
     case 'FirstOrFifteenthOfTheMonth':
-      firstAutopayDate = today.diff(first, 'days') < today.diff(fifteen, 'days') ?
+      firstAutopayDate = first.diff(today, 'days') < fifteen.diff(today, 'days') ?
                           first :
                           fifteen;
       break;
 
     case 'FirstOrSixteenthOfTheMonth':
-      firstAutopayDate = today.diff(first, 'days') < today.diff(sixteen, 'days') ?
+      firstAutopayDate = first.diff(today, 'days') < sixteen.diff(today, 'days') ?
                           first :
                           sixteen;
       break;
 
     case 'FifteenthOrEndOfTheMonth':
-      firstAutopayDate = today.diff(fifteen, 'days') < today.diff(last, 'days') ?
+      firstAutopayDate = fifteen.diff(today, 'days') < last.diff(today, 'days') ?
                           fifteen :
                           last;
       break;
@@ -1954,7 +1959,6 @@ function _getFirstAutopayDate (contract: IContract, appConfig?: IAppConfig, skip
       firstAutopayDate = today;
   }
 
-  console.log('firstAutopayDate', firstAutopayDate, firstAutopayDate.isValid())
   if (firstAutopayDate.isValid()) {
     return firstAutopayDate;
   } else {
@@ -2242,8 +2246,8 @@ server
 // Expose Express API as a single Cloud Function:
 exports.api = functions.https.onRequest(server);
 
-/* exports.scheduledFunction = functions.pubsub.schedule('every 5 minutes').onRun((context) => {
+exports.scheduledFunction = functions.pubsub.schedule('every 60 minutes').onRun((context) => {
   console.log('5 MINUTES: This will be run every 5 minutes!');
-}); */
+});
 
 
