@@ -1,8 +1,8 @@
 // TO WORK WITH THIS TESTS:
 // npm install chai mocha ts-node @types/chai @types/mocha --save-dev
-/// <reference types="../src/index" />
+/// <reference types="../src/typings" />
 import { expect } from 'chai';
-import { _isTodayTheAutopayDay, _getFirstAutopayDate, _getDebtAutopays } from './index';
+import { _isTodayTheAutopayDay, _getFirstAutopayDate, _getDebtAutopays } from './payments';
 import * as moment from 'moment';
 
 
