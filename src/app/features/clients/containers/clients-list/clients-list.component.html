@@ -607,13 +607,14 @@
       <button mat-raised-button
               [disabled]="clientForm.invalid || clientForm.pristine"
               (click)="saveClient(clientForm.value)"
-              color="primary">
+              color="accent">
         <mat-icon>save</mat-icon>
         SAVE
       </button>
 
       <button mat-raised-button
-              mat-dialog-close>
+              mat-dialog-close
+              color="accent">
         <mat-icon>close</mat-icon>
         CLOSE
       </button>

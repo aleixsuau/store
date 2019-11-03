@@ -1,7 +1,11 @@
 @import './variables';
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
+html, body {
+  height: 100%;
+  background: rgb(255,255,255);
+  background: radial-gradient(circle, white 0%,#eae8e8 84%);
+}
 
 html {
   // This defines what a rem is
@@ -80,3 +84,9 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     margin: 0rem;
   }
 }
+
+// MATERIAL OVERWRITES
+.mat-simple-snackbar-action {
+  color: #ffffff78;
+}
+

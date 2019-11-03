@@ -1,3 +1,4 @@
+import { UserService } from './../../services/user/user.service';
 import { NotificationService } from './../../services/notification/notification.service';
 import { ConfigService } from '../../config/service/config.service';
 import { Injectable } from '@angular/core';
@@ -11,12 +12,14 @@ export class AuthGuard implements CanActivate {
     private router: Router,
     private configService: ConfigService,
     private notificationService: NotificationService,
+    private userService: UserService,
   ) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     const siteId = route.params['siteId'] || this.configService.siteId;
+    const activeUser = this.userService.getUser();
 
-    if (this.authService.getToken()) {
+    if (this.authService.getToken() && activeUser['Type']) {
       return true;
     } else {
       this.notificationService.notify('Unauthenticated user', 'X', { panelClass: 'error' });

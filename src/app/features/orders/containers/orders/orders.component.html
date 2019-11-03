@@ -80,14 +80,24 @@
         </mat-form-field>
 
         <div fxFlex="1 1 auto"
+              fxLayout="row wrap"
               fxLayoutAlign="end center"
               fxLayoutGap="2rem">
+          <!-- TEST FUNCTIONALITY -->
           <button mat-raised-button
                   *ngIf="testEnvironment"
                   color="accent"
                   (click)="triggerBillingCycle();"
                   fxFlex="0 0 auto">
             TRIGGER BILLING CYCLE
+          </button>
+
+          <button mat-button
+                  color="primary"
+                  (click)="filterForm.reset();"
+                  [disabled]="filterForm.pristine"
+                  fxFlex="0 0 auto">
+            Reset Filter
           </button>
 
           <button mat-raised-button
@@ -118,7 +128,7 @@
 
           <ng-container matColumnDef="Date">
             <mat-header-cell *matHeaderCellDef mat-sort-header fxLayoutAlign="center center" fxFlex="1 1 15%">DATE</mat-header-cell>
-            <mat-cell *matCellDef="let order" fxLayoutAlign="center center" [matTooltip]="order?.date_created | date:'medium'" fxFlex="1 1 15%">{{ order.date_created | date:'M/d/yy' }}</mat-cell>
+            <mat-cell *matCellDef="let order" fxLayoutAlign="center center" [matTooltip]="order?.date_created | date:'medium'" fxFlex="1 1 15%">{{ order.date_created | date:'M/d/yyyy' }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="Client">

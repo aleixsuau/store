@@ -103,12 +103,12 @@ export class RetailComponent implements OnInit, OnDestroy {
     this.salesService
           .sellContract(contract, client, instantPayment, startDateToSend)
           .subscribe(() => {
-            this.setSelectedClientContracts(client);
+            this.setSelectableClientContracts(client);
             this.retailForm.reset();
           });
   }
 
-  setSelectedClientContracts(client: IClient) {
+  setSelectableClientContracts(client: IClient) {
     this.clientsService
           .getClientContracts(client.Id)
           .subscribe(mbContracts => {

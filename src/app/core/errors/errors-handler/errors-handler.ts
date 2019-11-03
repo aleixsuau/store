@@ -38,7 +38,7 @@ export class ErrorsHandler implements ErrorHandler {
       } else {
         // Handle Http Error (error.status === 401, 403...)
         if (error.status === 401 || error.status === 403) {
-          notificationService.notify(`Unauthenticated user: ${errorMessage}`, 'X', { duration: 10000, panelClass: 'error' });
+          notificationService.notify(`${errorMessage}`, 'X', { duration: 10000, panelClass: 'error' });
           authService.logout();
           return;
         } else if (error.status === 404) {

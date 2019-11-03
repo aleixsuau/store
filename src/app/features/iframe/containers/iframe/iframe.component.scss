@@ -27,7 +27,7 @@
   padding-top: 2rem;
 
   &__cards-box {
-    overflow: scroll;
+    overflow-x: scroll;
 
     .scroll_left_button {
       position: absolute;
@@ -40,6 +40,10 @@
       left: 0;
       z-index: 1;
     }
+  }
+
+  .next_step_button {
+    margin-top: 1rem;
   }
 
   mat-card {
@@ -96,10 +100,6 @@
   padding-top: 2rem;
 }
 
-.sale_finished_message {
-  color: $accent;
-}
-
 .terms_conditions_checks {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
@@ -145,6 +145,14 @@
   }
 }
 
+.sale_finished_message {
+  background-color: $accent;
+  border-radius: 3rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  text-align: center;
+  color: $white;
+}
 
 // Material overwrites
 mat-card-title {

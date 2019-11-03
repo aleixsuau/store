@@ -43,6 +43,7 @@ interface IAppConfig {
     country: string;
     backgroundImage: string;
     texts: { [key: string]: { title: string, value: string} };
+    timezone: string;
   };
   payments: {
     gateway: {
@@ -58,6 +59,7 @@ interface IAppConfig {
         production: string;
       };
     },
+    billing_hour: number;
     needs_cvv: boolean;
     number_of_retries: number;
     needs_iframe: boolean;

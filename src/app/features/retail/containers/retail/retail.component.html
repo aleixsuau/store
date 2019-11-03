@@ -23,7 +23,7 @@
         <mat-autocomplete #clientAuto="matAutocomplete"
                           [displayWith]="displayClientFn"
                           autoActiveFirstOption
-                          (optionSelected)="setSelectedClientContracts($event.option.value)">
+                          (optionSelected)="setSelectableClientContracts($event.option.value)">
           <mat-option *ngFor="let client of clients"
                       [value]="client">
             {{ client.FirstName + ' ' + client.LastName }}

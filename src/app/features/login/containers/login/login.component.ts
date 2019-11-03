@@ -22,6 +22,7 @@ import { Observable } from 'rxjs';
 })
 export class LoginComponent implements OnInit {
   appConfig$: Observable<IAppConfig>;
+  loginMouseEnter: boolean;
 
   constructor(
     private configService: ConfigService,
