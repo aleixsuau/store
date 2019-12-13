@@ -445,7 +445,7 @@
             <div fxLayoutAlign="end center">
               <button mat-raised-button
                       [disabled]="iframeForm.get('personalDetails').invalid || saleFinished"
-                      (click)="activeClient ? stepper.next() : addClient(iframeForm.get('personalDetails').value)"
+                      (click)="stepper.next()"
                       color="accent">
                 Next Step
               </button>
@@ -569,7 +569,7 @@
           <button mat-raised-button
                   (click)="iframeForm.get('ClientCreditCard').value?.CVV === '***' ?
                             stepper.next() :
-                            updateClient(activeClient, iframeForm.get('ClientCreditCard').value)"
+                            addClient(iframeForm.get('personalDetails').value, iframeForm.get('ClientCreditCard').value)"
                   [disabled]="saleFinished"
                   color="accent">
             NEXT STEP

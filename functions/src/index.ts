@@ -116,7 +116,7 @@ import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as moment from 'moment-timezone';
 import * as parser from 'fast-xml-parser';
-import { baseUrl, DDBB, httpClient, _getAppConfig, _handleServerErrors, _login, _findOrderByStatus, _getClientEnviromentVariables } from './utils';
+import { baseUrl, DDBB, httpClient, _getAppConfig, _handleServerErrors, _login, _findOrderByStatus, _getClientEnviromentVariables, appConfigMiddleware } from './utils';
 import { _isTodayTheAutopayDay, _getNextAutopayDate, _getLastAutopayDate, _getFirstAutopayDate, _getPaymentsConfig, _processAllAppsAutopays, _processOneAppAutopays  } from './payments';
 import { _getContracts, _processFailedContractOrders } from './contracts';
 import { _getAllClients } from './clients';
@@ -139,7 +139,7 @@ server.use(cors({
 }));
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({ extended: false }));
-
+server.use(appConfigMiddleware)
 
 
 async function updateConfig(req: express.Request, res: express.Response) {

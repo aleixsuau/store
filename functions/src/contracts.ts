@@ -351,7 +351,6 @@ export async function _processOneContractOrder(
    *   If the IOrder.payment_attemps.length > maxRetries, IOrder.payment_status = 'canceled'
    */
 
-  console.log('_processOneContractOrder', clientId, token, order, skipPayment, skipDeliver, throwIfPaymentFails, seller, contract, appConfig);
   // TODO: add IContract.FirstAutopayFree and IContract.LastAutopayFree
   const contractItems = contract.ContractItems.map(contractItem => {
     const formattedItem = {

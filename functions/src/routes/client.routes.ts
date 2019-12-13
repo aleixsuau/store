@@ -2,7 +2,7 @@
 
 import * as express from 'express';
 import * as moment from 'moment-timezone';
-import { baseUrl, httpClient, _login, _getAppConfig, _handleServerErrors, DDBB} from '../utils';
+import { baseUrl, httpClient, _login, _getAppConfig, _handleServerErrors, DDBB, _getClientEnviromentVariables } from '../utils';
 import { _createPaymentsConfig, _isTodayTheAutopayDay, _getFirstAutopayDate, _getNextAutopayDate, _getDebtAutopays } from '../payments';
 import { _processOneContractOrder, _getContracts, _updateContractAfterProcessOrder } from '../contracts';
 import { _getAllClients } from '../clients';
@@ -37,7 +37,7 @@ async function addClient(req: express.Request, res: express.Response) {
   if (req.method === 'OPTIONS') { res.status(200).json() };
 
   const siteId = req.header('siteId');
-  const token = req.header('Authorization');
+  let token = req.header('Authorization');
   const client: IClient = {
     ...req.body.Client,
     date_created: new Date(),
@@ -61,8 +61,17 @@ async function addClient(req: express.Request, res: express.Response) {
     const isSavingANewCreditCard = client.ClientCreditCard && client.ClientCreditCard.CVV;
     let paymentsConfig;
 
-    if (isSavingANewCreditCard) {
+    // If the addClient order comes from the widget (Iframe), then the user is not authenticated
+    // and we need to login with the business credentials in order to add the contract to MindBody
+    if (!token) {
+      const appEnvVars = await _getClientEnviromentVariables(siteId);
+      // tslint:disable-next-line:no-parameter-reassignment
+      const tokenResponse = await _login(appConfig.id, appEnvVars.username, appEnvVars.password);
+      token = tokenResponse.AccessToken;
+      console.log('addClient appEnvVars', appEnvVars, token);
+    }
 
+    if (isSavingANewCreditCard) {
       paymentsConfig = await _createPaymentsConfig(appConfig, client);
       console.log('paymentsConfig', paymentsConfig)
     }
@@ -74,8 +83,9 @@ async function addClient(req: express.Request, res: express.Response) {
       'Authorization': token,
       }
     };
+    console.log('_addClient config', config)
     const newClientResponse = await httpClient.post(`${baseUrl}/client/addclient`, client, config);
-    console.log('newClientResponse', newClientResponse.data);
+    console.log('_addClient newClientResponse', newClientResponse.data);
     let clientToSave: IMindBroClient = {
       contracts: {},
       payments_config: null,
@@ -195,7 +205,7 @@ async function addContract(req: express.Request, res: express.Response) {
   if (req.method === 'OPTIONS') { res.status(200).json() };
 
   const siteId = req.header('siteId');
-  const token = req.header('Authorization');
+  let token = req.header('Authorization');
   const clientId = req.params.id;
   const contract: IContract = req.body.contract;
   let instantPayment = req.body.instantPayment || null;
@@ -224,6 +234,16 @@ async function addContract(req: express.Request, res: express.Response) {
     };
     const isTodayTheAutopayDay = _isTodayTheAutopayDay(contract, startDate && moment(startDate), null, appConfig);
     const skipPayment = contract.FirstAutopayFree;
+
+    // If the addContract order comes from the widget (Iframe), then the user is not authenticated
+    // and we need to login with the business credentials in order to add the contract to MindBody
+    if (!token) {
+      const appEnvVars = await _getClientEnviromentVariables(siteId);
+      // tslint:disable-next-line:no-parameter-reassignment
+      const tokenResponse = await _login(appConfig.id, appEnvVars.username, appEnvVars.password);
+      token = tokenResponse.AccessToken;
+      console.log('_processOneContractOrder appEnvVars', appEnvVars, token);
+    }
 
     if (contract.ClientsChargedOn === 'SpecificDate') {
       const specificDate = moment(contract.ClientsChargedOnSpecificDate);
@@ -410,7 +430,6 @@ clientRouter
 clientRouter
   .route('/:id')
   .patch(updateClient);
-
 
 clientRouter
   .route('/:id/contracts')

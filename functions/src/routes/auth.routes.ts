@@ -14,7 +14,7 @@ async function login(req: express.Request, res: express.Response) {
   try {
     const tokenResponse = await _login(siteId, username, password);
 
-    res.status(tokenResponse.status).json(tokenResponse.data);
+    res.status(tokenResponse.status).json(tokenResponse);
   } catch(error) {
     _handleServerErrors(error, res);
   }

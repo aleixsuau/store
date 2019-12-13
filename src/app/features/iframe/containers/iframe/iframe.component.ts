@@ -17,17 +17,18 @@ import { transition, trigger, useAnimation } from '@angular/animations';
 
 /**
  * EXPLANATION
- * This widget allow two flows:
+ * This widget allows two flows:
  * 1 - New IClient:
  *    1 - Select IContract
  *    2 - Fill 'Personal details' form group. When the IClient clicks on 'Next',
  *        a new IClient is created
  *        the IClient is disabled,
- *        and we go to next step
- *    3 - Fill the 'ClientCreditCard' formgroup. When the IClient clicks on 'Purchase Contract',
- *        the IClient is updated with the new credit card and then
- *        the purchase is processed.
- *    4 - Purchase Result step.
+ *        and we go to 'Payment details' step
+ *    3 - Fill the 'ClientCreditCard' formgroup. When the IClient clicks on 'Next',
+ *        the IClient is updated with the new credit card and we go to the 'Purchase'
+ *        step.
+ *    4 - The client accept the terms and conditions and clicks on 'Purchase' and the
+ *        purchase is done.
  *
  * 2 - Existent IClient:
  *    1 - Select IContract
@@ -241,14 +242,23 @@ export class IframeComponent implements OnInit, OnDestroy {
             .subscribe();
   }
 
-  addClient(client: IClient) {
+  addClient(client: IClient, creditCard: IClientCreditCard) {
+    const clientToSend = { ...client, ClientCreditCard: creditCard };
+
     this.clientsService
-          .addClient(client)
+          .addClient(clientToSend)
           .pipe(
             switchMap(createdClient => {
               this.activeClient = createdClient;
               this.userService.setUser(this.activeClient);
               this.iframeForm.get('personalDetails').disable();
+              this.iframeForm.get('ClientCreditCard').disable();
+              this.iframeForm.get('ClientCreditCard').setValue({
+                CardNumber: createdClient.ClientCreditCard.CardNumber,
+                ExpMonth: createdClient.ClientCreditCard.ExpMonth,
+                ExpYear: createdClient.ClientCreditCard.ExpYear,
+                CVV: '***',
+              });
 
               return this.authService
                             .sendResetPasswordEmail(this.activeClient.Email, this.activeClient.FirstName, this.activeClient.LastName);
@@ -258,27 +268,6 @@ export class IframeComponent implements OnInit, OnDestroy {
             this.notificationService.notify('User created. We have sent you an email to set your password');
             this.stepper.next();
           });
-  }
-
-  updateClient(client: IClient, creditCard: IClientCreditCard) {
-    const clientUpdate = { ...client, ClientCreditCard: creditCard };
-
-    return this.clientsService
-                  .updateClient(clientUpdate)
-                  .subscribe((updatedClient: IClient) => {
-                    this.activeClient = updatedClient;
-                    this.userService.setUser(this.activeClient);
-                    this.notificationService.notify('Credit card saved on the client');
-                    this.iframeForm.get('ClientCreditCard').disable();
-                    this.iframeForm.get('ClientCreditCard').setValue({
-                      CardNumber: updatedClient.ClientCreditCard.CardNumber,
-                      ExpMonth: updatedClient.ClientCreditCard.ExpMonth,
-                      ExpYear: updatedClient.ClientCreditCard.ExpYear,
-                      CVV: '***',
-                    });
-
-                    this.stepper.next();
-                  });
   }
 
   sellContract(contract: IContract, client: IClient, acceptedContractTerms: boolean, acceptedBusinessTerms: boolean) {

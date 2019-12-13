@@ -1,6 +1,4 @@
-import { ClientsService } from './../../../clients/services/clients/clients.service';
 import { UserService } from './../../../../core/services/user/user.service';
-import { IframeService } from './../../../iframe/services/iframe/iframe.service';
 import { NotificationService } from './../../../../core/services/notification/notification.service';
 import { Observable, Subscription } from 'rxjs';
 import { fadeAnimation } from '../../../../shared/animations/animations';
@@ -48,7 +46,6 @@ export class LoginWidgetComponent implements OnInit {
     private configService: ConfigService,
     private notificationService: NotificationService,
     private userService: UserService,
-    private clientsService: ClientsService,
   ) { }
 
   ngOnInit() {

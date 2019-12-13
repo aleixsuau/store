@@ -5,6 +5,7 @@ import { _getAppConfig, _handleServerErrors } from '../utils';
 export const configRouter = express.Router();
 
 function getConfig(req: express.Request, res: express.Response) {
+  console.log('getConfig', req.app_config);
   if (req.method === 'OPTIONS') { res.status(200).json() };
 
   const siteId = req.params.siteId;

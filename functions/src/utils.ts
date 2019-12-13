@@ -9,19 +9,17 @@ export const baseUrl = `https://api.mindbodyonline.com/public/v6`;
 export const DDBB = admin.firestore();
 export const httpClient = axios;
 
-export async function _getAppConfig(siteId: string): Promise<IAppConfig> {
-  console.log('_getAppConfig', siteId);
-  if (!siteId) { throw new Error('Please provide an ID'); }
+export class CustomError extends Error {
+  code: number;
+  date: string;
 
-  const businessData = await DDBB.collection('business').doc(siteId).get();
-
-  console.log('businessDataaaaa', businessData.data());
-
-  if (!businessData.exists || !businessData.data() || !businessData.data().config){
-    console.log('No App with this ID');
-    return null;
-  } else {
-    return businessData.data().config as IAppConfig;
+  constructor(
+    message: string,
+    code: number) {
+      super(message);
+      this.code = code;
+      this.date = new Date().toISOString();
+      Error.captureStackTrace(this, this.constructor);
   }
 }
 
@@ -52,6 +50,39 @@ export function _handleServerErrors(error: any, res: express.Response) {
   }
 }
 
+export async function _getClientEnviromentVariables(siteId: string) {
+  const aliasMapSnapshot = await DDBB.collection('alias').doc('table').get();
+  const aliasMap = aliasMapSnapshot.data();
+  const alias = aliasMap[siteId];
+
+  return functions.config()[alias];
+}
+
+export async function _getAppConfig(siteId: string): Promise<IAppConfig> {
+  console.log('_getAppConfig', siteId);
+  if (!siteId) { throw new Error('Please provide an ID'); }
+
+  const businessData = await DDBB.collection('business').doc(siteId).get();
+
+  console.log('businessDataaaaa', businessData.data());
+
+  if (!businessData.exists || !businessData.data() || !businessData.data().config){
+    console.log('No App with this ID');
+    return null;
+  } else {
+    return businessData.data().config as IAppConfig;
+  }
+}
+
+export async function appConfigMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const siteId = req.header('siteId');
+  const appConfig = await _getAppConfig(siteId);
+
+  req.app_config = appConfig;
+
+  next();
+}
+
 export async function _login(siteId: string, username: string, password: string) {
   const appConfig = await _getAppConfig(siteId);
   const url = `${baseUrl}/usertoken/issue`;
@@ -69,38 +100,7 @@ export async function _login(siteId: string, username: string, password: string)
   const tokenResponse = await httpClient.post(url, tokenRequest, config);
   console.log('tokenResponse', tokenResponse.data);
 
-  return tokenResponse;
-}
-
-export class CustomError extends Error {
-  code: number;
-  date: string;
-
-  constructor(
-    message: string,
-    code: number) {
-      super(message);
-      this.code = code;
-      this.date = new Date().toISOString();
-      Error.captureStackTrace(this, this.constructor);
-  }
-}
-
-export async function _findOrderByStatus(appConfig: IAppConfig, clientContract: IMindBroClientContract, status: string) {
-  console.log('_findOrderByStatus', clientContract);
-  const ordersRef = await DDBB
-                            .collection(`business/${appConfig.id}/orders`)
-                            .orderBy('date_created_timestamp', 'desc')
-                            .where('date_created_timestamp', '>=', clientContract.date_created_timestamp)
-                            .where('contract_id', '==', clientContract.id)
-                            .where('client_id', '==', clientContract.client_id)
-                            .where('payment_status', '==', status)
-                            .where('delivered', '==', false);
-
-  const ordersSnapshot = await ordersRef.get();
-  const orderToUpdate = ordersSnapshot.docs.map(snapshot => snapshot.data())[0] as IOrder;
-  console.log('orderToUpdate', orderToUpdate, ordersSnapshot.docs.map(snapshot => snapshot.data()));
-  return orderToUpdate;
+  return tokenResponse.data;
 }
 
 export async function _checkMindbodyAuth(apiKey: string, siteId: string, token: string) {
@@ -122,11 +122,20 @@ export async function _checkMindbodyAuth(apiKey: string, siteId: string, token: 
   }
 }
 
-export async function _getClientEnviromentVariables(siteId: string) {
-  const aliasMapSnapshot = await DDBB.collection('alias').doc('table').get();
-  const aliasMap = aliasMapSnapshot.data();
-  const alias = aliasMap[siteId];
+export async function _findOrderByStatus(appConfig: IAppConfig, clientContract: IMindBroClientContract, status: string) {
+  console.log('_findOrderByStatus', clientContract);
+  const ordersRef = await DDBB
+                            .collection(`business/${appConfig.id}/orders`)
+                            .orderBy('date_created_timestamp', 'desc')
+                            .where('date_created_timestamp', '>=', clientContract.date_created_timestamp)
+                            .where('contract_id', '==', clientContract.id)
+                            .where('client_id', '==', clientContract.client_id)
+                            .where('payment_status', '==', status)
+                            .where('delivered', '==', false);
 
-  return functions.config()[alias];
+  const ordersSnapshot = await ordersRef.get();
+  const orderToUpdate = ordersSnapshot.docs.map(snapshot => snapshot.data())[0] as IOrder;
+  console.log('orderToUpdate', orderToUpdate, ordersSnapshot.docs.map(snapshot => snapshot.data()));
+  return orderToUpdate;
 }
 
