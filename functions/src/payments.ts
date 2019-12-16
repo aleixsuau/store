@@ -361,7 +361,6 @@ export async function _refundOrder(siteId: string, orderId: string) {
 }
 
 export async function _processAllAppsAutopays() {
-  // TODO: Fire this function for every app
   const apps = await DDBB.collection(`business`).get();
   const appsArray = apps.docs.map(snapshot => snapshot.data());
   const ddbbTime = moment();

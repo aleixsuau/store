@@ -120,7 +120,7 @@ import { baseUrl, DDBB, httpClient, _getAppConfig, _handleServerErrors, _login, 
 import { _isTodayTheAutopayDay, _getNextAutopayDate, _getLastAutopayDate, _getFirstAutopayDate, _getPaymentsConfig, _processAllAppsAutopays, _processOneAppAutopays  } from './payments';
 import { _getContracts, _processFailedContractOrders } from './contracts';
 import { _getAllClients } from './clients';
-
+import { backup } from './backup';
 
 // ROUTERS
 import { errorRouter } from './routes/error.routes';
@@ -430,9 +430,28 @@ server.all('*', (req, res) => {
 // Expose Express API as a single Cloud Function:
 exports.api = functions.https.onRequest(server);
 
-exports.scheduledFunction = functions.pubsub.schedule('every 60 minutes').onRun(async (context) => {
-  console.log('60 MINUTES: This will be run every 60 minutes!', moment());
-  await _processAllAppsAutopays();
-});
+// SCHEDULED TASKS
+// Schedule Timing follows https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules
+// https://alvinalexander.com/linux/unix-linux-crontab-every-minute-hour-day-syntax
+
+// Daily check Autopays
+exports.billingCycle = functions.pubsub
+                                  .schedule('20 * * * *')
+                                  .onRun(async (context) => {
+                                    console.log('BillingCycle: checking (every minute 20 of every hour) if any app has to run its billing cycle', moment());
+                                    await _processAllAppsAutopays();
+                                  });
+
+// BACKUP
+exports.dbBackup = functions.pubsub
+                              .schedule('every day 23:30')
+                              .timeZone('Europe/Madrid')
+                              .onRun(async context => {
+                                try {
+                                  await backup()
+                                } catch (err) {
+                                  console.error('error running db backup cron', err)
+                                }
+                              })
 
 
