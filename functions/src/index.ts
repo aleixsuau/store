@@ -433,6 +433,7 @@ exports.api = functions.https.onRequest(server);
 // SCHEDULED TASKS
 // Schedule Timing follows https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules
 // https://alvinalexander.com/linux/unix-linux-crontab-every-minute-hour-day-syntax
+// GCloud Scheduled Tasks Manager: https://console.cloud.google.com/cloudscheduler
 
 // Daily check Autopays
 exports.billingCycle = functions.pubsub
