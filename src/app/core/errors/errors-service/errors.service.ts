@@ -1,5 +1,4 @@
 import { environment } from './../../../../environments/environment.prod';
-import { ConfigService } from 'src/app/core/config/service/config.service';
 import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { Injectable, Injector, Type } from '@angular/core';
@@ -32,23 +31,22 @@ export class ErrorsService {
   addContextInfo(error): ErrorWithContext {
     // You can include context details here (usually coming from other services: UserService...)
     const name = error.name || null;
-    const configService = this.injector.get<ConfigService>(ConfigService);
-    const siteId = configService.siteId;
-    const user = this.userService.getUser() && this.userService.getUser().FirstName;
+    const user = this.userService.getUser() && this.userService.getUser().firstName;
     const time = new Date().getTime();
-    const id = `${siteId}-${user}-${time}`;
-    const location = this.injector.get<LocationStrategy>(LocationStrategy as Type<LocationStrategy>);
+    const id = `${user}-${time}`;
+    const location = this.injector.get<LocationStrategy>(LocationStrategy);
     const url = location instanceof PathLocationStrategy ? location.path() : '';
     const status = error.status || null;
     const message = error.message || error.toString();
     const stack = error instanceof HttpErrorResponse ? null : StackTraceParser.parse(error);
 
-    const errorWithContext = {name, siteId, user, time, id, url, status, message, stack};
+    const errorWithContext = {name, user, time, id, url, status, message, stack};
 
     return errorWithContext;
   }
 
   report(error) {
-    return this.httpClient.post<IAuthData>(`${environment.firebase.functions_path}/${this.endPoint}`, {error});
+    console.log('Error reported', error);
+    return of('Error reported');
   }
 }

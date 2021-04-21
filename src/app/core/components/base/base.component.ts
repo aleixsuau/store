@@ -1,4 +1,3 @@
-import { ConfigService } from 'src/app/core/config/service/config.service';
 import { AuthService } from './../../auth/auth-service/auth.service';
 import { UserService } from '../../services/user/user.service';
 import { Observable } from 'rxjs';
@@ -10,7 +9,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./base.component.scss']
 })
 export class BaseComponent implements OnInit {
-  user$: Observable<IUser | IClient>;
+  user$: Observable<IUser>;
   showUserMenu = false;
   navLinks = [
     { path: 'clients', label: 'clients', icon: 'people' },
@@ -23,19 +22,13 @@ export class BaseComponent implements OnInit {
   constructor(
     private userService: UserService,
     private authService: AuthService,
-    private configService: ConfigService,
   ) { }
 
   ngOnInit() {
     this.user$ = this.userService.user$;
-    this.testEnvironment = this.configService.config.test;
   }
 
   logOut() {
     this.authService.logout();
-  }
-
-  updateConfigTodayMock(date) {
-    this.configService.setTodayMock(date).subscribe();
   }
 }

@@ -1,6 +1,6 @@
 <div class="background"
     [ngStyle]="{
-      'background-image': 'url(' + (appConfig$ | async)?.customization.backgroundImage + ')',
+      'background-image': 'url(' + 'backgroundImage' + ')',
       'background-size': 'cover',
       'background-position': 'center',
       'filter': loginMouseEnter ? 'blur(4px)' : null
@@ -19,8 +19,7 @@
       <h2>MINDBRO</h2>
     </div>
 
-    <app-login-widget mode="admin"
-                      (loggedIn)="redirectToLogin()"
+    <app-login-widget (loggedIn)="redirectToLogin()"
                       @fade>
     </app-login-widget>
   </div>

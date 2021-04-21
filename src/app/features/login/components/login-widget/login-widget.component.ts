@@ -6,7 +6,6 @@ import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { transition, trigger, useAnimation } from '@angular/animations';
 import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
-import { ConfigService } from 'src/app/core/config/service/config.service';
 
 @Component({
   selector: 'app-login-widget',
@@ -31,26 +30,20 @@ export class LoginWidgetComponent implements OnInit {
   loginMouseEnter: boolean;
   loginError: boolean;
   loginFormSubscription: Subscription;
-  activeUser: IClient;
+  activeUser: IUser;
   resetPassword: boolean;
 
-  appConfig$: Observable<IAppConfig>;
-
-  @Input()  mode: 'admin' | 'iframe';
-  @Output() loggedIn = new EventEmitter<IUser | IClient>();
+  @Output() loggedIn = new EventEmitter<IUser>();
   @Output() loginFailed = new EventEmitter();
 
   constructor(
     private authService: AuthService,
     private formBuilder: FormBuilder,
-    private configService: ConfigService,
     private notificationService: NotificationService,
     private userService: UserService,
   ) { }
 
   ngOnInit() {
-    this.appConfig$ = this.configService.config$;
-
     this.loginForm = this.formBuilder.group({
       username: [ '', [ Validators.required ]],
       password: [ '', [ Validators.required ]],
@@ -59,32 +52,22 @@ export class LoginWidgetComponent implements OnInit {
 
     this.activeUser = this.userService.getUser();
 
-    if (this.activeUser && this.activeUser.Email) {
-      this.loginForm.get('username').setValue(this.activeUser.Email);
+    if (this.activeUser && this.activeUser.email) {
+      this.loginForm.get('username').setValue(this.activeUser.email);
     }
 
-    this.loginFormSubscription = this.loginForm.valueChanges.subscribe(changes => this.loginError = false);
+    this.loginFormSubscription = this.loginForm
+      .valueChanges
+      .subscribe(changes => this.loginError = false);
   }
 
   login(username: string, password: string, keepMeLoggedIn: boolean) {
-    // When we are login a user on the Iframe
-    // Using the old Mindbody API (5.1)
-    if (this.mode === 'iframe') {
-      this.authService
-            .validateLogin(username, password, keepMeLoggedIn)
-            .subscribe(
-              (client: IClient) => this.loggedIn.emit(client),
-              (error) => this.handleError(error),
-            );
-    } else {
-    // When we are login a user on the admin
-      this.authService
-              .login(username, password, keepMeLoggedIn)
-              .subscribe(
-                (authData: IAuthData) => this.loggedIn.emit(authData.User),
-                (error) => this.handleError(error),
-              );
-    }
+    this.authService
+      .login(username, password, keepMeLoggedIn)
+      .subscribe(
+        (user: IUser) => this.loggedIn.emit(user),
+        (error) => this.handleError(error),
+      );
   }
 
   handleError(error) {
@@ -92,33 +75,21 @@ export class LoginWidgetComponent implements OnInit {
     this.loginFailed.emit(null);
     this.notificationService
           .notify(
-            `${
-                (error.error &&
-                error.error.Error &&
-                error.error.Error.Message) ||
-                (error.error &&
-                 error.error.message) ||
-                 (error.code && error.message) ||
-                 error.error
-              }`,
+            `${this.getErrorMessage(error)}`,
             'X',
             { duration: 10000, panelClass: 'error' }
           );
   }
 
-  sendResetPasswordEmail(userEmail: string) {
-    if (!userEmail) {
-      this.loginForm.get('username').markAllAsTouched();
-      this.resetPassword = true;
-      return;
-    }
-
-    this.authService
-            .sendResetPasswordEmail(userEmail)
-            .subscribe(
-              response => this.resetPassword = false,
-              error => this.notificationService.notify(error.error, 'X', { panelClass: 'error' }),
-            );
+  getErrorMessage(error) {
+    return (error.error &&
+      error.error.Error &&
+      error.error.Error.Message) ||
+      (error.error &&
+        error.error.message) ||
+      (error.code && error.message) ||
+      error.error ||
+      'Login failed';
   }
 }
 

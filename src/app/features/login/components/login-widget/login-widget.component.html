@@ -31,8 +31,7 @@
     </mat-form-field>
 
     <mat-checkbox formControlName="keepMeLoggedIn"
-                  class="keep_me_logged"
-                  *ngIf="mode !== 'iframe'">
+                  class="keep_me_logged">
       <small>Keep me logged in</small>
     </mat-checkbox>
 
@@ -44,16 +43,5 @@
             *ngIf="!resetPassword">
       LOGIN
     </button>
-
-    <div *ngIf="mode === 'iframe'"
-        fxLayoutAlign="end center"
-        class="forgot_password">
-      <button mat-button
-              type="button"
-              color="accent"
-              (click)="sendResetPasswordEmail(loginForm.get('username').value)">
-        Reset password
-      </button>
-    </div>
   </div>
 </form>
