@@ -10,7 +10,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { switchMap, debounceTime } from 'rxjs/operators';
-import { MatStepper } from '@angular/material';
+import { MatStepper } from '@angular/material/stepper';
 import { fromEvent, Subscription } from 'rxjs';
 import { fadeAnimation } from '../../../../shared/animations/animations';
 import { transition, trigger, useAnimation } from '@angular/animations';
@@ -78,7 +78,7 @@ export class IframeComponent implements OnInit, OnDestroy {
   scrollSubscription: Subscription;
   lastScrollPosition: number;
 
-  @ViewChild('stepper', {static: false}) stepper: MatStepper;
+  @ViewChild('stepper') stepper: MatStepper;
   @ViewChild('contractsBox', {static: true}) contractsBox: ElementRef<HTMLElement>;
 
   constructor(

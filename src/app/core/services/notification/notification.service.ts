@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { MatSnackBar, MatSnackBarConfig, MatSnackBarRef } from '@angular/material';
+import { MatSnackBar, MatSnackBarConfig, MatSnackBarRef } from '@angular/material/snack-bar';
 import { ComponentType } from '@angular/cdk/portal';
 
 @Injectable()

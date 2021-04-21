@@ -6,7 +6,7 @@ import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/co
 import { ActivatedRoute } from '@angular/router';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
-import { ErrorStateMatcher } from '@angular/material';
+import { ErrorStateMatcher } from '@angular/material/core';
 
 class ClientErrorMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {

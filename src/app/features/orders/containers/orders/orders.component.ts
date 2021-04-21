@@ -7,7 +7,9 @@ import { OrdersService } from '../../services/orders/orders.service';
 import { Component, OnInit, ViewChild, OnDestroy, TemplateRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { MatTableDataSource, MatPaginator, MatDialog, MatDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 import { Subscription, of, Observable } from 'rxjs';
 import { debounceTime, switchMap, filter, map } from 'rxjs/operators';
 import { trigger, transition, useAnimation } from '@angular/animations';
@@ -54,8 +56,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
   user$: Observable<IUser | IClient>;
   testEnvironment: boolean;
 
-  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
-  @ViewChild('orderDialogTemplate', {static: false}) orderDialogTemplate: TemplateRef<any>;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild('orderDialogTemplate') orderDialogTemplate: TemplateRef<any>;
 
   constructor(
     private activatedRoute: ActivatedRoute,

@@ -5,7 +5,10 @@ import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms'
 import { ClientsService } from './../../services/clients/clients.service';
 import { fadeAnimation } from './../../../../shared/animations/animations';
 import { Component, OnInit, ViewChild, AfterViewInit, TemplateRef, OnDestroy } from '@angular/core';
-import { MatPaginator, MatSort, MatTableDataSource, MatDialog, MatDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 import { ActivatedRoute } from '@angular/router';
 import { transition, trigger, useAnimation } from '@angular/animations';
 import { Subscription } from 'rxjs';
@@ -52,9 +55,9 @@ export class ClientsListComponent implements OnInit, OnDestroy, AfterViewInit {
   years: string[] = [];
   months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 
-  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
-  @ViewChild(MatSort, {static: false}) sort: MatSort;
-  @ViewChild('clientTemplate', {static: false}) clientTemplate: TemplateRef<any>;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild('clientTemplate') clientTemplate: TemplateRef<any>;
 
   constructor(
     private activatedRoute: ActivatedRoute,
