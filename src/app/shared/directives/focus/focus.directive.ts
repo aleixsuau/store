@@ -14,7 +14,7 @@ export class FocusDirective implements OnChanges {
   ngOnChanges() {
     if (this.appFocus) {
       this._ngZone.runOutsideAngular(() => {
-        Promise.resolve().then(() => this._renderer.selectRootElement('input').focus())
+        Promise.resolve().then(() => this._renderer.selectRootElement('input').focus());
       });
     }
   }

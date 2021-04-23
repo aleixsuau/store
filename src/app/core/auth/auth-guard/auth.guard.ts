@@ -14,9 +14,11 @@ export class AuthGuard implements CanActivate {
   ) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
-    const activeUser = this.userService.getUser();
-
     if (this.authService.getToken()) {
+      const activeUser = this.userService.getUser();
+
+      this.notificationService.notify(`Wellcome ${activeUser.firstName}`, 'X');
+
       return true;
     } else {
       this.notificationService.notify('Unauthenticated user', 'X', { panelClass: 'error' });

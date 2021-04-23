@@ -48,7 +48,7 @@ export class AuthService {
       .pipe(
         map(response => {
           if (response.code === 200) {
-            this.setToken('mockedToken');
+            this.setToken(userData.username);
             this.userService.setUser(userData);
 
             return response;
@@ -73,7 +73,7 @@ export class AuthService {
           }
         }),
         map(user => {
-          this.setToken('mockedToken', keepMeLoggedIn);
+          this.setToken(username, keepMeLoggedIn);
           this.userService.setUser(user);
 
           return user;
