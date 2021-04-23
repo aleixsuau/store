@@ -1,0 +1,30 @@
+<mat-toolbar fxLayoutAlign="space-between center"
+             class="app_header">
+  <div fxFlex="0 0 auto">
+    <h3>APP</h3>
+  </div>
+
+  <div fxFlex="0 0 auto"
+       fxLayoutAlign="space-between center"
+       fxLayoutGap="10px"
+       (click)="showUserMenu = !showUserMenu;"
+       class="user__data">
+    <mat-icon fxFlex="0 0 auto">face</mat-icon>
+
+    <h5 fxFlex="0 0 auto">{{ (user$ | async)?.firstName }} </h5>
+  </div>
+
+  <div *ngIf="showUserMenu"
+        class="user__menu"
+        fxLayout="column"
+        fxLayoutAlign="center center"
+        (mouseleave)="showUserMenu = false;">
+    <button mat-raised-button
+            (click)="logOut();"
+            color="accent">
+      <mat-icon>keyboard_backspace</mat-icon>
+
+      LOG OUT
+    </button>
+  </div>
+</mat-toolbar>
