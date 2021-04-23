@@ -1,0 +1,45 @@
+<div class="container"
+     fxLayoutAlign="center center">
+  <mat-card class="signup"
+            (mouseenter)="loginMouseEnter = true;"
+            (mouseleave)="loginMouseEnter = false;"
+            fxFlex="0 1 60rem">
+    <mat-card-header class="signup-header"
+                     fxLayoutAlign="center center">
+      <h2>APP</h2>
+    </mat-card-header>
+
+    <form [formGroup]="form"
+          (submit)="signup(form.value)">
+      <div class="signup-content"
+           fxLayout="column">
+        <div *ngIf="signupError"
+            class="signup-error">
+          <p>Error signing up</p>
+        </div>
+
+        <mat-form-field *ngFor="let field of formFields; let index = index;">
+          <input matInput
+                [formControlName]="field.key"
+                [type]="field.type"
+                [placeholder]="field.placeholder"
+                [appFocus]="index === 1"
+                fxFlex="100">
+
+          <mat-error *ngIf="form.get(field.key).errors">
+            Please insert a valid {{field.placeholder}}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-card-footer fxLayoutAlign="center center">
+          <button mat-raised-button
+                  color="primary"
+                  type="submit"
+                  [disabled]="form.invalid || signupError">
+            LOGIN
+          </button>
+        </mat-card-footer>
+      </div>
+    </form>
+  </mat-card>
+</div>
