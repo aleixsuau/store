@@ -10,6 +10,7 @@ import { LoadingModule } from './loading/loading.module';
 import { ErrorsModule } from './errors';
 import { NotificationService } from './services/notification/notification.service';
 import { HttpClientModule } from '@angular/common/http';
+import { HeaderModule } from './components/header/header.module';
 
 @NgModule({
   declarations: [BaseComponent],
@@ -22,6 +23,7 @@ import { HttpClientModule } from '@angular/common/http';
     LoadingModule,
     SharedModule,
     ErrorsModule,
+    HeaderModule,
   ],
   providers: [
     UserService,

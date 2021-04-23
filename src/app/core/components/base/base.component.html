@@ -1,47 +1,20 @@
-<mat-toolbar fxLayoutAlign="space-between center"
-             class="app_header">
-  <div fxFlex="0 0 auto">
-    <h3>APP</h3>
-  </div>
-
-  <div fxFlex="0 0 auto"
-       fxLayoutAlign="space-between center"
-       fxLayoutGap="10px"
-       (click)="showUserMenu = !showUserMenu;"
-       class="user__data">
-    <mat-icon fxFlex="0 0 auto">face</mat-icon>
-
-    <h5 fxFlex="0 0 auto">{{ (user$ | async)?.firstName }} </h5>
-  </div>
-
-  <div *ngIf="showUserMenu"
-        class="user__menu"
-        fxLayout="column"
-        fxLayoutAlign="center center"
-        (mouseleave)="showUserMenu = false;">
-    <button mat-raised-button
-            (click)="logOut();"
-            color="accent">
-      <mat-icon>keyboard_backspace</mat-icon>
-
-      LOG OUT
-    </button>
-  </div>
-</mat-toolbar>
+<app-header></app-header>
 
 <div class="main_container">
-    <nav mat-tab-nav-bar backgroundColor="primary">
-      <a mat-tab-link
-        *ngFor="let link of navLinks"
-        [routerLink]="link.path"
-        routerLinkActive
-        #rla="routerLinkActive"
-        [active]="rla.isActive">
-        <mat-icon class="tab-icon">{{ link.icon }}</mat-icon>
+  <nav mat-tab-nav-bar
+       backgroundColor="primary">
+    <a mat-tab-link
+      *ngFor="let link of navLinks"
+      [routerLink]="link.path"
+      routerLinkActive
+      #rla="routerLinkActive"
+      [active]="rla.isActive">
+      <mat-icon class="tab-icon">{{ link.icon }}</mat-icon>
 
-        <p>{{link.label | uppercase}}</p>
-      </a>
-    </nav>
+      <p>{{link.label | uppercase}}</p>
+    </a>
+  </nav>
+
   <router-outlet></router-outlet>
 </div>
 
