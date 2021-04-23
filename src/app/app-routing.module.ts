@@ -1,4 +1,3 @@
-import { SignupComponent } from './features/signup/containers/signup/signup.component';
 import { ErrorsComponent } from './core/errors/errors-component/errors.component';
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';

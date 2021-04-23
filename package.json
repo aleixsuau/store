@@ -16,7 +16,6 @@
     "@angular/common": "~11.2.10",
     "@angular/compiler": "~11.2.10",
     "@angular/core": "~11.2.10",
-    "@angular/fire": "^6.1.4",
     "@angular/flex-layout": "^11.0.0-beta.33",
     "@angular/forms": "~11.2.10",
     "@angular/material": "^11.2.9",
@@ -26,7 +25,6 @@
     "core-js": "^3.10.2",
     "crypto-js": "^4.0.0",
     "error-stack-parser": "^2.0.6",
-    "moment": "^2.29.1",
     "rxjs": "~6.6.7",
     "tslib": "^2.0.0",
     "zone.js": "~0.11.3"
