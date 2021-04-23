@@ -1,5 +1,8 @@
-<form [formGroup]="loginForm" fxLayout="column">
-  <div class="login-content" fxLayout="column" fxLayoutAlign="start stretch">
+<form [formGroup]="loginForm"
+      fxLayout="column">
+  <div class="login-content"
+        fxLayout="column"
+        fxLayoutAlign="start stretch">
     <div *ngIf="loginError"
          class="login-error">
       <p>Username and password doesn't match</p>

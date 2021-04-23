@@ -7,8 +7,7 @@ import { Component } from '@angular/core';
 })
 export class BaseComponent {
   navLinks = [
-    { path: 'clients', label: 'clients', icon: 'people' },
-    { path: 'retail', label: 'retail', icon: 'shopping_basket' },
-    { path: 'orders', label: 'orders', icon: 'monetization_on' },
+    { path: 'store', label: 'Pets', icon: 'pets' },
+    { path: 'store/add', label: 'Add pet', icon: 'add_circle_outline' },
   ];
 }

@@ -1,14 +1,4 @@
-<div class="background"
-    [ngStyle]="{
-      'background-image': 'url(' + 'backgroundImage' + ')',
-      'background-size': 'cover',
-      'background-position': 'center',
-      'filter': loginMouseEnter ? 'blur(4px)' : null
-    }"
-    @fade>
-</div>
-
-<div fxLayout
+<div fxLayout="row wrap"
      fxLayoutAlign="center center"
      style="height: 100vh;"
      @fade>
@@ -24,4 +14,11 @@
                       @fade>
     </app-login-widget>
   </mat-card>
+
+  <p fxFlex="0 0 100%"
+     fxLayoutAlign="center center">
+    <i>
+      <a routerLink="/signup">Don't you have an account yet? Signup here</a>
+    </i>
+  </p>
 </div>

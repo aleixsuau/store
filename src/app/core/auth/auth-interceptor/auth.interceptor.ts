@@ -18,7 +18,7 @@ export class AuthInterceptor implements HttpInterceptor {
     const authReq = request.clone({
       setHeaders: {
         Authorization: this.authService.getToken() || '',
-        api_key: environment.petstore.apiKey,
+        api_key: environment.api.apiKey,
       },
     });
 

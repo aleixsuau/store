@@ -1,6 +1,20 @@
 @import './variables';
 /* You can add global styles to this file, and also import other style files */
 
+:root {
+  --white: white;
+  --background-grey: whitesmoke;
+  --disabled-grey: rgba(0, 0, 0, .26);
+  --lighter-grey: rgba(0, 0, 0, .54);
+  --light-grey: rgba(0, 0, 0, .12);
+  --dark-grey: #242323;
+  --darker-grey: #0d0d0d;
+  --primary: $primary;
+  --accent: $accent;
+  --warn: $warn;
+  --box-background: var(--white);
+}
+
 *,
 *:before,
 *:after {
@@ -9,8 +23,7 @@
 
 html, body {
   height: 100%;
-  background: rgb(255,255,255);
-  background: radial-gradient(circle, white 0%,#eae8e8 84%);
+  background-image: linear-gradient(45deg, #cccccc 0%, #e4efe9 100%);
 }
 
 html {
@@ -76,15 +89,15 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 .mat-list-item {
-  border-bottom: 1px solid $light-grey;
-  color: $lighter-grey !important;
+  border-bottom: 1px solid var(--light-grey);
+  color: var(--lighter-grey) !important;
 }
 
 .mat-dialog-title {
   margin: -2.4rem -2.4rem 1rem -2.4rem !important;
   padding: 1.5rem;
-  background-color: $primary;
-  color: $white;
+  background-color: var(--primary);
+  color: var(--white);
 
   h5 {
     margin: 0rem;
@@ -95,4 +108,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .mat-simple-snackbar-action {
   color: #ffffff78;
 }
+
+.mat-card-footer {
+  margin: 0 !important;
+}
+
+
 

@@ -38,6 +38,6 @@ export class UserService {
   }
 
   getUserFromBackEnd$(username: string) {
-    return this.httpClient.get<IUser>(`${environment.petstore.url}/${this._endPoint}/${username}`)
+    return this.httpClient.get<IUser>(`${environment.api.url}/${this._endPoint}/${username}`)
   }
 }

@@ -2,11 +2,23 @@ import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { trigger, transition, useAnimation } from '@angular/animations';
+import { fadeAnimation } from 'src/app/shared/animations/animations';
 
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
-  styleUrls: ['./signup.component.scss']
+  styleUrls: ['./signup.component.scss'],
+  animations: [
+    trigger('fade', [
+      transition('void => *', [
+        useAnimation(fadeAnimation, {
+          delay: 0,
+          params: { from: 0, to: 1, time: '500ms' },
+        })
+      ])
+    ])
+  ]
 })
 export class SignupComponent implements OnInit {
   form: FormGroup;

@@ -36,7 +36,7 @@
     }
 
     .login-error {
-      color: $warn;
+      color: var(--warn);
       text-align: center;
     }
 

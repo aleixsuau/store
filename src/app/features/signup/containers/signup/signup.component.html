@@ -1,5 +1,6 @@
 <div class="container"
-     fxLayoutAlign="center center">
+     fxLayoutAlign="center center"
+     @fade>
   <mat-card class="signup"
             (mouseenter)="loginMouseEnter = true;"
             (mouseleave)="loginMouseEnter = false;"
@@ -31,11 +32,12 @@
           </mat-error>
         </mat-form-field>
 
-        <mat-card-footer fxLayoutAlign="center center">
+        <mat-card-footer fxLayout>
           <button mat-raised-button
                   color="primary"
                   type="submit"
-                  [disabled]="form.invalid || signupError">
+                  [disabled]="form.invalid || signupError"
+                  fxFlex="0 0 100%">
             LOGIN
           </button>
         </mat-card-footer>

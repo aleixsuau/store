@@ -44,7 +44,7 @@ export class AuthService {
 
   signup(userData: IUser): Observable<IAPIResponse> {
     return this.httpClient
-      .post<IAPIResponse>(`${environment.petstore.url}/${this._endPoint}`, userData)
+      .post<IAPIResponse>(`${environment.api.url}/${this._endPoint}`, userData)
       .pipe(
         map(response => {
           if (response.code === 200) {
@@ -63,7 +63,7 @@ export class AuthService {
     const params = { username, password };
 
     return this.httpClient
-      .get<IAPIResponse>(`${environment.petstore.url}/${this._endPoint}/login`, { params })
+      .get<IAPIResponse>(`${environment.api.url}/${this._endPoint}/login`, { params })
       .pipe(
         switchMap(response => {
           if (response.code === 200) {
@@ -83,7 +83,7 @@ export class AuthService {
 
   logout() {
     return this.httpClient
-      .get<IAPIResponse>(`${environment.petstore.url}/${this._endPoint}/logout`)
+      .get<IAPIResponse>(`${environment.api.url}/${this._endPoint}/logout`)
       .subscribe(() => {
         this.deleteToken();
         this.userService.removeUser();

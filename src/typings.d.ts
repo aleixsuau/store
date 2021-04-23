@@ -14,3 +14,8 @@ interface IAPIResponse {
   type: string;
 }
 
+interface IOption {
+  label: string;
+  value: any;
+}
+

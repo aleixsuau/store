@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  petstore: {
+  api: {
     url: 'http://localhost:80/v2',
     apiKey: 'special-key',
   }

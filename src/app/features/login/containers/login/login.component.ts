@@ -1,6 +1,6 @@
 import { Router, ActivatedRoute } from '@angular/router';
 import { fadeAnimation } from '../../../../shared/animations/animations';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { transition, trigger, useAnimation } from '@angular/animations';
 
 @Component({

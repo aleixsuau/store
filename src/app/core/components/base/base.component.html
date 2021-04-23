@@ -1,6 +1,7 @@
-<app-header></app-header>
+<div class="main_container"
+     style="max-width: 110rem;">
+  <app-header></app-header>
 
-<div class="main_container">
   <nav mat-tab-nav-bar
        backgroundColor="primary">
     <a mat-tab-link
@@ -9,9 +10,13 @@
       routerLinkActive
       #rla="routerLinkActive"
       [active]="rla.isActive">
-      <mat-icon class="tab-icon">{{ link.icon }}</mat-icon>
+      <mat-icon class="tab-icon">
+        {{ link.icon }}
+      </mat-icon>
 
-      <p>{{link.label | uppercase}}</p>
+      <p>
+        {{link.label | uppercase}}
+      </p>
     </a>
   </nav>
 

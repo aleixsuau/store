@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  petstore: {
+  api: {
     url: 'https://petstore.swagger.io/v2'
   }
 };

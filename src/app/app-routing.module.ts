@@ -24,15 +24,15 @@ const routes: Routes = [
         canActivate: [AuthGuard],
         canActivateChild: [AuthGuard],
         children: [
-          /* {
+          {
             path: '',
             pathMatch: 'full',
-            redirectTo: 'clients',
-          }, */
-          /* {
-            path: 'clients',
-            loadChildren: () => import('./features/clients/clients.module').then(m => m.ClientsModule),
-          }, */
+            redirectTo: 'store',
+          },
+          {
+            path: 'store',
+            loadChildren: () => import('./features/store/store.module').then(m => m.StoreModule),
+          },
         ]
       },
     ]
