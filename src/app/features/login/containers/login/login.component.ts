@@ -2,7 +2,6 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { fadeAnimation } from '../../../../shared/animations/animations';
 import { Component, OnInit } from '@angular/core';
 import { transition, trigger, useAnimation } from '@angular/animations';
-import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -19,7 +18,7 @@ import { Observable } from 'rxjs';
     ])
   ]
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent {
   loginMouseEnter: boolean;
 
   constructor(
@@ -27,10 +26,7 @@ export class LoginComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
   ) { }
 
-  ngOnInit() {
-  }
-
-  redirectToLogin() {
+  redirectToRoot() {
     this.router.navigate([`../`], { relativeTo: this.activatedRoute });
   }
 }

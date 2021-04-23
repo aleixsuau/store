@@ -1,3 +1,4 @@
+import { SignupComponent } from './features/signup/containers/signup/signup.component';
 import { ErrorsComponent } from './core/errors/errors-component/errors.component';
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
@@ -12,6 +13,11 @@ const routes: Routes = [
       {
         path: 'login',
         component: LoginComponent,
+        loadChildren: () => import('./features/login/login.module').then(m => m.LoginModule),
+      },
+      {
+        path: 'signup',
+        loadChildren: () => import('./features/signup/signup.module').then(m => m.SignupModule),
       },
       {
         path: '',

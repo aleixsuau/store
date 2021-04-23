@@ -12,15 +12,16 @@
      fxLayoutAlign="center center"
      style="height: 100vh;"
      @fade>
-  <div class="login"
-       (mouseenter)="loginMouseEnter = true;"
-       (mouseleave)="loginMouseEnter = false;">
+  <mat-card class="login"
+            (mouseenter)="loginMouseEnter = true;"
+            (mouseleave)="loginMouseEnter = false;"
+            fxFlex="0 0 38rem">
     <div class="login-header" fxLayout="column" fxLayoutAlign="center center">
-      <h2>MINDBRO</h2>
+      <h2>APP</h2>
     </div>
 
-    <app-login-widget (loggedIn)="redirectToLogin()"
+    <app-login-widget (loggedIn)="redirectToRoot()"
                       @fade>
     </app-login-widget>
-  </div>
+  </mat-card>
 </div>

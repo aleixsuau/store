@@ -8,7 +8,6 @@ interface IUser {
   phone: string;
   userStatus: number;
 }
-
 interface IAPIResponse {
   code: number;
   message: string;

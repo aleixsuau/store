@@ -1,6 +1,6 @@
 import { UserService } from './../../../../core/services/user/user.service';
 import { NotificationService } from './../../../../core/services/notification/notification.service';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { fadeAnimation } from '../../../../shared/animations/animations';
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';

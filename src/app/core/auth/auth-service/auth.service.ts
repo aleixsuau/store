@@ -42,18 +42,18 @@ export class AuthService {
     private notificationService: NotificationService,
   ) {}
 
-  signup(userData: IUser, keepMeLoggedIn: boolean): Observable<IAuthData> {
+  signup(userData: IUser): Observable<IAPIResponse> {
     return this.httpClient
-      .post<IAuthData>(`${environment.petstore.url}/${this._endPoint}`, userData)
+      .post<IAPIResponse>(`${environment.petstore.url}/${this._endPoint}`, userData)
       .pipe(
         map(response => {
-          if (response.AccessToken) {
-            this.setToken(response.AccessToken, keepMeLoggedIn);
-            this.userService.setUser(response.User);
+          if (response.code === 200) {
+            this.setToken('mockedToken');
+            this.userService.setUser(userData);
 
             return response;
           } else {
-            throw new Error(`${response['Error'].Code}: ${response['Error'].Message}`);
+            throw new Error(`${response.code}: ${response.message}`);
           }
         })
       );

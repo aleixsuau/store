@@ -1,4 +1,4 @@
-<form [formGroup]="loginForm" fxLayout="column" novalidate>
+<form [formGroup]="loginForm" fxLayout="column">
   <div class="login-content" fxLayout="column" fxLayoutAlign="start stretch">
     <div *ngIf="loginError"
          class="login-error">
@@ -10,7 +10,8 @@
               formControlName="username"
               type="email"
               placeholder="Email or Username"
-              fxFlex="100">
+              fxFlex="100"
+              [appFocus]="true">
 
       <mat-error *ngIf="loginForm.get('username').hasError('required')">
         Please insert your email or username
