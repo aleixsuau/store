@@ -12,7 +12,7 @@ export class NotificationService {
     panelClass: 'success',
     horizontalPosition: 'center',
     verticalPosition: 'top',
-    duration: 20000,
+    duration: 3000,
   };
 
   constructor(

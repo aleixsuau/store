@@ -1,10 +1,12 @@
 import { trigger, transition, useAnimation } from '@angular/animations';
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSelect } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { Observable } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { fadeAnimation } from 'src/app/shared/animations/animations';
+import { DialogComponent } from 'src/app/shared/components/dialog/components/dialog/dialog.component';
 import { StoreService } from '../../services/store/store.service';
 
 @Component({
@@ -25,7 +27,7 @@ import { StoreService } from '../../services/store/store.service';
 export class ListComponent implements OnInit, AfterViewInit {
   items$: Observable<IStoreItem[]>;
   dataSource: MatTableDataSource<IStoreItem>;
-  tableColumnsToDisplay = ['name', 'status'];
+  tableColumnsToDisplay = ['name', 'status', 'detail'];
   tableColumns = [
     {
       label: 'Name',
@@ -34,6 +36,11 @@ export class ListComponent implements OnInit, AfterViewInit {
     {
       label: 'Status',
       value: 'status',
+    },
+    {
+      label: 'Detail',
+      value: 'detail',
+      icon: 'visibility'
     }
   ];
   statuses = [
@@ -56,6 +63,7 @@ export class ListComponent implements OnInit, AfterViewInit {
 
   constructor(
     private _storeService: StoreService,
+    private _dialog: MatDialog,
   ) { }
 
   ngOnInit(): void {
@@ -69,5 +77,9 @@ export class ListComponent implements OnInit, AfterViewInit {
         switchMap(selectedOption => this._storeService.query(`status=${selectedOption.source.value.value}`)),
         tap(storeItems => this.dataSource = new MatTableDataSource(storeItems))
       );
+  }
+
+  openInDialog(item: IItem) {
+    this._dialog.open(DialogComponent, {data: item});
   }
 }

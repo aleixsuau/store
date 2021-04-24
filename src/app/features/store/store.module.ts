@@ -1,3 +1,4 @@
+import { DialogModule } from './../../shared/components/dialog/dialog.module';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgModule } from '@angular/core';
@@ -35,6 +36,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatTableModule,
     MatFormFieldModule,
     MatSelectModule,
+    DialogModule,
   ],
   exports: [
     ListComponent,

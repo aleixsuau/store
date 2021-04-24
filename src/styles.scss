@@ -2,6 +2,7 @@
 /* You can add global styles to this file, and also import other style files */
 
 :root {
+  /* Colors */
   --white: white;
   --background-grey: whitesmoke;
   --disabled-grey: rgba(0, 0, 0, .26);
@@ -13,7 +14,10 @@
   --accent: $accent;
   --warn: $warn;
   --box-background: var(--white);
+  /* Layout */
   --box-padding: 2rem;
+  --box-margin: 2rem;
+  --app-max-width: 160rem;
 }
 
 *,
@@ -64,61 +68,48 @@ p, .mat-form-field , span, label {
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .success {
-  background-color: green;
+  background-color: rgb(123, 180, 101);
   color: white;
   text-transform: uppercase;
 }
 
 .error {
-  background-color: red;
+  background-color: rgb(195, 133, 133);
   color: white;
   text-transform: uppercase;
 }
 
+.cursor-pointer {
+  cursor: pointer;
+}
+
 /* MATERIAL OVERWRITES */
-.mbDialog {
+.mat-dialog-container {
+  min-width: 35rem;
   max-width: 60rem !important;
-}
 
-.mbDialogFull {
-  width: 85vw;
-}
-
-.mat-list-item-content {
-  width: 100% !important;
-  padding: 0px !important;
-}
-
-.mat-list-item {
-  border-bottom: 1px solid var(--light-grey);
-  color: var(--lighter-grey) !important;
-}
-
-.mat-dialog-title {
-  margin: -2.4rem -2.4rem 1rem -2.4rem !important;
-  padding: 1.5rem;
-  background-color: var(--primary);
-  color: var(--white);
-
-  h5 {
-    margin: 0rem;
+  .mat-list-item {
+    border-bottom: 0.1rem solid var(--light-grey);
   }
-}
-
-// MATERIAL OVERWRITES
-.mat-simple-snackbar-action {
-  color: #ffffff78;
-}
-
-.mat-card-footer {
-  margin: 0 !important;
 }
 
 .mat-form-field-suffix .mat-icon-button,
 .mat-form-field-suffix .mat-icon {
-  height: 40px !important;
-  width: 40px !important;
-  font-size: 24px !important;
+  height: 4rem !important;
+  width: 4rem !important;
+  font-size: 2.4rem !important;
+}
+
+.mat-dialog-title {
+  text-transform: uppercase;
+}
+
+.mat-dialog-content {
+  margin-bottom: var(--box-margin) !important;
+}
+
+.mat-dialog-actions {
+  margin: 0 !important;
 }
 
 
