@@ -1,0 +1,63 @@
+<form [formGroup]="form"
+      #formDirective="ngForm"
+      (submit)="onSubmit(form.value)">
+  <div class="signup-content"
+        fxLayout="column">
+    <ng-container *ngFor="let field of formFields; let index = index;">
+      <mat-form-field *ngIf="field.type === 'text'">
+        <input matInput
+              [formControlName]="field.key"
+              [type]="field.type"
+              [placeholder]="field.placeholder"
+              [appFocus]="index === 1"
+              fxFlex="100">
+
+        <mat-error *ngIf="form.get(field.key).errors">
+          Please insert a valid {{field.placeholder}}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field *ngIf="field.type === 'select'">
+        <mat-select [formControlName]="field.key"
+                    [placeholder]="field.placeholder">
+          <mat-option [value]="status.value"
+                      *ngFor="let status of statuses">
+            {{ status.label }}
+          </mat-option>
+        </mat-select>
+
+        <mat-error *ngIf="form.get(field.key).errors">
+          Please insert a valid {{field.placeholder}}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field *ngIf="field.type === 'file'">
+        <ngx-mat-file-input #removableInput
+                            [formControlName]="field.key"
+                            [placeholder]="field.placeholder"
+                            accept="image/x-png,image/gif,image/jpeg"
+                            multiple>
+        </ngx-mat-file-input>
+
+        <button mat-icon-button
+                matSuffix
+                *ngIf="!removableInput?.empty"
+                (click)="removableInput.clear($event)">
+          <mat-icon>delete</mat-icon>
+        </button>
+
+        <mat-error *ngIf="form.get(field.key).errors">
+          Please insert a valid {{field.placeholder}}
+        </mat-error>
+      </mat-form-field>
+    </ng-container>
+
+    <button mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="form.invalid"
+            fxFlex="0 0 100%">
+      ADD
+    </button>
+  </div>
+</form>
