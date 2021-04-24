@@ -1,3 +1,8 @@
+.container {
+  background-color: var(--box-background);
+  padding: var(--box-padding);
+}
+
 button[type=submit] {
   margin-top: 2rem;
 }

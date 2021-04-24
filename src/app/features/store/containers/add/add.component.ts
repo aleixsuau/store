@@ -3,11 +3,23 @@ import { StoreService } from './../../services/store/store.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, NgForm } from '@angular/forms';
 import { map, switchMap } from 'rxjs/operators';
+import { trigger, transition, useAnimation } from '@angular/animations';
+import { fadeAnimation } from 'src/app/shared/animations/animations';
 
 @Component({
   selector: 'app-add',
   templateUrl: './add.component.html',
-  styleUrls: ['./add.component.scss']
+  styleUrls: ['./add.component.scss'],
+  animations: [
+    trigger('fade', [
+      transition('void => *', [
+        useAnimation(fadeAnimation, {
+          delay: 0,
+          params: { from: 0, to: 1, time: '500ms' },
+        })
+      ])
+    ])
+  ]
 })
 export class AddComponent implements OnInit {
   form: FormGroup;
