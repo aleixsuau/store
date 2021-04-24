@@ -1,7 +1,12 @@
 .main_container {
   margin: 0 auto;
-  padding: 2rem;
-  max-width: 160rem;
+  padding: var(--box-padding);
+  max-width: var(--app-max-width);
+}
+
+.content-outlet {
+  background-color: var(--box-background);
+  padding: var(--box-padding);
 }
 
 /* MATERIAL */
