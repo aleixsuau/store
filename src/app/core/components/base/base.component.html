@@ -8,6 +8,7 @@
       *ngFor="let link of navLinks"
       [routerLink]="link.path"
       routerLinkActive
+      [routerLinkActiveOptions]="{exact:true}"
       #rla="routerLinkActive"
       [active]="rla.isActive">
       <mat-icon class="tab-icon">
