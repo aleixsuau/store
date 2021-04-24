@@ -1,0 +1,21 @@
+.list__item-header {
+  text-transform: uppercase;
+}
+
+.list__item-body {
+  text-transform: capitalize;
+}
+
+.item__image {
+  height: 3rem;
+  width: 3rem;
+  overflow: hidden;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 0.5rem;
+
+  img {
+    width: 3rem;
+    height: 3rem;
+  }
+}

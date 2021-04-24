@@ -1,0 +1,92 @@
+<div class="container">
+  <h2 mat-dialog-title>
+    {{ item?.name }}
+  </h2>
+
+  <div mat-dialog-content>
+    <mat-list role="list"
+              class="list">
+      <mat-list-item role="listitem"
+                    fxLayout>
+        <div class="list__item-header"
+            fxFlex="0 0 10rem">
+          Status
+        </div>
+
+        <div class="list__item-body"
+            fxFlex="1 1 auto">
+          {{ item?.status }}
+        </div>
+      </mat-list-item>
+
+      <mat-list-item role="listitem"
+                    fxLayout>
+        <div class="list__item-header"
+            fxFlex="0 0 10rem">
+          Id
+        </div>
+
+        <div class="list__item-body"
+            fxFlex="1 1 auto">
+          {{ item?.id }}
+        </div>
+      </mat-list-item>
+
+      <mat-list-item role="listitem"
+                    fxLayout>
+        <div class="list__item-header"
+            fxFlex="0 0 10rem">
+          Category
+        </div>
+
+        <div class="list__item-body"
+            fxFlex="1 1 auto">
+          {{ item?.category?.name }}
+        </div>
+      </mat-list-item>
+
+      <mat-list-item role="listitem"
+                    fxLayout>
+        <div class="list__item-header"
+            fxFlex="0 0 10rem">
+          Tags
+        </div>
+
+        <div class="list__item-body"
+            fxFlex="1 1 auto">
+          <mat-chip-list selectable="false"
+                        aria-label="Items">
+            <mat-chip *ngFor="let tag of item?.tags">
+              {{ tag?.name }}
+            </mat-chip>
+          </mat-chip-list>
+        </div>
+      </mat-list-item>
+
+      <mat-list-item role="listitem"
+              fxLayout>
+        <div class="list__item-header"
+            fxFlex="0 0 10rem">
+          Pictures
+        </div>
+
+        <div class="list__item-body"
+            fxFlex="1 1 auto">
+          <div class="item__image"
+               *ngFor="let imageUrl of item?.photoUrls">
+            <img [src]="imageUrl">
+          </div>
+        </div>
+      </mat-list-item>
+    </mat-list>
+  </div>
+
+  <div mat-dialog-actions fxLayout>
+    <button mat-raised-button
+            mat-dialog-close
+            color="primary"
+            fxFlex="0 0 100%">
+      Close
+    </button>
+  </div>
+</div>
