@@ -1,7 +1,9 @@
+import { NotificationService } from 'src/app/core/services/notification/notification.service';
 import { environment } from 'src/environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +13,7 @@ export class StoreService {
 
   constructor(
     private _httpClient: HttpClient,
+    private _notificationService: NotificationService,
   ) { }
 
   query(queryParams: string): Observable<IStoreItem[]> {
@@ -20,6 +23,17 @@ export class StoreService {
       .get<IStoreItem[]>(
         `${environment.api.url}/${this._endPoint}/findByStatus`,
         {params}
+      );
+  }
+
+  add(item: IItem): Observable<IItem> {
+    return this._httpClient
+      .post<IItem>(
+        `${environment.api.url}/${this._endPoint}`,
+        item,
+      )
+      .pipe(
+        tap(() => this._notificationService.notify('Item added'))
       );
   }
 }

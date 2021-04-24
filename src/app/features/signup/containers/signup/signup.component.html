@@ -11,10 +11,10 @@
     </mat-card-header>
 
     <form [formGroup]="form"
-          (submit)="signup(form.value)">
+          (submit)="onSubmit(form.value)">
       <div class="signup-content"
            fxLayout="column">
-        <div *ngIf="signupError"
+        <div *ngIf="formError"
             class="signup-error">
           <p>Error signing up</p>
         </div>
@@ -36,7 +36,7 @@
           <button mat-raised-button
                   color="primary"
                   type="submit"
-                  [disabled]="form.invalid || signupError"
+                  [disabled]="form.invalid || formError"
                   fxFlex="0 0 100%">
             LOGIN
           </button>

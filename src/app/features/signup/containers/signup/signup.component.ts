@@ -22,7 +22,7 @@ import { fadeAnimation } from 'src/app/shared/animations/animations';
 })
 export class SignupComponent implements OnInit {
   form: FormGroup;
-  signupError: string;
+  formError: string;
   loginMouseEnter: boolean;
   formFields = [
     {
@@ -87,10 +87,11 @@ export class SignupComponent implements OnInit {
 
         return formGroup;
       }, {});
+
     this.form = this.formbuilder.group(formGroupConfig);
   }
 
-  signup(formValue: IUser) {
+  onSubmit(formValue: IUser) {
     this._authService
       .signup(formValue)
       .subscribe(() => this.redirectToRoot());

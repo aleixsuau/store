@@ -8,6 +8,20 @@ interface IUser {
   phone: string;
   userStatus: number;
 }
+
+interface IItem {
+  id: number;
+  name: string;
+  [key: string]: any;
+}
+
+interface IPet extends IItem {
+  status: string;
+  category: IItem;
+  photoUrls: string[];
+  tags: IItem[];
+}
+
 interface IAPIResponse {
   code: number;
   message: string;
