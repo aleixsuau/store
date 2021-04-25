@@ -1,4 +1,4 @@
-import { FocusDirective } from './focus.directive';
+/* import { FocusDirective } from './focus.directive';
 
 xdescribe('FocusDirective', () => {
   it('should create an instance', () => {
@@ -6,3 +6,4 @@ xdescribe('FocusDirective', () => {
     expect(directive).toBeTruthy();
   });
 });
+ */

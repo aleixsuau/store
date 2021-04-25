@@ -1,11 +1,10 @@
-import { NotificationService } from './../../services/notification/notification.service';
 import { UserService } from '../../services/user/user.service';
 import { environment } from './../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable,  } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 
 /**
  * AUTH SYSTEM:
@@ -39,7 +38,6 @@ export class AuthService {
     private httpClient: HttpClient,
     private router: Router,
     private userService: UserService,
-    private notificationService: NotificationService,
   ) {}
 
   signup(userData: IUser): Observable<IAPIResponse> {
@@ -106,11 +104,4 @@ export class AuthService {
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
   }
-
-/*   validateLogin(username: string, password: string, keepMeLoggedIn?: boolean): Observable<IUser> {
-
-  } */
-
-/*   sendResetPasswordEmail(userEmail: string, userFirstName?: string, userLastName?: string) {
-  } */
 }
