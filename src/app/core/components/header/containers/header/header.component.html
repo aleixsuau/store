@@ -11,7 +11,10 @@
        class="user__data">
     <mat-icon fxFlex="0 0 auto">face</mat-icon>
 
-    <h5 fxFlex="0 0 auto">{{ (user$ | async)?.firstName }} </h5>
+    <h5 fxFlex="0 0 auto"
+        class="username">
+      {{ (user$ | async)?.firstName }}
+    </h5>
   </div>
 
   <div *ngIf="showUserMenu"

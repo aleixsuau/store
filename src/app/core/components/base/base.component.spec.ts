@@ -13,7 +13,7 @@ import { By } from '@angular/platform-browser';
 class HeaderComponent {
 }
 
-fdescribe('BaseComponent', () => {
+describe('BaseComponent', () => {
   let component: BaseComponent;
   let fixture: ComponentFixture<BaseComponent>;
 
@@ -29,7 +29,7 @@ fdescribe('BaseComponent', () => {
     })
     .compileComponents();
   }));
-//
+
   beforeEach(() => {
     fixture = TestBed.createComponent(BaseComponent);
     component = fixture.componentInstance;
