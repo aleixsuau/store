@@ -9,7 +9,7 @@ import { UserService } from 'src/app/core/services/user/user.service';
 import { HeaderComponent } from './header.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
-fdescribe('HeaderComponent', () => {
+describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
   let authService: jasmine.SpyObj<AuthService>;
@@ -30,7 +30,6 @@ fdescribe('HeaderComponent', () => {
 
   beforeEach(async () => {
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['logout']);
-
 
     await TestBed.configureTestingModule({
       declarations: [ HeaderComponent ],
@@ -66,8 +65,6 @@ fdescribe('HeaderComponent', () => {
   });
 
   it('should show the user menu', fakeAsync(() => {
-    authService.logout.and.returnValue(null);
-
     const userDataElement = fixture.debugElement.query(By.css('.user__data')).nativeElement;
 
     userDataElement.click();

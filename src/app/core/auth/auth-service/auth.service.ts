@@ -72,7 +72,6 @@ export class AuthService {
         }),
         map(user => {
           this.setToken(username, keepMeLoggedIn);
-          this.userService.setUser(user);
 
           return user;
         })

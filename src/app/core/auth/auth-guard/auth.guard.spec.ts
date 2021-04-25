@@ -56,8 +56,6 @@ describe('AuthGuard', () => {
   });
 
   it('should block access to unauthenticated users', () => {
-    authService.getToken.and.returnValue(null);
-
     const canAccess = service.canActivate(null, null);
 
     expect(notificationService.notify).toHaveBeenCalled();

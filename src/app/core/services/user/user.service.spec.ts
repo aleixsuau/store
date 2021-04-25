@@ -1,46 +1,74 @@
-/* import { TestBed, inject } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { TestBed, inject, fakeAsync, tick, flush } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 import { UserService } from './user.service';
 
-describe('UserService', () => {
+fdescribe('UserService', () => {
+  let service: UserService;
+  let httpClient: HttpTestingController;
+  const userMock: IUser = {
+    id: 1,
+    username: 'username test',
+    firstName: 'firstName test',
+    lastName: 'lastName test',
+    email: 'email test',
+    password: 'password test',
+    phone: 'phone test',
+    userStatus: 0,
+  };
+  const endPoint = 'user';
+
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [UserService]
+      providers: [
+        UserService,
+      ],
+      imports: [
+        HttpClientTestingModule,
+      ]
     });
+
+    httpClient = TestBed.inject(HttpTestingController);
+    service = TestBed.inject(UserService);
   });
 
   afterEach(() => {
     localStorage.removeItem('mbUser');
   });
 
-  it('should be created', inject([UserService], (service: UserService) => {
+  it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('should set an user', fakeAsync(() => {
+    service.setUser(userMock);
+
+    flush();
+
+    expect(service.getUser()).toEqual(userMock);
   }));
 
-  it('should delete a user', inject([UserService], (service: UserService) => {
-    const mockUser = {
-      Id: '123',
-      FirstName: 'Aleix',
-      LastName: 'Suau',
-      Type: 'Owner',
-    };
-
-    service.setUser(mockUser as IUser);
+  it('should delete a user', fakeAsync(() => {
+    service.setUser(userMock);
     service.removeUser();
-    expect(service.getUser()).toBe(null);
+
+    flush();
+
+    expect(service.getUser()).toBeFalsy(null);
   }));
 
-  it('should set an user', inject([UserService], (service: UserService) => {
-    const mockUser = {
-      Id: '123',
-      FirstName: 'Aleix',
-      LastName: 'Suau',
-      Type: 'Owner',
-    };
+  it('should get the use from the backend$', fakeAsync(() => {
+    service
+      .getUserFromBackEnd$(userMock.username)
+      .subscribe();
 
-    service.setUser(mockUser as IUser);
-    expect(service.getUser()).toEqual(mockUser as IUser);
+    const request = httpClient.expectOne(`${environment.api.url}/${endPoint}/${userMock.username}`);
+    request.flush(userMock);
+
+    expect(request.request.method).toEqual('GET');
+    expect(service.getUser()).toEqual(userMock);
   }));
-
 });
- */
+

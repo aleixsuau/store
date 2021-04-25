@@ -7,7 +7,7 @@ import { UserService } from '../../services/user/user.service';
 
 import { AuthService } from './auth.service';
 
-fdescribe('AuthService', () => {
+describe('AuthService', () => {
   let service: AuthService;
   let httpClient: HttpTestingController;
   let router: jasmine.SpyObj<Router>;
@@ -54,7 +54,7 @@ fdescribe('AuthService', () => {
   });
 
   it('should signup', fakeAsync(() => {
-    spyOn(service, 'setToken').and.returnValue(null);
+    spyOn(service, 'setToken');
 
     // Succesfully with valid user data
     service.signup(userMock).subscribe();
@@ -84,7 +84,7 @@ fdescribe('AuthService', () => {
   }));
 
   it('should login', fakeAsync(() => {
-    spyOn(service, 'setToken').and.returnValue(null);
+    spyOn(service, 'setToken');
     userService.getUserFromBackEnd$.and.returnValue(of(userMock));
 
     // Succefully with valid username/password
@@ -117,9 +117,7 @@ fdescribe('AuthService', () => {
   }));
 
   it('should logout', fakeAsync(() => {
-    spyOn(service, 'deleteToken').and.returnValue(null);
-    userService.removeUser.and.returnValue(null);
-    router.navigate.and.returnValue(null);
+    spyOn(service, 'deleteToken');
 
     service.logout();
 

@@ -1,6 +1,5 @@
 import { RouterModule } from '@angular/router';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { UserService } from '../../services/user/user.service';
 import { BaseComponent } from './base.component';
 import { Component } from '@angular/core';
 import { By } from '@angular/platform-browser';

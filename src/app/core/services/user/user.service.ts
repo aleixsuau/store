@@ -2,7 +2,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { publishReplay, refCount } from 'rxjs/operators';
+import { publishReplay, refCount, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 @Injectable()
@@ -31,13 +31,14 @@ export class UserService {
   getUser(): IUser {
     const user = this._user.getValue();
 
-    if (user) {
-      return user;
-    } else {
-    }
+    return user;
   }
 
   getUserFromBackEnd$(username: string) {
-    return this.httpClient.get<IUser>(`${environment.api.url}/${this._endPoint}/${username}`)
+    return this.httpClient
+      .get<IUser>(`${environment.api.url}/${this._endPoint}/${username}`)
+      .pipe(
+        tap(user => this._user.next(user)),
+      );
   }
 }
