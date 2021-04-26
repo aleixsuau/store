@@ -13,9 +13,13 @@
     </mat-select>
   </mat-form-field>
 
+  <div *ngIf="!(items$ | async)?.length"
+       fxLayoutAlign="center center">
+    <mat-progress-spinner fxFlex="0 0 5rem"></mat-progress-spinner>
+  </div>
+
   <table mat-table [dataSource]="dataSource"
                     fxFlex="0 0 100%"
-                    *ngIf="(items$ | async)?.length"
                     @fade>
     <ng-container [matColumnDef]="column.value"
                   *ngFor="let column of tableColumns">

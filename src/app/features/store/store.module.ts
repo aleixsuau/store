@@ -14,8 +14,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { FocusModule } from 'src/app/shared/directives/focus/focus.module';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-
-
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 
 @NgModule({
@@ -36,6 +35,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatTableModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatProgressSpinnerModule,
     DialogModule,
   ],
   exports: [
