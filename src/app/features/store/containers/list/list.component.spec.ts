@@ -17,7 +17,7 @@ import { StoreService } from '../../services/store/store.service';
 import { ListComponent } from './list.component';
 
 
-fdescribe('StoreComponent', () => {
+describe('StoreComponent', () => {
   let component: ListComponent;
   let fixture: ComponentFixture<ListComponent>;
   let storeService: jasmine.SpyObj<StoreService>;
