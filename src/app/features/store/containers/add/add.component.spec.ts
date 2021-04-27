@@ -86,7 +86,6 @@ describe('AddComponent', () => {
     storeService.add.and.returnValue(of({} as IItem));
 
     component.form.setValue(itemMock);
-    console.log('submitButton', submitButton);
     fixture.detectChanges();
 
     submitButton.click();

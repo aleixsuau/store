@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ComponentFixture, TestBed, fakeAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick, flush, async, waitForAsync } from '@angular/core/testing';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -82,35 +82,31 @@ describe('StoreComponent', () => {
 
     fixture = TestBed.createComponent(ListComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.autoDetectChanges();
   });
 
   it('should create', fakeAsync(() => {
     expect(component).toBeTruthy();
   }));
 
-  it('should render the items', fakeAsync(() => {
-    // @ts-ignore
-    component.dataSource = new MatTableDataSource(itemsMock);
-    fixture.detectChanges();
+  it('should render the items', waitForAsync(() => {
+    fixture.whenStable().then(() => {
+      const tableRows = fixture.debugElement.queryAll(By.css('.mat-row'));
 
-    const tableRows = fixture.debugElement.queryAll(By.css('.mat-row'));
-
-    expect(tableRows.length).toBe(itemsMock.length);
-    expect(tableRows[0].nativeElement.textContent).toContain(itemsMock[0].name);
-    expect(tableRows[0].nativeElement.textContent).toContain(itemsMock[0].status);
+      expect(tableRows.length).toBe(itemsMock.length);
+      expect(tableRows[0].nativeElement.textContent).toContain(itemsMock[0].name);
+      expect(tableRows[0].nativeElement.textContent).toContain(itemsMock[0].status);
+    });
   }));
 
-  it('should open the dialog', fakeAsync(() => {
-    // @ts-ignore
-    component.dataSource = new MatTableDataSource(itemsMock);
-    fixture.detectChanges();
+  it('should open the dialog', waitForAsync(() => {
+    fixture.whenStable().then(() => {
+      const showDetailButton = fixture.debugElement.query(By.css('.cdk-column-detail mat-icon'))?.nativeElement;
 
-    const showDetailButton = fixture.debugElement.query(By.css('.cdk-column-detail mat-icon'))?.nativeElement;
+      showDetailButton.click();
+      fixture.detectChanges();
 
-    showDetailButton.click();
-    fixture.detectChanges();
-
-    expect(matDialog.open).toHaveBeenCalled();
+      expect(matDialog.open).toHaveBeenCalled();
+    });
   }));
 });

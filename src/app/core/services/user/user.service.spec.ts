@@ -1,11 +1,10 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed, inject, fakeAsync, tick, flush } from '@angular/core/testing';
-import { of } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 import { UserService } from './user.service';
 
-fdescribe('UserService', () => {
+describe('UserService', () => {
   let service: UserService;
   let httpClient: HttpTestingController;
   const userMock: IUser = {
