@@ -96,7 +96,6 @@ describe('AuthService', () => {
     expect(validReq.request.method).toEqual('GET');
     expect(service.setToken).toHaveBeenCalled();
     expect(userService.getUserFromBackEnd$).toHaveBeenCalledWith(loginRequest.username);
-    expect(userService.setUser).toHaveBeenCalledWith(userMock);
 
     // Throw with invalid username/password
     let error: boolean;

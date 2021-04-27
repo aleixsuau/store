@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
 import { LoginWidgetComponent } from './login-widget.component';
 
-describe('LoginWidgetComponent', () => {
+xdescribe('LoginWidgetComponent', () => {
   let component: LoginWidgetComponent;
   let fixture: ComponentFixture<LoginWidgetComponent>;
 
