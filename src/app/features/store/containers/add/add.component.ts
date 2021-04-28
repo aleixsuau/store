@@ -1,10 +1,12 @@
 import { FormsService } from './../../../../core/services/forms/forms.service';
-import { StoreService } from './../../services/store/store.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, NgForm } from '@angular/forms';
 import { map, switchMap } from 'rxjs/operators';
 import { trigger, transition, useAnimation } from '@angular/animations';
 import { fadeAnimation } from 'src/app/shared/animations/animations';
+import { Store } from '@ngxs/store';
+import * as storeActions from '../../ngxs-store/store.actions';
+
 
 @Component({
   selector: 'app-add',
@@ -62,8 +64,8 @@ export class AddComponent implements OnInit {
 
   constructor(
     private _formbuilder: FormBuilder,
-    private _storeService: StoreService,
     private _formsService: FormsService,
+    private _ngxsStore: Store,
   ) { }
 
   ngOnInit(): void {
@@ -85,7 +87,7 @@ export class AddComponent implements OnInit {
       .getFilesDataUrls(item.photoUrls.files)
       .pipe(
         map(filesDataUrls => ({...item, photoUrls: filesDataUrls})),
-        switchMap(itemToAdd => this._storeService.add(itemToAdd)),
+        switchMap(itemToAdd => this._ngxsStore.dispatch(new storeActions.Add(itemToAdd))),
       )
       .subscribe(() => this.formDirective.resetForm());
   }

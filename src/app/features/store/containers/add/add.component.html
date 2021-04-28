@@ -40,6 +40,11 @@
                             multiple>
         </ngx-mat-file-input>
 
+        <mat-icon matSuffix
+                  *ngIf="removableInput?.empty">
+          folder
+        </mat-icon>
+
         <button mat-icon-button
                 matSuffix
                 *ngIf="!removableInput?.empty"

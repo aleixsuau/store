@@ -4,10 +4,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSelect } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { Observable } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
 import { fadeAnimation } from 'src/app/shared/animations/animations';
 import { DialogComponent } from 'src/app/shared/components/dialog/components/dialog/dialog.component';
-import { StoreService } from '../../services/store/store.service';
+import { Store } from '@ngxs/store';
+import { StoreState } from '../../ngxs-store/store.state';
+import * as storeActions from '../../ngxs-store/store.actions';
+
 
 @Component({
   selector: 'app-list',
@@ -62,7 +65,7 @@ export class ListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSelect) select: MatSelect;
 
   constructor(
-    private _storeService: StoreService,
+    private _ngxsStore: Store,
     private _dialog: MatDialog,
   ) { }
 
@@ -74,8 +77,11 @@ export class ListComponent implements OnInit, AfterViewInit {
     this.items$ = this.select
       .optionSelectionChanges
       .pipe(
-        switchMap(selectedOption => this._storeService.query(`status=${selectedOption.source.value.value}`)),
-        tap(storeItems => this.dataSource = new MatTableDataSource(storeItems))
+        map(selectedOption => selectedOption.source.value.value),
+        distinctUntilChanged(),
+        tap(selectedValue => this._ngxsStore.dispatch(new storeActions.Query(`status=${selectedValue}`))),
+        switchMap(() => this._ngxsStore.select(StoreState.items$)),
+        tap(storeItems => this.dataSource = new MatTableDataSource(storeItems)),
       );
   }
 

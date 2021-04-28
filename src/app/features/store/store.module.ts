@@ -15,7 +15,8 @@ import { FocusModule } from 'src/app/shared/directives/focus/focus.module';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
+import { NgxsModule } from '@ngxs/store';
+import { StoreState } from './ngxs-store/store.state';
 
 @NgModule({
   declarations: [
@@ -37,6 +38,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatSelectModule,
     MatProgressSpinnerModule,
     DialogModule,
+    NgxsModule.forRoot([StoreState]),
   ],
   exports: [
     ListComponent,

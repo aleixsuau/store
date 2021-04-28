@@ -26,9 +26,9 @@ export class StoreService {
       );
   }
 
-  add(item: IItem): Observable<IItem> {
+  add(item: IStoreItem): Observable<IStoreItem> {
     return this._httpClient
-      .post<IItem>(
+      .post<IStoreItem>(
         `${environment.api.url}/${this._endPoint}`,
         item,
       )
