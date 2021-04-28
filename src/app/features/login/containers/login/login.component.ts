@@ -2,13 +2,14 @@ import { fadeAnimationDefault } from './../../../../shared/animations/animations
 import { NotificationService } from 'src/app/core/services/notification/notification.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
-  animations: fadeAnimationDefault
+  animations: fadeAnimationDefault,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   loginMouseEnter: boolean;

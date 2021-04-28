@@ -1,7 +1,7 @@
 import { fadeAnimationDefault } from './../../../../shared/animations/animations';
 import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { NotificationService } from 'src/app/core/services/notification/notification.service';
 import { UserService } from 'src/app/core/services/user/user.service';
@@ -11,6 +11,7 @@ import { UserService } from 'src/app/core/services/user/user.service';
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss'],
   animations: fadeAnimationDefault,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignupComponent implements OnInit {
   form: FormGroup;

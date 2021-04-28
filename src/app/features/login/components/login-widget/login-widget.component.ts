@@ -2,7 +2,7 @@ import { fadeAnimationDefault } from './../../../../shared/animations/animations
 import { UserService } from './../../../../core/services/user/user.service';
 import { NotificationService } from './../../../../core/services/notification/notification.service';
 import { Subscription } from 'rxjs';
-import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 
@@ -10,7 +10,8 @@ import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
   selector: 'app-login-widget',
   templateUrl: './login-widget.component.html',
   styleUrls: ['./login-widget.component.scss'],
-  animations: fadeAnimationDefault
+  animations: fadeAnimationDefault,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginWidgetComponent implements OnInit {
   loginForm: FormGroup;

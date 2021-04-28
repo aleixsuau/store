@@ -1,10 +1,7 @@
-// This component is just for showing a global spinner for all the app
-// It listens to loadingService wich listens to an http interceptor
-// Extend as needed
-// @aleixsuau
-
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+// This component shows a global spinner for all the app
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { Observable, Subscription } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { LoadingService } from '../service/loading.service';
 
 @Component({
@@ -18,16 +15,16 @@ export class LoadingComponent implements OnInit, OnDestroy {
 
   constructor(
     private loadingService: LoadingService,
+    private _changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
     this.loadingSubscription = this.loadingService
-                                      .loading$
-                                      .subscribe(activeCalls => {
-                                        setTimeout(() => {
-                                          this.loading = activeCalls;
-                                        }, 0);
-                                      });
+      .loading$
+      .subscribe(pendingCalls => {
+        this.loading = pendingCalls;
+        this._changeDetectorRef.detectChanges();
+      });
   }
 
   ngOnDestroy() {
