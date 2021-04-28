@@ -22,7 +22,7 @@
         <mat-select [formControlName]="field.key"
                     [placeholder]="field.placeholder">
           <mat-option [value]="status.value"
-                      *ngFor="let status of statuses">
+                      *ngFor="let status of (statuses$ | async)">
             {{ status.label }}
           </mat-option>
         </mat-select>

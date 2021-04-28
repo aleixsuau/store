@@ -7,7 +7,7 @@
 
     <mat-select [(value)]="selectedStatus">
       <mat-option [value]="status"
-                  *ngFor="let status of statuses">
+                  *ngFor="let status of (statuses$ | async)">
         {{ status.label }}
       </mat-option>
     </mat-select>

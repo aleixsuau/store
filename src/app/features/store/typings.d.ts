@@ -5,4 +5,5 @@ interface IStoreItem {
 
 interface IStoreStateModel {
   items: IStoreItem[];
+  statuses: IOption[];
 }

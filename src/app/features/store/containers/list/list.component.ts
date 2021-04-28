@@ -4,9 +4,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSelect } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { Observable } from 'rxjs';
-import { distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
+import { distinctUntilChanged, map, switchMap, take, tap } from 'rxjs/operators';
 import { DialogComponent } from 'src/app/shared/components/dialog/components/dialog/dialog.component';
-import { Store } from '@ngxs/store';
+import { Select, Store } from '@ngxs/store';
 import { StoreState } from '../../ngxs-store/store.state';
 import * as storeActions from '../../ngxs-store/store.actions';
 
@@ -18,7 +18,6 @@ import * as storeActions from '../../ngxs-store/store.actions';
   animations: fadeAnimationDefault,
 })
 export class ListComponent implements OnInit, AfterViewInit {
-  items$: Observable<IStoreItem[]>;
   dataSource: MatTableDataSource<IStoreItem>;
   tableColumnsToDisplay = ['name', 'status', 'detail'];
   tableColumns = [
@@ -36,21 +35,10 @@ export class ListComponent implements OnInit, AfterViewInit {
       icon: 'visibility'
     }
   ];
-  statuses = [
-    {
-      label: 'Available',
-      value: 'available',
-    },
-    {
-      label: 'Pending',
-      value: 'pending',
-    },
-    {
-      label: 'Sold',
-      value: 'sold',
-    }
-  ];
   selectedStatus: IOption;
+  items$: Observable<IStoreItem[]>;
+
+  @Select(StoreState.statuses$) statuses$: Observable<IOption[]>;
 
   @ViewChild(MatSelect) select: MatSelect;
 
@@ -60,7 +48,9 @@ export class ListComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-    this.selectedStatus = this.statuses[0];
+    this.statuses$
+      .pipe(take(1))
+      .subscribe(statuses => this.selectedStatus = statuses[0]);
   }
 
   ngAfterViewInit() {

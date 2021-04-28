@@ -3,8 +3,10 @@ import { FormsService } from './../../../../core/services/forms/forms.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, NgForm } from '@angular/forms';
 import { map, switchMap } from 'rxjs/operators';
-import { Store } from '@ngxs/store';
+import { Select, Store } from '@ngxs/store';
 import * as storeActions from '../../ngxs-store/store.actions';
+import { Observable } from 'rxjs';
+import { StoreState } from '../../ngxs-store/store.state';
 
 
 @Component({
@@ -35,20 +37,8 @@ export class AddComponent implements OnInit {
       validators: [Validators.required]
     },
   ];
-  statuses = [
-    {
-      label: 'Available',
-      value: 'available',
-    },
-    {
-      label: 'Pending',
-      value: 'pending',
-    },
-    {
-      label: 'Sold',
-      value: 'sold',
-    }
-  ];
+
+  @Select(StoreState.statuses$) statuses$: Observable<IOption[]>;
 
   @ViewChild('formDirective') private formDirective: NgForm;
 

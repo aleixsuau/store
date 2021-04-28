@@ -10,12 +10,31 @@ import { Injectable } from '@angular/core';
   name: 'items',
   defaults: {
     items: [],
+    statuses: [
+      {
+        label: 'Available',
+        value: 'available',
+      },
+      {
+        label: 'Pending',
+        value: 'pending',
+      },
+      {
+        label: 'Sold',
+        value: 'sold',
+      }
+    ],
   }
 })
 export class StoreState {
   constructor(
     private _storeService: StoreService,
   ) {}
+
+  @Selector()
+  static statuses$(state: IStoreStateModel) {
+    return state.statuses;
+  }
 
   @Selector()
   static items$(state: IStoreStateModel) {
