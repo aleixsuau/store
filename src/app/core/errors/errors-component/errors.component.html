@@ -8,7 +8,7 @@
 
   <div *ngIf="routeParams.message">
     <h1 *ngIf="routeParams?.status"> ERROR {{ routeParams?.status }}</h1><br/>
-    <h3 *ngIf="routeParams?.message">{{ routeParams?.message }}</h3><br/>
+    <h4 *ngIf="routeParams?.message">{{ routeParams?.message }}</h4><br/>
     <h1 *ngIf="routeParams?.url && routeParams?.url !== '/'">{{ 'Error in' }} {{ routeParams?.url | uppercase }} page, sorry {{ routeParams?.user }} :(</h1>
     <h4 *ngIf="routeParams?.id">{{ 'This error has been reported to the Administrator with the ID:' }}<br> {{ routeParams?.id}}</h4>
     <a mat-raised-button

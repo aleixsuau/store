@@ -1,9 +1,8 @@
+import { fadeAnimationDefault } from './../../../../shared/animations/animations';
 import { FormsService } from './../../../../core/services/forms/forms.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, NgForm } from '@angular/forms';
 import { map, switchMap } from 'rxjs/operators';
-import { trigger, transition, useAnimation } from '@angular/animations';
-import { fadeAnimation } from 'src/app/shared/animations/animations';
 import { Store } from '@ngxs/store';
 import * as storeActions from '../../ngxs-store/store.actions';
 
@@ -12,16 +11,7 @@ import * as storeActions from '../../ngxs-store/store.actions';
   selector: 'app-add',
   templateUrl: './add.component.html',
   styleUrls: ['./add.component.scss'],
-  animations: [
-    trigger('fade', [
-      transition('void => *', [
-        useAnimation(fadeAnimation, {
-          delay: 0,
-          params: { from: 0, to: 1, time: '500ms' },
-        })
-      ])
-    ])
-  ]
+  animations: fadeAnimationDefault
 })
 export class AddComponent implements OnInit {
   form: FormGroup;

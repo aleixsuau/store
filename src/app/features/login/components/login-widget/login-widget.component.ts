@@ -1,26 +1,16 @@
+import { fadeAnimationDefault } from './../../../../shared/animations/animations';
 import { UserService } from './../../../../core/services/user/user.service';
 import { NotificationService } from './../../../../core/services/notification/notification.service';
 import { Subscription } from 'rxjs';
-import { fadeAnimation } from '../../../../shared/animations/animations';
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { transition, trigger, useAnimation } from '@angular/animations';
 import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 
 @Component({
   selector: 'app-login-widget',
   templateUrl: './login-widget.component.html',
   styleUrls: ['./login-widget.component.scss'],
-  animations: [
-    trigger('fade', [
-      transition('void => *', [
-        useAnimation(fadeAnimation, {
-          delay: 0,
-          params: { from: 0, to: 1, time: '500ms' },
-        })
-      ])
-    ])
-  ]
+  animations: fadeAnimationDefault
 })
 export class LoginWidgetComponent implements OnInit {
   loginForm: FormGroup;

@@ -1,11 +1,10 @@
-import { trigger, transition, useAnimation } from '@angular/animations';
+import { fadeAnimationDefault } from './../../../../shared/animations/animations';
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSelect } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
-import { fadeAnimation } from 'src/app/shared/animations/animations';
 import { DialogComponent } from 'src/app/shared/components/dialog/components/dialog/dialog.component';
 import { Store } from '@ngxs/store';
 import { StoreState } from '../../ngxs-store/store.state';
@@ -16,16 +15,7 @@ import * as storeActions from '../../ngxs-store/store.actions';
   selector: 'app-list',
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
-  animations: [
-    trigger('fade', [
-      transition('void => *', [
-        useAnimation(fadeAnimation, {
-          delay: 0,
-          params: { from: 0, to: 1, time: '500ms' },
-        })
-      ])
-    ])
-  ]
+  animations: fadeAnimationDefault,
 })
 export class ListComponent implements OnInit, AfterViewInit {
   items$: Observable<IStoreItem[]>;
