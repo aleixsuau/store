@@ -1,3 +1,5 @@
+import { NotificationService } from 'src/app/core/services/notification/notification.service';
+import { UserService } from 'src/app/core/services/user/user.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { fadeAnimation } from '../../../../shared/animations/animations';
 import { Component } from '@angular/core';
@@ -22,11 +24,14 @@ export class LoginComponent {
   loginMouseEnter: boolean;
 
   constructor(
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
+    private _router: Router,
+    private _activatedRoute: ActivatedRoute,
+    private _userService: UserService,
+    private _notificationService: NotificationService,
   ) { }
 
   redirectToRoot() {
-    this.router.navigate([`../`], { relativeTo: this.activatedRoute });
+    this._notificationService.notify(`Welcome ${this._userService.getUser()?.firstName}`, 'X');
+    this._router.navigate([`../`], { relativeTo: this._activatedRoute });
   }
 }

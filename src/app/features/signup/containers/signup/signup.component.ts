@@ -4,6 +4,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { trigger, transition, useAnimation } from '@angular/animations';
 import { fadeAnimation } from 'src/app/shared/animations/animations';
+import { NotificationService } from 'src/app/core/services/notification/notification.service';
+import { UserService } from 'src/app/core/services/user/user.service';
 
 @Component({
   selector: 'app-signup',
@@ -70,6 +72,8 @@ export class SignupComponent implements OnInit {
     private _authService: AuthService,
     private _router: Router,
     private _activatedRoute: ActivatedRoute,
+    private _userService: UserService,
+    private _notificationService: NotificationService,
   ) { }
 
   ngOnInit(): void {
@@ -93,6 +97,7 @@ export class SignupComponent implements OnInit {
   }
 
   redirectToRoot() {
+    this._notificationService.notify(`Welcome ${this._userService.getUser()?.firstName}`, 'X');
     this._router.navigate([`../`], { relativeTo: this._activatedRoute });
   }
 }
