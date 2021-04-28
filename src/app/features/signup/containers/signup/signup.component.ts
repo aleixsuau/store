@@ -63,18 +63,13 @@ export class SignupComponent implements OnInit {
       placeholder: 'Phone',
       type: 'phone',
     },
-    {
-      key: 'firstName',
-      placeholder: 'First Name',
-      type: 'text',
-    },
   ];
 
   constructor(
-    private formbuilder: FormBuilder,
+    private _formbuilder: FormBuilder,
     private _authService: AuthService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
+    private _router: Router,
+    private _activatedRoute: ActivatedRoute,
   ) { }
 
   ngOnInit(): void {
@@ -88,7 +83,7 @@ export class SignupComponent implements OnInit {
         return formGroup;
       }, {});
 
-    this.form = this.formbuilder.group(formGroupConfig);
+    this.form = this._formbuilder.group(formGroupConfig);
   }
 
   onSubmit(formValue: IUser) {
@@ -98,6 +93,6 @@ export class SignupComponent implements OnInit {
   }
 
   redirectToRoot() {
-    this.router.navigate([`../`], { relativeTo: this.activatedRoute });
+    this._router.navigate([`../`], { relativeTo: this._activatedRoute });
   }
 }

@@ -2,6 +2,14 @@
   height: 100vh;
 }
 
+mat-card {
+  padding: calc(var(--box-padding) * 2);
+}
+
+button[type=submit] {
+  margin-top: var(--box-margin);
+}
+
 .signup:hover {
   transition: all 0.5s ease;
   transform: scale(1.05);

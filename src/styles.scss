@@ -146,9 +146,11 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   margin-bottom: var(--box-margin) !important;
 }
 
-.mat-dialog-actions {
+.mat-dialog-actions,
+.mat-card-footer {
   margin: 0 !important;
 }
+
 
 
 

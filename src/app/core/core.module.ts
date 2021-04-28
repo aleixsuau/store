@@ -10,11 +10,10 @@ import { ErrorsModule } from './errors';
 import { NotificationService } from './services/notification/notification.service';
 import { HttpClientModule } from '@angular/common/http';
 import { NotificationModule } from './services/notification/notification.module';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
-  declarations: [
-
-  ],
+  declarations: [],
   imports: [
     BrowserModule,
     CommonModule,
@@ -25,6 +24,7 @@ import { NotificationModule } from './services/notification/notification.module'
     LoadingModule,
     ErrorsModule,
     NotificationModule,
+    ReactiveFormsModule,
   ],
   providers: [
     UserService,

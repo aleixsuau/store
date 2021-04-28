@@ -37,20 +37,20 @@ export class LoginWidgetComponent implements OnInit {
   @Output() loginFailed = new EventEmitter();
 
   constructor(
-    private authService: AuthService,
-    private formBuilder: FormBuilder,
-    private notificationService: NotificationService,
-    private userService: UserService,
+    private _authService: AuthService,
+    private _formBuilder: FormBuilder,
+    private _notificationService: NotificationService,
+    private _userService: UserService,
   ) { }
 
   ngOnInit() {
-    this.loginForm = this.formBuilder.group({
+    this.loginForm = this._formBuilder.group({
       username: [ '', [ Validators.required ]],
       password: [ '', [ Validators.required ]],
       keepMeLoggedIn: false,
     });
 
-    this.activeUser = this.userService.getUser();
+    this.activeUser = this._userService.getUser();
 
     if (this.activeUser && this.activeUser.email) {
       this.loginForm.get('username').setValue(this.activeUser.email);
@@ -62,7 +62,7 @@ export class LoginWidgetComponent implements OnInit {
   }
 
   login(username: string, password: string, keepMeLoggedIn: boolean) {
-    this.authService
+    this._authService
       .login(username, password, keepMeLoggedIn)
       .subscribe(
         (user: IUser) => this.loggedIn.emit(user),
@@ -73,7 +73,7 @@ export class LoginWidgetComponent implements OnInit {
   handleError(error) {
     this.loginError = true;
     this.loginFailed.emit(null);
-    this.notificationService
+    this._notificationService
           .notify(
             `${this.getErrorMessage(error)}`,
             'X',

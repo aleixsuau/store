@@ -4,6 +4,9 @@ h1, h3, h4, h5 {
 
 .error-container {
   height: 100vh;
+  max-width: 90vw;
+  margin: 0 auto;
   text-align: center;
   overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
