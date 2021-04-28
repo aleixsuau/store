@@ -1,3 +1,4 @@
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { DialogModule } from './../../shared/components/dialog/dialog.module';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -34,6 +35,7 @@ import { StoreState } from './ngxs-store/store.state';
     MaterialFileInputModule,
     MatIconModule,
     MatTableModule,
+    MatPaginatorModule,
     MatFormFieldModule,
     MatSelectModule,
     MatProgressSpinnerModule,

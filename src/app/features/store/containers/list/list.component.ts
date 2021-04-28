@@ -9,6 +9,7 @@ import { DialogComponent } from 'src/app/shared/components/dialog/components/dia
 import { Select, Store } from '@ngxs/store';
 import { StoreState } from '../../ngxs-store/store.state';
 import * as storeActions from '../../ngxs-store/store.actions';
+import { MatPaginator } from '@angular/material/paginator';
 
 
 @Component({
@@ -41,6 +42,7 @@ export class ListComponent implements OnInit, AfterViewInit {
   @Select(StoreState.statuses$) statuses$: Observable<IOption[]>;
 
   @ViewChild(MatSelect) select: MatSelect;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
 
   constructor(
     private _ngxsStore: Store,
@@ -61,7 +63,10 @@ export class ListComponent implements OnInit, AfterViewInit {
         distinctUntilChanged(),
         tap(selectedValue => this._ngxsStore.dispatch(new storeActions.Query(`status=${selectedValue}`))),
         switchMap(() => this._ngxsStore.select(StoreState.items$)),
-        tap(storeItems => this.dataSource = new MatTableDataSource(storeItems)),
+        tap(storeItems => {
+          this.dataSource = new MatTableDataSource(storeItems);
+          this.dataSource.paginator = this.paginator;
+        }),
       );
   }
 
