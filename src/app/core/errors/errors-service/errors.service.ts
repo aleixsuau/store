@@ -31,7 +31,7 @@ export class ErrorsService {
   addContextInfo(error): ErrorWithContext {
     // You can include context details here (usually coming from other services: UserService...)
     const name = error.name || null;
-    const user = this.userService.getUser() && this.userService.getUser().firstName;
+    const user = this.userService.getUser()?.firstName;
     const time = new Date().getTime();
     const id = `${user}-${time}`;
     const location = this.injector.get<LocationStrategy>(LocationStrategy);

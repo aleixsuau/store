@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable,  } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, tap } from 'rxjs/operators';
 
 /**
  * AUTH SYSTEM:
@@ -70,11 +70,7 @@ export class AuthService {
             throw new Error(`${response['Error'].Code}: ${response['Error'].Message}`);
           }
         }),
-        map(user => {
-          this.setToken(username, keepMeLoggedIn);
-
-          return user;
-        })
+        tap(user => this.setToken(username, keepMeLoggedIn)),
       );
   }
 
@@ -89,18 +85,18 @@ export class AuthService {
   }
 
   getToken() {
-    return sessionStorage.getItem('token') || localStorage.getItem('token');
+    return sessionStorage.getItem('appToken') || localStorage.getItem('appToken');
   }
 
   setToken(token, keepMeLoggedIn?) {
     const storage = keepMeLoggedIn ? localStorage : sessionStorage;
     // Remove previous/other user's tokens
     this.deleteToken();
-    storage.setItem('token', token);
+    storage.setItem('appToken', token);
   }
 
   deleteToken() {
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
+    localStorage.removeItem('appToken');
+    sessionStorage.removeItem('appToken');
   }
 }

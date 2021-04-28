@@ -14,17 +14,17 @@ export class UserService {
   constructor(
     private httpClient: HttpClient,
   ) {
-    const user = JSON.parse(localStorage.getItem('mbUser') || sessionStorage.getItem('mbUser'));
+    const user = JSON.parse(localStorage.getItem('appUser') || sessionStorage.getItem('appUser'));
     this._user.next(user);
   }
 
   setUser(user: IUser) {
-    localStorage.setItem('mbUser', JSON.stringify(user));
+    localStorage.setItem('appUser', JSON.stringify(user));
     this._user.next(user);
   }
 
   removeUser() {
-    localStorage.removeItem('mbUser');
+    localStorage.removeItem('appUser');
     this._user.next(null);
   }
 
@@ -38,7 +38,10 @@ export class UserService {
     return this.httpClient
       .get<IUser>(`${environment.api.url}/${this._endPoint}/${username}`)
       .pipe(
-        tap(user => this._user.next(user)),
+        tap(user => {
+          this._user.next(user);
+          this.setUser(user);
+        }),
       );
   }
 }

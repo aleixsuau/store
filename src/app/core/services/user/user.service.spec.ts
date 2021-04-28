@@ -34,7 +34,7 @@ describe('UserService', () => {
   });
 
   afterEach(() => {
-    localStorage.removeItem('mbUser');
+    localStorage.removeItem('appUser');
   });
 
   it('should be created', () => {
