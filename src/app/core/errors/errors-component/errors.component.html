@@ -14,7 +14,7 @@
     <a mat-raised-button
       [routerLink]="routeParams?.url"
       *ngIf="routeParams?.url && routeParams.status !== '404'">
-        <h5>{{ 'Go Back to' }} {{routeParams?.url}}</h5>
+      {{ 'Go Back to' }} {{routeParams?.url}}
     </a>
   </div>
 
