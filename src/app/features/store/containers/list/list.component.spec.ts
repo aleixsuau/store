@@ -8,19 +8,19 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import { By } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { defer } from 'rxjs';
 import { DialogModule } from 'src/app/shared/components/dialog/dialog.module';
-import { StoreService } from '../../services/store/store.service';
 import { ListComponent } from './list.component';
+import { Store } from '@ngxs/store';
 
 
 describe('StoreComponent', () => {
   let component: ListComponent;
   let fixture: ComponentFixture<ListComponent>;
-  let storeService: jasmine.SpyObj<StoreService>;
+  let store: jasmine.SpyObj<Store>;
   let matDialog: jasmine.SpyObj<MatDialog>;
   const itemsMock = [
     {
@@ -47,7 +47,7 @@ describe('StoreComponent', () => {
 
 
   beforeEach(async () => {
-    const storeServiceSpy = jasmine.createSpyObj('StoreService', ['query', 'add']);
+    const storeSpy = jasmine.createSpyObj('Store', ['dispatch', 'select']);
     const matDialogServiceSpy = jasmine.createSpyObj('MatDialog', ['open']);
 
     await TestBed.configureTestingModule({
@@ -67,18 +67,19 @@ describe('StoreComponent', () => {
       ],
       providers: [
         { provide: MatDialog, useValue: matDialogServiceSpy },
-        { provide: StoreService, useValue: storeServiceSpy },
+        { provide: Store, useValue: storeSpy },
       ]
     })
     .compileComponents();
 
-    storeService = TestBed.inject(StoreService) as jasmine.SpyObj<StoreService>;
+    store = TestBed.inject(Store) as jasmine.SpyObj<Store>;
     matDialog = TestBed.inject(MatDialog) as jasmine.SpyObj<MatDialog>;
   });
 
   beforeEach(() => {
     // @ts-ignore
-    storeService.query.and.returnValue(defer(() => Promise.resolve(itemsMock)));
+    store.dispatch.and.returnValue(defer(() => Promise.resolve(itemsMock)));
+    store.select.and.returnValue(defer(() => Promise.resolve(itemsMock)));
 
     fixture = TestBed.createComponent(ListComponent);
     component = fixture.componentInstance;

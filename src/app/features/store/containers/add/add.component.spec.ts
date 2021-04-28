@@ -15,13 +15,13 @@ import { of } from 'rxjs';
 import { FormsService } from 'src/app/core/services/forms/forms.service';
 import { NotificationService } from 'src/app/core/services/notification/notification.service';
 import { FocusModule } from 'src/app/shared/directives/focus/focus.module';
-import { StoreService } from '../../services/store/store.service';
 import { AddComponent } from './add.component';
+import { Store } from '@ngxs/store';
 
 describe('AddComponent', () => {
   let component: AddComponent;
   let fixture: ComponentFixture<AddComponent>;
-  let storeService: jasmine.SpyObj<StoreService>;
+  let store: jasmine.SpyObj<Store>;
   let formsService: jasmine.SpyObj<FormsService>;
   const itemMock = {
     name: 'item test name',
@@ -30,7 +30,7 @@ describe('AddComponent', () => {
   };
 
   beforeEach(async () => {
-    const storeServiceSpy = jasmine.createSpyObj('StoreService', ['query', 'add']);
+    const storeSpy = jasmine.createSpyObj('Store', ['dispatch']);
     const notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['notify']);
     const formsServiceSpy = jasmine.createSpyObj('FormsService', ['getFilesDataUrls']);
 
@@ -51,7 +51,7 @@ describe('AddComponent', () => {
       ],
       providers:[
         FormBuilder,
-        { provide: StoreService, useValue: storeServiceSpy },
+        { provide: Store, useValue: storeSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: FormsService, useValue: formsServiceSpy },
         HttpClientTestingModule,
@@ -59,7 +59,7 @@ describe('AddComponent', () => {
     })
     .compileComponents();
 
-    storeService = TestBed.inject(StoreService) as jasmine.SpyObj<StoreService>;
+    store = TestBed.inject(Store) as jasmine.SpyObj<Store>;
     formsService = TestBed.inject(FormsService) as jasmine.SpyObj<FormsService>;
   });
 
@@ -83,7 +83,7 @@ describe('AddComponent', () => {
     const submitButton = fixture.debugElement.query(By.css('button[type=submit]')).nativeElement;
 
     formsService.getFilesDataUrls.and.returnValue(of(itemMock.photoUrls));
-    storeService.add.and.returnValue(of({} as IItem));
+    store.dispatch.and.returnValue(of({} as IItem));
 
     component.form.setValue(itemMock);
     fixture.detectChanges();
@@ -93,6 +93,6 @@ describe('AddComponent', () => {
     fixture.detectChanges();
     flush();
 
-    expect(storeService.add).toHaveBeenCalled();
+    expect(store.dispatch).toHaveBeenCalled();
   }));
 });

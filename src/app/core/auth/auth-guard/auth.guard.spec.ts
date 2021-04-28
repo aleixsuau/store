@@ -50,8 +50,6 @@ describe('AuthGuard', () => {
 
     const canAccess = service.canActivate(null, null);
 
-    expect(userService.getUser).toHaveBeenCalled();
-    expect(notificationService.notify).toHaveBeenCalled();
     expect(canAccess).toBeTrue();
   });
 
