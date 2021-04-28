@@ -7,5 +7,8 @@ export const environment = {
   api: {
     url: 'http://localhost:80/v2',
     apiKey: 'special-key',
+  },
+  errors: {
+    retries: 0,
   }
 };
