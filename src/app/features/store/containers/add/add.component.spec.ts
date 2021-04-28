@@ -16,12 +16,15 @@ import { FormsService } from 'src/app/core/services/forms/forms.service';
 import { NotificationService } from 'src/app/core/services/notification/notification.service';
 import { FocusModule } from 'src/app/shared/directives/focus/focus.module';
 import { AddComponent } from './add.component';
-import { Store } from '@ngxs/store';
+import { NgxsModule, Store } from '@ngxs/store';
+import { StoreState } from '../../ngxs-store/store.state';
+import { StoreService } from '../../services/store/store.service';
 
-describe('AddComponent', () => {
+describe('Store AddComponent', () => {
   let component: AddComponent;
   let fixture: ComponentFixture<AddComponent>;
   let store: jasmine.SpyObj<Store>;
+  let storeService: jasmine.SpyObj<StoreService>;
   let formsService: jasmine.SpyObj<FormsService>;
   const itemMock = {
     name: 'item test name',
@@ -30,7 +33,8 @@ describe('AddComponent', () => {
   };
 
   beforeEach(async () => {
-    const storeSpy = jasmine.createSpyObj('Store', ['dispatch']);
+    const storeSpy = jasmine.createSpyObj('Store', ['dispatch', 'select']);
+    const storeServiceSpy = jasmine.createSpyObj('StoreService', ['query', 'add']);
     const notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['notify']);
     const formsServiceSpy = jasmine.createSpyObj('FormsService', ['getFilesDataUrls']);
 
@@ -48,10 +52,12 @@ describe('AddComponent', () => {
         MatFormFieldModule,
         MatSelectModule,
         BrowserAnimationsModule,
+        NgxsModule.forRoot([StoreState]),
       ],
       providers:[
         FormBuilder,
         { provide: Store, useValue: storeSpy },
+        { provide: StoreService, useValue: storeServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: FormsService, useValue: formsServiceSpy },
         HttpClientTestingModule,
@@ -60,6 +66,7 @@ describe('AddComponent', () => {
     .compileComponents();
 
     store = TestBed.inject(Store) as jasmine.SpyObj<Store>;
+    storeService = TestBed.inject(StoreService) as jasmine.SpyObj<StoreService>;
     formsService = TestBed.inject(FormsService) as jasmine.SpyObj<FormsService>;
   });
 

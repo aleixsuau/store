@@ -1,3 +1,4 @@
+import { StoreService } from './../../services/store/store.service';
 import { CommonModule } from '@angular/common';
 import { ComponentFixture, TestBed, fakeAsync, tick, flush, async, waitForAsync } from '@angular/core/testing';
 import { FlexLayoutModule } from '@angular/flex-layout';
@@ -14,13 +15,15 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { defer } from 'rxjs';
 import { DialogModule } from 'src/app/shared/components/dialog/dialog.module';
 import { ListComponent } from './list.component';
-import { Store } from '@ngxs/store';
+import { NgxsModule, Store } from '@ngxs/store';
+import { StoreState } from '../../ngxs-store/store.state';
 
 
-describe('StoreComponent', () => {
+describe('Store ListComponent', () => {
   let component: ListComponent;
   let fixture: ComponentFixture<ListComponent>;
   let store: jasmine.SpyObj<Store>;
+  let storeService: jasmine.SpyObj<StoreService>;
   let matDialog: jasmine.SpyObj<MatDialog>;
   const itemsMock = [
     {
@@ -48,6 +51,7 @@ describe('StoreComponent', () => {
 
   beforeEach(async () => {
     const storeSpy = jasmine.createSpyObj('Store', ['dispatch', 'select']);
+    const storeServiceSpy = jasmine.createSpyObj('StoreService', ['query', 'add']);
     const matDialogServiceSpy = jasmine.createSpyObj('MatDialog', ['open']);
 
     await TestBed.configureTestingModule({
@@ -64,15 +68,18 @@ describe('StoreComponent', () => {
         DialogModule,
         BrowserAnimationsModule,
         MatProgressSpinnerModule,
+        NgxsModule.forRoot([StoreState]),
       ],
       providers: [
         { provide: MatDialog, useValue: matDialogServiceSpy },
         { provide: Store, useValue: storeSpy },
+        { provide: StoreService, useValue: storeServiceSpy },
       ]
     })
     .compileComponents();
 
     store = TestBed.inject(Store) as jasmine.SpyObj<Store>;
+    storeService = TestBed.inject(StoreService) as jasmine.SpyObj<StoreService>;
     matDialog = TestBed.inject(MatDialog) as jasmine.SpyObj<MatDialog>;
   });
 
