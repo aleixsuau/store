@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
-
 import { MatSnackBar, MatSnackBarConfig, MatSnackBarRef } from '@angular/material/snack-bar';
 import { ComponentType } from '@angular/cdk/portal';
 
 @Injectable()
 export class NotificationService {
-
   defaultConfig: MatSnackBarConfig = {
     // You can use .success/.error for success/error(styles.css)
     // or pass other classes to the notification methods

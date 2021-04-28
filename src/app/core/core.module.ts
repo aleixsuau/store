@@ -1,6 +1,5 @@
 import { BaseModule } from './components/base/base.module';
 import { UserService } from './services/user/user.service';
-import { SharedModule } from './../shared/shared.module';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -10,6 +9,7 @@ import { LoadingModule } from './loading/loading.module';
 import { ErrorsModule } from './errors';
 import { NotificationService } from './services/notification/notification.service';
 import { HttpClientModule } from '@angular/common/http';
+import { NotificationModule } from './services/notification/notification.module';
 
 @NgModule({
   declarations: [
@@ -23,12 +23,11 @@ import { HttpClientModule } from '@angular/common/http';
     BaseModule,
     AuthModule,
     LoadingModule,
-    SharedModule,
     ErrorsModule,
+    NotificationModule,
   ],
   providers: [
     UserService,
-    NotificationService,
   ],
   exports: [
     AuthModule,
