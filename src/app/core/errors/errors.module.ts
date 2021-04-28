@@ -1,3 +1,4 @@
+import { FlexLayoutModule } from '@angular/flex-layout';
 import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
@@ -13,6 +14,7 @@ import { ErrorsRoutingModule } from './errors-routing.module';
   imports: [
     CommonModule,
     SharedModule,
+    FlexLayoutModule,
     ErrorsRoutingModule,
   ],
   declarations: [
