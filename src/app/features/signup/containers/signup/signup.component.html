@@ -25,6 +25,7 @@
                 [type]="field.type"
                 [placeholder]="field.placeholder"
                 [appFocus]="index === 1"
+                autocomplete="on"
                 fxFlex="100">
 
           <mat-error *ngIf="form.get(field.key).errors">

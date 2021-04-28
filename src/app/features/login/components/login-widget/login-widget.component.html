@@ -14,6 +14,7 @@
               type="email"
               placeholder="Email or Username"
               fxFlex="100"
+              autocomplete="on"
               [appFocus]="true">
 
       <mat-error *ngIf="loginForm.get('username').hasError('required')">
@@ -27,6 +28,7 @@
             type="password"
             (keyup.enter)="loginForm.valid && login(loginForm.get('username').value, loginForm.get('password').value, loginForm.get('keepMeLoggedIn').value)"
             placeholder="Password"
+            autocomplete="on"
             fxFlex="100">
 
         <mat-error *ngIf="loginForm.get('password').hasError('required')">
