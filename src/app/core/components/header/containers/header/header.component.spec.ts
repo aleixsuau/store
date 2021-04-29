@@ -1,10 +1,10 @@
+import { AuthService } from './../../../../auth/auth-service/auth.service';
+import { UserService } from './../../../../services/user/user.service';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { MatIconModule } from '@angular/material/icon';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
-import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
-import { UserService } from 'src/app/core/services/user/user.service';
 
 import { HeaderComponent } from './header.component';
 import { MatToolbarModule } from '@angular/material/toolbar';

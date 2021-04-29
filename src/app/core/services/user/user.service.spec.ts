@@ -1,7 +1,6 @@
+import { environment } from './../../../../environments/environment';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { TestBed, inject, fakeAsync, tick, flush } from '@angular/core/testing';
-import { environment } from 'src/environments/environment';
-
+import { TestBed, fakeAsync, flush } from '@angular/core/testing';
 import { UserService } from './user.service';
 
 describe('UserService', () => {

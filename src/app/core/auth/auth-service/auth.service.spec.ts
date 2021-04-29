@@ -1,8 +1,8 @@
+import { environment } from './../../../../environments/environment';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
-import { environment } from 'src/environments/environment';
 import { UserService } from '../../services/user/user.service';
 
 import { AuthService } from './auth.service';

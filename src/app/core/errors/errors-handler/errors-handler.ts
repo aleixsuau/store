@@ -1,7 +1,7 @@
-import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorHandler, Injectable, Injector } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../../auth/auth-service/auth.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { ErrorsService } from '../errors-service/errors.service';
 

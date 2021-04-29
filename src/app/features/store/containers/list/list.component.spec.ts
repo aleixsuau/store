@@ -1,3 +1,4 @@
+import { DialogModule } from './../../../../shared/components/dialog/dialog.module';
 import { StoreService } from './../../services/store/store.service';
 import { CommonModule } from '@angular/common';
 import { ComponentFixture, TestBed, fakeAsync, tick, flush, async, waitForAsync } from '@angular/core/testing';
@@ -13,7 +14,6 @@ import { MatTableModule } from '@angular/material/table';
 import { By } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { defer } from 'rxjs';
-import { DialogModule } from 'src/app/shared/components/dialog/dialog.module';
 import { ListComponent } from './list.component';
 import { NgxsModule, Store } from '@ngxs/store';
 import { StoreState } from '../../ngxs-store/store.state';

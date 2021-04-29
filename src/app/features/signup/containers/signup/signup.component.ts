@@ -1,10 +1,10 @@
+import { NotificationService } from './../../../../core/services/notification/notification.service';
+import { UserService } from './../../../../core/services/user/user.service';
+import { AuthService } from './../../../../core/auth/auth-service/auth.service';
 import { fadeAnimationDefault } from './../../../../shared/animations/animations';
-import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { NotificationService } from 'src/app/core/services/notification/notification.service';
-import { UserService } from 'src/app/core/services/user/user.service';
 
 @Component({
   selector: 'app-signup',

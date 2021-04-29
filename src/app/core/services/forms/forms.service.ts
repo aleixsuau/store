@@ -1,4 +1,4 @@
-import { NotificationService } from 'src/app/core/services/notification/notification.service';
+import { NotificationService } from './../notification/notification.service';
 import { Injectable } from '@angular/core';
 import { forkJoin, Observable, Subject } from 'rxjs';
 

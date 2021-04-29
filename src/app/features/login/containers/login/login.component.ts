@@ -1,6 +1,6 @@
+import { UserService } from './../../../../core/services/user/user.service';
+import { NotificationService } from './../../../../core/services/notification/notification.service';
 import { fadeAnimationDefault } from './../../../../shared/animations/animations';
-import { NotificationService } from 'src/app/core/services/notification/notification.service';
-import { UserService } from 'src/app/core/services/user/user.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 

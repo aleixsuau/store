@@ -1,3 +1,6 @@
+import { FormsService } from './../../../../core/services/forms/forms.service';
+import { NotificationService } from './../../../../core/services/notification/notification.service';
+import { FocusModule } from './../../../../shared/directives/focus/focus.module';
 import { CommonModule } from '@angular/common';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, fakeAsync, flush, TestBed } from '@angular/core/testing';
@@ -12,9 +15,6 @@ import { By } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialFileInputModule } from 'ngx-material-file-input';
 import { of } from 'rxjs';
-import { FormsService } from 'src/app/core/services/forms/forms.service';
-import { NotificationService } from 'src/app/core/services/notification/notification.service';
-import { FocusModule } from 'src/app/shared/directives/focus/focus.module';
 import { AddComponent } from './add.component';
 import { NgxsModule, Store } from '@ngxs/store';
 import { StoreState } from '../../ngxs-store/store.state';

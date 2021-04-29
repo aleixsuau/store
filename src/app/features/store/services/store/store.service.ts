@@ -1,5 +1,5 @@
-import { NotificationService } from 'src/app/core/services/notification/notification.service';
-import { environment } from 'src/environments/environment';
+import { environment } from './../../../../../environments/environment';
+import { NotificationService } from './../../../../core/services/notification/notification.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';

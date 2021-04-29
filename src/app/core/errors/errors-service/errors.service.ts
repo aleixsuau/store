@@ -1,4 +1,4 @@
-import { environment } from './../../../../environments/environment.prod';
+import { environment } from './../../../../environments/environment';
 import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { Injectable, Injector, Type } from '@angular/core';

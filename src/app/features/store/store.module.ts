@@ -1,3 +1,4 @@
+import { FocusModule } from './../../shared/directives/focus/focus.module';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { DialogModule } from './../../shared/components/dialog/dialog.module';
 import { FlexLayoutModule } from '@angular/flex-layout';
@@ -12,7 +13,6 @@ import { AddComponent } from './containers/add/add.component';
 import { MaterialFileInputModule } from 'ngx-material-file-input';
 import { MatIconModule } from '@angular/material/icon';
 import { ReactiveFormsModule } from '@angular/forms';
-import { FocusModule } from 'src/app/shared/directives/focus/focus.module';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';

@@ -1,6 +1,6 @@
+import { FocusModule } from './../../shared/directives/focus/focus.module';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { CommonModule } from '@angular/common';
-import { FocusModule } from 'src/app/shared/directives/focus/focus.module';
 import { LoginComponent } from './../login/containers/login/login.component';
 import { NgModule } from '@angular/core';
 import { LoginWidgetComponent } from './components/login-widget/login-widget.component';

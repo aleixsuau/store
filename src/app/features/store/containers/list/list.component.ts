@@ -1,3 +1,4 @@
+import { DialogComponent } from './../../../../shared/components/dialog/components/dialog/dialog.component';
 import { fadeAnimationDefault } from './../../../../shared/animations/animations';
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
@@ -5,7 +6,6 @@ import { MatSelect } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, map, switchMap, take, tap } from 'rxjs/operators';
-import { DialogComponent } from 'src/app/shared/components/dialog/components/dialog/dialog.component';
 import { Select, Store } from '@ngxs/store';
 import { StoreState } from '../../ngxs-store/store.state';
 import * as storeActions from '../../ngxs-store/store.actions';

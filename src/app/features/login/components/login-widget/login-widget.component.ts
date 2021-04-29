@@ -1,10 +1,10 @@
+import { AuthService } from './../../../../core/auth/auth-service/auth.service';
 import { fadeAnimationDefault } from './../../../../shared/animations/animations';
 import { UserService } from './../../../../core/services/user/user.service';
 import { NotificationService } from './../../../../core/services/notification/notification.service';
 import { Subscription } from 'rxjs';
 import { Component, OnInit, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AuthService } from 'src/app/core/auth/auth-service/auth.service';
 
 @Component({
   selector: 'app-login-widget',
