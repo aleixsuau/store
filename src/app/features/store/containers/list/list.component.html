@@ -5,10 +5,28 @@
                   @fade>
     <mat-label>Status</mat-label>
 
-    <mat-select [(value)]="selectedStatus">
+    <mat-select [(value)]="selectedStatus"
+                #statusSelect>
       <mat-option [value]="status"
                   *ngFor="let status of (statuses$ | async)">
         {{ status.label }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill"
+                  fxFlex="0 0 100%"
+                  @fade>
+    <mat-label>Tag</mat-label>
+
+    <mat-select [(value)]="selectedTag"
+                #tagSelect>
+      <mat-option [value]="null">
+        All
+      </mat-option>
+      <mat-option [value]="tag"
+                  *ngFor="let tag of tags">
+        {{ tag.name }}
       </mat-option>
     </mat-select>
   </mat-form-field>
