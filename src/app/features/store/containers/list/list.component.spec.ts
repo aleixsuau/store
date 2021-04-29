@@ -1,3 +1,4 @@
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { DialogModule } from './../../../../shared/components/dialog/dialog.module';
 import { StoreService } from './../../services/store/store.service';
 import { CommonModule } from '@angular/common';
@@ -68,6 +69,7 @@ describe('Store ListComponent', () => {
         DialogModule,
         BrowserAnimationsModule,
         MatProgressSpinnerModule,
+        MatPaginatorModule,
         NgxsModule.forRoot([StoreState]),
       ],
       providers: [

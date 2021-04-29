@@ -12,13 +12,13 @@
       <input matInput
               formControlName="username"
               type="email"
-              placeholder="Email or Username"
+              placeholder="Username"
               fxFlex="100"
               autocomplete="on"
               [appFocus]="true">
 
       <mat-error *ngIf="loginForm.get('username').hasError('required')">
-        Please insert your email or username
+        Please insert your username
       </mat-error>
     </mat-form-field>
 
